@@ -1,0 +1,29 @@
+@using MovManagerr.Models
+
+<h2 class="content-block">Home</h2>
+
+@(Html.DevExtreme().DataGrid<MovieDirectorySpec>()
+    .ElementAttr(new { @class = "dx-card wide-card" })
+    .DataSource(d => d.Mvc().Controller("MovieData").LoadAction("Get").Key("Id"))
+    .ShowBorders(false)
+    .FilterRow(f => f.Visible(true))
+    .FocusedRowEnabled(true)
+    .FocusedRowIndex(0)
+    .ColumnAutoWidth(true)
+    .ColumnHidingEnabled(true)
+    .Columns(columns => {
+        columns.AddFor(m => m.Id);
+        columns.AddFor(m => m.DirectoryInfo.Title);
+        columns.AddFor(m => m.DirectoryInfo.Year);
+        columns.AddFor(m => m.File.Gb);
+        columns.AddFor(m => m.File.AddedDate);
+        columns.AddFor(m => m.DirectoryInfo.Path);
+        columns.AddFor(m => m.IsNeedAttention);
+    })
+    .Paging(p => p.PageSize(10))
+    .Pager(p => p
+        .ShowPageSizeSelector(true)
+        .AllowedPageSizes(new[] { 5, 10, 20 })
+        .ShowInfo(true)
+    )
+)
