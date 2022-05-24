@@ -37,3 +37,5 @@ jobs:
         # Remote folder
         server-dir: MovManagerr/
         
+        dangerous-clean-slate: true
+        
