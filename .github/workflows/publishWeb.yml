@@ -1,0 +1,39 @@
+name: WebPublish
+
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/checkout@v2
+    
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+        
+    - name: Install dependencies   
+      run: dotnet restore
+      
+    - name: Build with dotnet    
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Publish 
+      run: dotnet publish MovManagerr.Web -c Release --output ./Release
+      
+    - name: FTP Deploy
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      with:
+        server: ftp.mesloc.com
+        # FTP account username
+        username: jcote
+         # FTP account password
+        password: Cote1!
+        # The local folder to copy, defaults to root project folder
+        local-dir: /home/runner/work/MovManagerr/MovManagerr/Release/
+        # Remote folder
+        server-dir: MovManagerr/
+        
