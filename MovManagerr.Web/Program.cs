@@ -1,7 +1,7 @@
 using Hangfire;
 using Hangfire.SqlServer;
 using MovManagerr.Web.Infrastructure;
-    
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -45,8 +45,14 @@ builder.Services
 var app = builder.Build();
 
 
-app.UseHangfireDashboard();
-
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    DashboardTitle = "Jobs",
+    Authorization = new[]
+    {
+       new  HangfireAuthorizationFilter("admin")
+    }
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
