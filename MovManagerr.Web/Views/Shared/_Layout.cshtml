@@ -78,13 +78,19 @@
                 .Items(items =>
                 {
                     items.Add()
-                        .Text("Home")
+                        .Text("Accueil")
                         .Icon("home")
                         .Option("path", GetUrl("Index"))
                         .Selected(IsCurrentUrl("Index"));
 
                     items.Add()
-                        .Text("About")
+                        .Text("Tâche")
+                        .Icon("detailslayout")
+                        .Option("path", Url.Action("Index", "hangfire"))
+                        .Selected(IsCurrentUrl("hangfire"));
+                        
+                    items.Add()
+                        .Text("À propos")
                         .Icon("info")
                         .Option("path", GetUrl("About"))
                         .Selected(IsCurrentUrl("About"));

@@ -3,21 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovManagerr", "MovManagerr\MovManagerr.csproj", "{294A23C6-07E7-43D4-BAC0-E49F0CBDBB1B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevExtreme NuGet.config", "DevExtreme NuGet.config", "{6CD86982-F514-409F-B8F8-E780741E7BFB}"
 	ProjectSection(SolutionItems) = preProject
 		NuGet.config = NuGet.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovManagerr.Explorer", "MovManagerr.Explorer\MovManagerr.Explorer.csproj", "{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Explorer", "MovManagerr.Explorer\MovManagerr.Explorer.csproj", "{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovManagerr.Models", "MovManagerr.Models\MovManagerr.Models.csproj", "{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Models", "MovManagerr.Models\MovManagerr.Models.csproj", "{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E94BD231-C656-4F6D-A27A-1A7F91111933}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Tmdb", "MovManagerr.Tmdb\MovManagerr.Tmdb.csproj", "{FACD27A8-4898-4643-8A73-A64B39F284C2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Web", "MovManagerr.Web\MovManagerr.Web.csproj", "{943B0CCA-20E8-4BC4-A841-1E9F4D44465B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +27,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{294A23C6-07E7-43D4-BAC0-E49F0CBDBB1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{294A23C6-07E7-43D4-BAC0-E49F0CBDBB1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{294A23C6-07E7-43D4-BAC0-E49F0CBDBB1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{294A23C6-07E7-43D4-BAC0-E49F0CBDBB1B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -37,6 +35,14 @@ Global
 		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{943B0CCA-20E8-4BC4-A841-1E9F4D44465B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{943B0CCA-20E8-4BC4-A841-1E9F4D44465B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{943B0CCA-20E8-4BC4-A841-1E9F4D44465B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{943B0CCA-20E8-4BC4-A841-1E9F4D44465B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

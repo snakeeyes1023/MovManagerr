@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MovManagerr.Models\MovManagerr.Models.csproj" />
+    <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
   </ItemGroup>
 
 </Project>

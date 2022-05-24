@@ -1,5 +1,6 @@
 ﻿using MovManagerr.Explorer.Config;
 using MovManagerr.Models;
+using MovManagerr.Tmdb;
 using Plex.ServerApi.Clients;
 using RadarrSharp;
 using System.Text.RegularExpressions;
@@ -10,6 +11,7 @@ namespace MovManagerr.Explorer.Services
     {
         public readonly ExplorerPathConfig _explorerConfig;
         public readonly RadarrClient _radarrClient;
+        public readonly TmdbClientService _tmdbClient;
 
         /// <summary>
         /// Gets the base path.
@@ -20,10 +22,13 @@ namespace MovManagerr.Explorer.Services
         public string BasePath => _explorerConfig.MovieBasePath;
 
 
-        public ContentServices(ExplorerPathConfig explorerConfig, RadarrInstanceConfig radarrInstanceConfig)
+        public ContentServices(ExplorerPathConfig explorerConfig,
+            RadarrInstanceConfig radarrInstanceConfig,
+            TmdbClientService tmdbService)
         {
             _explorerConfig = explorerConfig;
             _radarrClient = new RadarrClient(radarrInstanceConfig.Server, radarrInstanceConfig.Port, radarrInstanceConfig.ApiKey, "", false);
+            _tmdbClient = tmdbService;
         }
 
         /// <summary>
@@ -40,7 +45,7 @@ namespace MovManagerr.Explorer.Services
             {
                 //remove base path from name
                 string folderName = dir.Split(BasePath).LastOrDefault() ?? "";
-                
+
                 var movie = ExtractFromFileName(folderName.Substring(1));
                 movie.Path = dir;
                 movieDirectories.Add(movie);
@@ -53,66 +58,78 @@ namespace MovManagerr.Explorer.Services
         /// Initializes a new instance of the <see cref="T:System.Object" /> class.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<MovieDirectorySpec> GetAllMoviesFromFiles()
+        public async Task<IEnumerable<MovieDirectorySpec>> GetAllMoviesFromFilesAsync()
         {
             //get each folder in base folder
             var movieFolder = GetAllMoviesFromFolder();
+            var likedMovies = await _tmdbClient.Favorites.GetFavoriteMoviesAsync();
+
             List<MovieDirectorySpec> movieFiles = new List<MovieDirectorySpec>();
             int index = 0;
-            
+
             foreach (var item in movieFolder)
             {
                 index++;
-                
-                //get bigest file in folder
-                var files = Directory.GetFiles(item.Path, "*.*", SearchOption.TopDirectoryOnly);
-                
-                var movie = files.OrderByDescending(f => new FileInfo(f).Length).FirstOrDefault();
-                
-                if (movie != null)
-                {                    
-                    MovieFile movieFile = new MovieFile();
-                    movieFile.Name = Path.GetFileName(movie);
-                    movieFile.AddedDate = File.GetCreationTime(movie);
-                    movieFile.Gb = new FileInfo(movie).Length / 1024f / 1024f / 1024f;
 
-                    movieFiles.Add(new MovieDirectorySpec()
-                    {
-                        Id = index,
-                        DirectoryInfo = item,
-                        File = movieFile,
-                        NbFiles = files.Count()
-                    });
+                var tmdbInfo = likedMovies.Where(m => m.OriginalTitle == item.Title && m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == item.Year).FirstOrDefault();
+
+                if (tmdbInfo != null)
+                {
+                    movieFiles.Add(new MovieDirectorySpec(item, tmdbInfo));
                 }
             }
 
             return movieFiles;
         }
 
+
+        public async Task DeleteMovie(int key)
+        {
+            var movies = await GetAllMoviesFromFilesAsync();
+            var movie = movies.FirstOrDefault(m => m.Id == key);
+
+            if (movie != null)
+            {
+                await _tmdbClient.Favorites.DislikeMovieAsync(movie.Id);
+                Directory.Delete(movie.DirectoryInfo.Path, true);
+            }
+        }
+
+
         /// <summary>
         /// Deletes the bad movie.
         /// </summary>
         /// <returns>The number of deleted movies</returns>
-        public int DeleteBadMovie()
+        public async Task<int> DeleteBadMovie()
         {
-            var movies = GetAllMoviesFromFiles();
+            var movies = await GetAllMoviesFromFilesAsync();
             var movieToDelete = new List<MovieDirectorySpec>();
-            
+
             foreach (var movie in movies)
             {
-                if (movie.File.IsWebRip())
-                {
-                    movieToDelete.Add(movie);
-                }
+                await DeleteMovie(movieToDelete, movie);
             }
 
-            movieToDelete = movieToDelete.OrderByDescending(x => x.File.AddedDate).ToList();
             foreach (var movie in movieToDelete)
             {
                 Directory.Delete(movie.DirectoryInfo.Path, true);
             }
 
             return movieToDelete.Count;
+        }
+
+        private async Task DeleteMovie(List<MovieDirectorySpec> movieToDelete, MovieDirectorySpec movie)
+        {
+            if (movie.IsWebRip())
+            {
+                movieToDelete.Add(movie);
+            }
+
+            if (movie.Movie != null && movie.Movie.OriginalLanguage == "ja")
+            {
+                movieToDelete.Add(movie);
+                await _tmdbClient.Favorites.DislikeMovieAsync(movie.Movie.Id);
+            }
         }
 
 
@@ -143,5 +160,33 @@ namespace MovManagerr.Explorer.Services
                 };
             }
         }
+
+
+        /// <summary>
+        /// Sync The movie to Radarr.
+        /// </summary>
+        /// <returns></returns>
+        public async Task SyncMovieListByFolderAsync()
+        {
+            var downloadedMovie = GetAllMoviesFromFolder();
+
+            foreach (var movie in downloadedMovie)
+            {
+                try
+                {
+                    if (!await _tmdbClient.Favorites.LikeMovieByNameAndYearAsync(movie.Title, movie.Year))
+                    {
+                        throw new System.Exception("Movie not found");
+                    };
+                }
+                catch
+                {
+                    //do nothing
+                }
+
+            }
+
+        }
+
     }
 }

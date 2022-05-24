@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DevExtreme.AspNet.Data" Version="2.8.6" />
+		<PackageReference Include="DevExtreme.AspNet.Core" Version="21.2.7" />
+		<PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
+		<PackageReference Include="Hangfire.Core" Version="1.7.*" />
+		<PackageReference Include="Hangfire.SqlServer" Version="1.7.*" />
+		<PackageReference Include="Hangfire.AspNetCore" Version="1.7.*" />
+		<PackageReference Include="Plex.Api" Version="3.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MovManagerr.Explorer\MovManagerr.Explorer.csproj" />
+		<ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
+	</ItemGroup>
+
+	<ProjectExtensions>
+		<VisualStudio>
+			<UserProperties appsettings_1json__JsonSchema="" TemplateFeatures="NETCORE" />
+		</VisualStudio>
+	</ProjectExtensions>
+
+</Project>
