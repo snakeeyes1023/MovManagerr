@@ -1,10 +1,11 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting.Internal;
 using MovManagerr.Tmdb;
+using MovManagerr.Web.Infrastructure;
 
 namespace MovManagerr.Web.Controllers
 {
+    [ServiceFilter(typeof(AdminActionFilter))]
     public class MovieTaskController : Controller
     {
         private readonly TmdbClientService _tmdbClient;

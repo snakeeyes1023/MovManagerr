@@ -2,26 +2,47 @@
 
 <h2 class="content-block">Accueil</h2>
 
-@(Html.DevExtreme().Button()
-        .Text("Delete Favorite Movies")
-        .ID("DeleteFavoriteMoviesButton")
-)
+
+@(Html.DevExtreme().Toolbar()
+    .Items(items => {
+
+        items.Add()
+                .Location(ToolbarItemLocation.Center)
+                .Widget(w =>
+                    w.Button()
+                        .Text("Search new movies (2)")
+                        .Icon("plus")
+                        .ID("AddLikeNewMovieButton")
+                );
+
+            items.Add()
+                .Location(ToolbarItemLocation.Center)
+                .Widget(w =>
+                    w.Button()
+                        .Icon("trash")
+                        .Text("Delete Tmdb movies")
+                        .ID("DeleteFavoriteMoviesButton")
+                );
 
 
-@(Html.DevExtreme().Button()
-        .Text("Add Like New Movies")
-        .ID("AddLikeNewMovieButton")
-)
+              items.Add()
+                .Location(ToolbarItemLocation.Center)
+                .Widget(w =>
+                    w.Button()
+                        .Icon("sorted")
+                        .Text("Sync Movies")
+                        .ID("SyncMovieButton")
+                );
 
-@(Html.DevExtreme().Button()
-        .Text("Sync Movies")
-        .ID("SyncMovieButton")
-)
-
-@(Html.DevExtreme().Button()
-        .Icon("trash")
-        .Text("Delete bad movies")
-        .ID("deleteBadMovies")
+             items.Add()
+                .Location(ToolbarItemLocation.Center)
+                .Widget(w =>
+                    w.Button()
+                        .Icon("trash")
+                        .Text("Delete bad movies")
+                        .ID("deleteBadMovies")
+                );
+    })
 )
 
 
@@ -30,8 +51,10 @@
     .ElementAttr(new { @class = "dx-card wide-card" })
     .DataSource(d => d.Mvc().Controller("MovieData").LoadAction("Get").Key("Id"))
     .ShowBorders(false)
-    .FilterRow(f => f.Visible(true))
     .ColumnAutoWidth(true)
+    .RowAlternationEnabled(true)
+    .AllowColumnResizing(true)
+    .ColumnHidingEnabled(true)
     .RemoteOperations(true)
     .RepaintChangesOnly(true)
     .Editing(e => e
@@ -39,7 +62,6 @@
         .AllowDeleting(true)
     )
     .OnSaving("onSaving")
-    .ColumnHidingEnabled(true)
     .Columns(columns => {
        columns.AddFor(m => m.Movie.PosterPath)
             .Width(100)
@@ -47,13 +69,13 @@
             .AllowSorting(false)
             .Caption("")
             .CellTemplate(@<text>
-                    <div>
-                        <img style="width:90px; height:auto" src="https://image.tmdb.org/t/p/w200/<%- value %>" alt=""/>
-                    </div>
-            </text>);
-        columns.AddFor(m => m.Movie.Title).Caption("Titre du film");
-        columns.AddFor(m => m.Gb).Caption("Taille du fichier");
-        columns.AddFor(m => m.FullPath).Caption("Chemin du film");
+        <div>
+            <img style="width:90px; height:auto" src="https://image.tmdb.org/t/p/w200/<%- value %>" alt="" />
+        </div>
+    </text>);
+        columns.AddFor(m => m.Movie.Title).Caption("Titre du film").Width(200);
+        columns.AddFor(m => m.Gb).Caption("Taille du fichier").Width(100);
+        columns.AddFor(m => m.FullPath).Caption("Chemin du film").MinWidth(400).AllowHiding(false);
     })
     .Paging(p => p.PageSize(10))
     .Pager(p => p
@@ -64,7 +86,7 @@
 )
 
 
-<script>    
+<script>
     function onSaving(e) {
         e.cancel = true;
 
@@ -76,7 +98,7 @@
             });
         }
     }
-    
+
 
     function sendBatchRequest(url, changes) {
         var d = $.Deferred();
@@ -87,70 +109,47 @@
             cache: false,
             contentType: 'application/json',
             xhrFields: { withCredentials: true }
-        }).done(d.resolve).fail(function (xhr) {
+        }).done(d.resolve).fail(function(xhr) {
             d.reject(xhr.responseJSON ? xhr.responseJSON.Message : xhr.statusText);
         });
 
         return d.promise();
     }
 
-    
-    $(function() {
-        $("#AddLikeNewMovieButton").dxButton({
-            onClick: function() {
-                $.ajax({
-                    url: "/MovieTask/LikeNewMovie",
-                    type: "POST",
-                    success: function(data) {
-                        DevExpress.ui.notify(data.Message, "success");
-                    },
-                    error: function(data) {
-                        DevExpress.ui.notify(data.Message, "error");
-                    }
-                });
-            }
-        });
-    });
-
-    $(function() {
-        $("#DeleteFavoriteMoviesButton").dxButton({
-            onClick: function() {
-                $.ajax({
-                    url: "/MovieTask/DeleteFavoriteMovies",
-                    type: "POST",
-                    success: function(data) {
-                        DevExpress.ui.notify(data.Message, "success");
-                    },
-                    error: function(data) {
-                        DevExpress.ui.notify(data.Message, "error");
-                    }
-                });
-            }
-        });
-    });
-
-     $(function() {
-        $("#SyncMovieButton").dxButton({
-            onClick: function() {
-                $.ajax({
-                    url: "/MovieTask/SyncFolderWithTmdb",
-                    type: "POST",
-                    success: function(data) {
-                        DevExpress.ui.notify(data.Message, "success");
-                    },
-                    error: function(data) {
-                        DevExpress.ui.notify(data.Message, "error");
-                    }
-                });
-            }
-        });
-    });
-
     $(function() {
         $("#deleteBadMovies").dxButton({
             onClick: function() {
+                callAction("DeleteBadMovies");
+            }
+        });
+
+        $("#SyncMovieButton").dxButton({
+            onClick: function() {
+                callAction("SyncFolderWithTmdb");
+            }
+        });
+
+        $("#DeleteFavoriteMoviesButton").dxButton({
+            onClick: function() {
+                callAction("DeleteFavoriteMovies");
+            }
+        });
+
+        $("#AddLikeNewMovieButton").dxButton({
+            onClick: function() {
+                callAction("LikeNewMovie");
+            }
+        });
+    });
+
+
+    function callAction(url) {
+        var result = DevExpress.ui.dialog.confirm("<i>Confirm actions : " + url+ " ?</i>", "Confirm");
+        result.done(function(dialogResult) {
+
+            if (dialogResult) {
                 $.ajax({
-                    url: "/MovieTask/DeleteBadMovies",
+                    url: "/MovieTask/" + url,
                     type: "POST",
                     success: function(data) {
                         DevExpress.ui.notify(data.Message, "success");
@@ -161,6 +160,6 @@
                 });
             }
         });
-    });
+    }
 </script>
 

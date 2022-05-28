@@ -61,15 +61,26 @@ namespace MovManagerr.Explorer.Services
         /// Initializes a new instance of the <see cref="T:System.Object" /> class.
         /// </summary>
         /// <returns></returns>
-        public async IAsyncEnumerable<MovieDirectorySpec> GetAllMoviesFromFilesAsync()
+        public async IAsyncEnumerable<MovieDirectorySpec> GetAllMoviesFromFilesAsync(int take = 0, int skip = 0)
         {
 
             await _ftpClient.AutoConnectAsync();
             var likedMovies = await _tmdbClient.Favorites.GetFavoriteMoviesAsync();
-
+            int count = 0;
+            int countSelected = 0;
             //get each folder in base folder
             foreach (FtpListItem item in await _ftpClient.GetListingAsync(BasePath))
             {
+                if (take != 0)
+                {
+                    if (skip > count || countSelected > take)
+                    {
+                        count++;
+                        yield return new MovieDirectorySpec(count);
+                        continue;
+                    }
+                }
+                
                 // if this is a file
                 if (item.Type == FtpFileSystemObjectType.Directory && item.Name.LastOrDefault() == ')')
                 {
@@ -82,12 +93,26 @@ namespace MovManagerr.Explorer.Services
 
                         if (tmdbInfo != null)
                         {
-                            long size = await _ftpClient.GetFileSizeAsync(item.FullName);
+                            var itemInFolder = await _ftpClient.GetListingAsync(item.FullName);
+                            
+                            long size = -1;
+                            string path = item.FullName;
+                            string fileName = "Inconnue";
 
-                            yield return new MovieDirectorySpec(extractedMovie, tmdbInfo, size);
+                            if (itemInFolder != null && itemInFolder.Count() == 1)
+                            {
+                                path = itemInFolder.First().FullName;
+                                fileName = itemInFolder.First().Name;
+                                
+                                size = await _ftpClient.GetFileSizeAsync(path);
+                            }
+                            
+                            countSelected++;
+                            count++;
+                            yield return new MovieDirectorySpec(extractedMovie, tmdbInfo, size, path, fileName);
                         }                
                     }
-                }
+                }            
             }
         }
 

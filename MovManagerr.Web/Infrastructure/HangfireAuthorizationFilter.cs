@@ -1,4 +1,5 @@
-﻿using Hangfire.Dashboard;
+﻿using Hangfire.Annotations;
+using Hangfire.Dashboard;
 
 public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
 {
@@ -9,12 +10,21 @@ public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
         _roles = roles;
     }
 
-    public bool Authorize(DashboardContext context)
+    public bool Authorize([NotNull] DashboardContext context)
     {
-        var httpContext = ((AspNetCoreDashboardContext)context).HttpContext;
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+        {
+            return true;
+        }
+        
+        var coreContext = context.GetHttpContext();
+        var session = coreContext.Session;
 
-        //Your authorization logic goes here.
+        if (session != null & session.GetString("username") != null)
+        {
+            return true;
+        }
 
-        return true; //I'am returning true for simplicity
+        return false;
     }
 }

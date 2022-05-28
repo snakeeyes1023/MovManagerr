@@ -1,5 +1,7 @@
 using Hangfire;
 using Hangfire.SqlServer;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MovManagerr.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +18,7 @@ builder.Services.AddScoped<MovManagerr.Tmdb.TmdbClientService>();
 builder.Services.AddScoped<MovManagerr.Tmdb.Service.FavoriteService>();
 builder.Services.AddScoped<MovManagerr.Explorer.Services.ContentServices>();
 builder.Services.AddScoped<MovManagerr.Explorer.Services.MovieServices>();
-
+builder.Services.AddScoped<AdminActionFilter>();
 
 #region Setup Hangfire
 
@@ -35,9 +37,19 @@ builder.Services.AddHangfire(configuration => configuration
 
 builder.Services.AddHangfireServer();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
 #endregion
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromDays(5);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 builder.Services
     .AddControllersWithViews()
@@ -64,6 +76,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthorization();
 

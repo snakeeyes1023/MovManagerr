@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MovManagerr.Explorer.Services;
+using MovManagerr.Web.Infrastructure;
 
 namespace MovManagerr.Controllers
 {
+    [ServiceFilter(typeof(AdminActionFilter))]
     public class HomeController : Controller
     {
         //constructor

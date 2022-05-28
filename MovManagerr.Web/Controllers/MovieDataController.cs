@@ -10,10 +10,12 @@ using Microsoft.AspNetCore.Mvc;
 using MovManagerr.Explorer.Services;
 using Hangfire;
 using Newtonsoft.Json;
+using MovManagerr.Web.Infrastructure;
 
 namespace MovManagerr.Controllers
 {
 
+    [ServiceFilter(typeof(AdminActionFilter))]
     [Route("api/[controller]")]
     public class MovieDataController : Controller
     {
@@ -36,7 +38,7 @@ namespace MovManagerr.Controllers
         {
             List<MovieDirectorySpec> movies = new List<MovieDirectorySpec>();
 
-            await foreach (var movie in _contentServices.GetAllMoviesFromFilesAsync())
+            await foreach (var movie in _contentServices.GetAllMoviesFromFilesAsync(loadOptions.Take, loadOptions.Skip))
             {
                 movies.Add(movie);
             }

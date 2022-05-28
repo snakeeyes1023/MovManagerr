@@ -19,6 +19,10 @@
     <script src="~/js/vendor.js" asp-append-version="true"></script>
 </head>
 
+@{
+    bool isLogged = HttpContextAccessor.HttpContext.Session.GetString("username") != null;
+}
+
 <body class="dx-viewport">
     <div id="app-side-nav-outer-toolbar">
         <div class="layout-header">
@@ -32,10 +36,20 @@
                         )
                         .Location(ToolbarItemLocation.Before)
                         .CssClass("menu-button");
+                        
                     items.Add()
                         .Html("<div>MovManagerr</div>")
+                        .Disabled(isLogged)
                         .Location(ToolbarItemLocation.Before)
                         .CssClass("header-title");
+
+                    items.Add()
+                        .Widget(w => w.Button()
+                        .Text("Logout")
+                        .Visible(isLogged)
+                        .Icon("runner")
+                        .OnClick("function(e) { window.location.href = '/Account/Logout'; }"))
+                        .Location(ToolbarItemLocation.After);
                 })
             )
         </div>
@@ -80,17 +94,20 @@
                     items.Add()
                         .Text("Accueil")
                         .Icon("home")
+                        .Disabled(!isLogged)
                         .Option("path", GetUrl("Index"))
                         .Selected(IsCurrentUrl("Index"));
 
                     items.Add()
                         .Text("Tâche")
+                        .Disabled(!isLogged)
                         .Icon("detailslayout")
                         .Option("path", Url.Action("Index", "hangfire"))
                         .Selected(IsCurrentUrl("hangfire"));
                         
                     items.Add()
                         .Text("À propos")
+                        .Disabled(!isLogged)
                         .Icon("info")
                         .Option("path", GetUrl("About"))
                         .Selected(IsCurrentUrl("About"));
@@ -175,7 +192,7 @@
                 getDrawer().toggle();
                 saveDrawerOpened();
             }
-
+            
             function onTreeViewItemClick(e) {
                 var drawer = getDrawer();
                 var savedOpened = restoreDrawerOpened();
