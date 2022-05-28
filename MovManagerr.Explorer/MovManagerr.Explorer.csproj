@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Plex.Api" Version="3.0.1" />
+    <PackageReference Include="FluentFTP" Version="37.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Plex.Api" Version="3.0.6" />
     <PackageReference Include="RadarrSharp" Version="1.0.31" />
+    <PackageReference Include="Xabe.FFmpeg" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>

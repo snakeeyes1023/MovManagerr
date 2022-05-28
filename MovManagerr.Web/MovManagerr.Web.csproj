@@ -4,7 +4,9 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
-
+	<PropertyGroup Condition=" '$(Configuration)' == '' Or '$(Configuration)' == 'Debug'">
+		<EnvironmentName>Development</EnvironmentName>
+	</PropertyGroup>
 	<ItemGroup>
 		<None Include="..\.editorconfig" Link=".editorconfig" />
 	</ItemGroup>
@@ -16,7 +18,7 @@
 		<PackageReference Include="Hangfire.Core" Version="1.7.*" />
 		<PackageReference Include="Hangfire.SqlServer" Version="1.7.*" />
 		<PackageReference Include="Hangfire.AspNetCore" Version="1.7.*" />
-		<PackageReference Include="Plex.Api" Version="3.0.1" />
+		<PackageReference Include="Plex.Api" Version="3.0.6" />
 	</ItemGroup>
 
 	<ItemGroup>

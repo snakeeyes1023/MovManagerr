@@ -8,12 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.ConfigureSingletonServices<MovManagerr.Explorer.Config.ExplorerPathConfig>("ExplorerPathConfig");
 builder.ConfigureSingletonServices<MovManagerr.Explorer.Config.RadarrInstanceConfig>("RadarrInstanceConfig");
+builder.ConfigureSingletonServices<MovManagerr.Explorer.Config.FtpConfig>("FtpConfig");
 builder.ConfigureSingletonServices<MovManagerr.Tmdb.Config.TmdbConfig>("TmdbConfig");
 
 //inject content service class
 builder.Services.AddScoped<MovManagerr.Tmdb.TmdbClientService>();
 builder.Services.AddScoped<MovManagerr.Tmdb.Service.FavoriteService>();
 builder.Services.AddScoped<MovManagerr.Explorer.Services.ContentServices>();
+builder.Services.AddScoped<MovManagerr.Explorer.Services.MovieServices>();
 
 
 #region Setup Hangfire
@@ -77,8 +79,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 RecurringJob.AddOrUpdate<MovManagerr.Tmdb.Service.FavoriteService>("addMovies", x => x.LikeNewMovieAsync(2), Cron.Daily);
-RecurringJob.AddOrUpdate<MovManagerr.Explorer.Services.ContentServices>("syncMovies", x => x.SyncMovieListByFolderAsync(), Cron.Daily);
-RecurringJob.AddOrUpdate<MovManagerr.Explorer.Services.ContentServices>("deleteBads", x => x.DeleteBadMovie(), Cron.Daily);
+RecurringJob.AddOrUpdate<MovManagerr.Explorer.Services.MovieServices>("syncMovies", x => x.SyncMovieListByFolderAsync(), Cron.Daily);
+RecurringJob.AddOrUpdate<MovManagerr.Explorer.Services.MovieServices>("deleteBads", x => x.DeleteBadMovie(), Cron.Daily);
 
 app.Run();
 

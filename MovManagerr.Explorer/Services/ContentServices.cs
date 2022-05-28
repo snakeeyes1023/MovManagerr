@@ -1,4 +1,6 @@
-﻿using MovManagerr.Explorer.Config;
+﻿using FluentFTP;
+using Microsoft.Extensions.Logging;
+using MovManagerr.Explorer.Config;
 using MovManagerr.Models;
 using MovManagerr.Tmdb;
 using Plex.ServerApi.Clients;
@@ -12,123 +14,80 @@ namespace MovManagerr.Explorer.Services
         public readonly ExplorerPathConfig _explorerConfig;
         public readonly RadarrClient _radarrClient;
         public readonly TmdbClientService _tmdbClient;
-
-        /// <summary>
-        /// Gets the base path.
-        /// </summary>
-        /// <value>
-        /// The base path.
-        /// </value>
+        public readonly FtpClient _ftpClient;
+        private readonly ILogger<ContentServices> _logger;
         public string BasePath => _explorerConfig.MovieBasePath;
 
 
-        public ContentServices(ExplorerPathConfig explorerConfig,
+        public ContentServices(
+            ExplorerPathConfig explorerConfig,
+            FtpConfig ftpConfig,
             RadarrInstanceConfig radarrInstanceConfig,
+            ILogger<ContentServices> logger,
             TmdbClientService tmdbService)
         {
             _explorerConfig = explorerConfig;
             _radarrClient = new RadarrClient(radarrInstanceConfig.Server, radarrInstanceConfig.Port, radarrInstanceConfig.ApiKey, "", false);
             _tmdbClient = tmdbService;
+            _logger = logger;
+            _ftpClient = new FtpClient(ftpConfig.Host, ftpConfig.Port, ftpConfig.User, ftpConfig.Password);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:System.Object" /> class.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<MovieDirectory> GetAllMoviesFromFolder()
+        public async IAsyncEnumerable<MovieDirectory> GetAllMoviesFromFolderAsync()
         {
+            await _ftpClient.AutoConnectAsync();
+
             //get each folder in base folder
-            List<MovieDirectory> movieDirectories = new List<MovieDirectory>();
-            string[] dirs = Directory.GetDirectories(BasePath, "*)", SearchOption.TopDirectoryOnly);
-
-            foreach (var dir in dirs)
+            foreach (FtpListItem item in await _ftpClient.GetListingAsync(BasePath))
             {
-                //remove base path from name
-                string folderName = dir.Split(BasePath).LastOrDefault() ?? "";
-
-                var movie = ExtractFromFileName(folderName.Substring(1));
-                movie.Path = dir;
-                movieDirectories.Add(movie);
-            }
-
-            return movieDirectories;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.Object" /> class.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IEnumerable<MovieDirectorySpec>> GetAllMoviesFromFilesAsync()
-        {
-            //get each folder in base folder
-            var movieFolder = GetAllMoviesFromFolder();
-            var likedMovies = await _tmdbClient.Favorites.GetFavoriteMoviesAsync();
-
-            List<MovieDirectorySpec> movieFiles = new List<MovieDirectorySpec>();
-            int index = 0;
-
-            foreach (var item in movieFolder)
-            {
-                index++;
-
-                var tmdbInfo = likedMovies.Where(m => m.OriginalTitle == item.Title && m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == item.Year).FirstOrDefault();
-
-                if (tmdbInfo != null)
+                // if this is a file
+                if (item.Type == FtpFileSystemObjectType.Directory && item.Name.LastOrDefault() == ')')
                 {
-                    movieFiles.Add(new MovieDirectorySpec(item, tmdbInfo));
+                    var extractedMovie = ExtractMovieFromFileName(item.Name, item.FullName);
+
+                    if (extractedMovie != null)
+                    {
+                        yield return extractedMovie;
+                    }
                 }
             }
-
-            return movieFiles;
         }
-
-
-        public async Task DeleteMovie(int key)
-        {
-            var movies = await GetAllMoviesFromFilesAsync();
-            var movie = movies.FirstOrDefault(m => m.Id == key);
-
-            if (movie != null)
-            {
-                await _tmdbClient.Favorites.DislikeMovieAsync(movie.Id);
-                Directory.Delete(movie.DirectoryInfo.Path, true);
-            }
-        }
-
 
         /// <summary>
-        /// Deletes the bad movie.
+        /// Initializes a new instance of the <see cref="T:System.Object" /> class.
         /// </summary>
-        /// <returns>The number of deleted movies</returns>
-        public async Task<int> DeleteBadMovie()
+        /// <returns></returns>
+        public async IAsyncEnumerable<MovieDirectorySpec> GetAllMoviesFromFilesAsync()
         {
-            var movies = await GetAllMoviesFromFilesAsync();
-            var movieToDelete = new List<MovieDirectorySpec>();
 
-            foreach (var movie in movies)
+            await _ftpClient.AutoConnectAsync();
+            var likedMovies = await _tmdbClient.Favorites.GetFavoriteMoviesAsync();
+
+            //get each folder in base folder
+            foreach (FtpListItem item in await _ftpClient.GetListingAsync(BasePath))
             {
-                await DeleteMovie(movieToDelete, movie);
-            }
+                // if this is a file
+                if (item.Type == FtpFileSystemObjectType.Directory && item.Name.LastOrDefault() == ')')
+                {
+                    var extractedMovie = ExtractMovieFromFileName(item.Name, item.FullName);
 
-            foreach (var movie in movieToDelete)
-            {
-                Directory.Delete(movie.DirectoryInfo.Path, true);
-            }
+                    if (extractedMovie != null)
+                    {
+                        var tmdbInfo = likedMovies.FirstOrDefault(m => m.OriginalTitle == extractedMovie.Title
+                            && m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == extractedMovie.Year);
 
-            return movieToDelete.Count;
-        }
+                        if (tmdbInfo != null)
+                        {
+                            long size = await _ftpClient.GetFileSizeAsync(item.FullName);
 
-        private async Task DeleteMovie(List<MovieDirectorySpec> movieToDelete, MovieDirectorySpec movie)
-        {
-            if (movie.IsWebRip())
-            {
-                movieToDelete.Add(movie);
-            }
-
-            if (movie.Movie != null && movie.Movie.OriginalLanguage == "ja")
-            {
-                movieToDelete.Add(movie);
-                await _tmdbClient.Favorites.DislikeMovieAsync(movie.Movie.Id);
+                            yield return new MovieDirectorySpec(extractedMovie, tmdbInfo, size);
+                        }                
+                    }
+                }
             }
         }
 
@@ -138,55 +97,27 @@ namespace MovManagerr.Explorer.Services
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
-        public MovieDirectory ExtractFromFileName(string input)
+        public MovieDirectory? ExtractMovieFromFileName(string input, string path)
         {
             try
             {
                 string year = input.Substring(input.Length - 7, 6).Substring(2);
                 string movieName = input.Remove(input.Length - 7);
 
-                return new MovieDirectory()
-                {
-                    Title = movieName,
-                    Year = int.Parse(year)
-                };
+                return new MovieDirectory(movieName, path, year);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new MovieDirectory()
-                {
-                    Title = input,
-                    Year = 0
-                };
+                _logger.LogError(ex, "Error while extracting movie name from file name");
+
+                return default;
             }
         }
 
-
-        /// <summary>
-        /// Sync The movie to Radarr.
-        /// </summary>
-        /// <returns></returns>
-        public async Task SyncMovieListByFolderAsync()
+        public async Task DeleteElementAsync(string path)
         {
-            var downloadedMovie = GetAllMoviesFromFolder();
-
-            foreach (var movie in downloadedMovie)
-            {
-                try
-                {
-                    if (!await _tmdbClient.Favorites.LikeMovieByNameAndYearAsync(movie.Title, movie.Year))
-                    {
-                        throw new System.Exception("Movie not found");
-                    };
-                }
-                catch
-                {
-                    //do nothing
-                }
-
-            }
-
+            await _ftpClient.AutoConnectAsync();
+            await _ftpClient.DeleteFileAsync(path);
         }
-
     }
 }

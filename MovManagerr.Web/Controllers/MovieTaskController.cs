@@ -32,14 +32,14 @@ namespace MovManagerr.Web.Controllers
         [HttpPost]
         public JsonResult SyncFolderWithTmdb()
         {
-            _backgroundJobClient.Enqueue<Explorer.Services.ContentServices>(x => x.SyncMovieListByFolderAsync());
+            _backgroundJobClient.Enqueue<Explorer.Services.MovieServices>(x => x.SyncMovieListByFolderAsync());
             return Json(new { success = true });
         }
 
         [HttpPost]
         public JsonResult DeleteBadMovies()
         {
-            _backgroundJobClient.Enqueue<Explorer.Services.ContentServices>(x => x.DeleteBadMovie());
+            _backgroundJobClient.Enqueue<Explorer.Services.MovieServices>(x => x.DeleteBadMovie());
             return Json(new { success = true });
         }
     }

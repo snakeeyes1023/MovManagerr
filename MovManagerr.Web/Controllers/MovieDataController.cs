@@ -18,20 +18,29 @@ namespace MovManagerr.Controllers
     public class MovieDataController : Controller
     {
         private readonly ContentServices _contentServices;
+        private readonly MovieServices _movieService;
         private readonly IBackgroundJobClient _backgroundJobs;
 
-        public MovieDataController(ContentServices contentServices, IBackgroundJobClient backgroundJobs)
+        public MovieDataController(
+            ContentServices contentServices,
+            IBackgroundJobClient backgroundJobs,
+            MovieServices movieServices)
         {
             _contentServices = contentServices;
             _backgroundJobs = backgroundJobs;
+            _movieService = movieServices;
         }
 
         [HttpGet]
         public async Task<object> Get(DataSourceLoadOptions loadOptions)
         {
+            List<MovieDirectorySpec> movies = new List<MovieDirectorySpec>();
 
-            var movies = await _contentServices.GetAllMoviesFromFilesAsync();
-
+            await foreach (var movie in _contentServices.GetAllMoviesFromFilesAsync())
+            {
+                movies.Add(movie);
+            }
+            
             return DataSourceLoader.Load(movies, loadOptions);
         }
 
@@ -40,9 +49,9 @@ namespace MovManagerr.Controllers
         {
             foreach (var change in changes)
             {
-                if ( change.Type == "remove")
+                if (change.Type == "remove")
                 {
-                    _backgroundJobs.Enqueue<ContentServices>(x => x.DeleteMovie(Convert.ToInt32(change.Key.ToString())));
+                    _backgroundJobs.Enqueue<MovieServices>(x => x.FullDeleteMovie(Convert.ToInt32(change.Key.ToString())));
                 }          
             }
 

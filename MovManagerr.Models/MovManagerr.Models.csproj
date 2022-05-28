@@ -10,4 +10,8 @@
     <PackageReference Include="TMDbLib" Version="1.9.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
+  </ItemGroup>
+
 </Project>
