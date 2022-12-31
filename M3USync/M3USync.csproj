@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Folder Include="Config\Temp\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ConsoleMenu-simple" Version="2.4.3" />
+		<PackageReference Include="ConsoleProgressBar" Version="2.0.0" />
+		<PackageReference Include="Downloader" Version="3.0.1" />
+		<PackageReference Include="Hangfire.Core" Version="1.7.32" />
+		<PackageReference Include="Hangfire.SqlServer" Version="1.7.32" />
+		<PackageReference Include="m3uParser.NET" Version="1.0.17" />
+		<PackageReference Include="MongoDB.Driver" Version="2.18.0" />
+		<PackageReference Include="ShellProgressBar" Version="5.2.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Config\links.conf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\pref.conf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>

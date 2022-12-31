@@ -28,6 +28,11 @@ namespace MovManagerr.Controllers
             return View();
         }
 
+        public IActionResult Iptv()
+        {
+            return RedirectToAction("Index", "Iptv");
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error() {
             return View();

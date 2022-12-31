@@ -1,0 +1,16 @@
+﻿@model IEnumerable<Content>
+
+
+
+<div class="container-fluid">
+    <div class="row">
+
+        @foreach (var item in Model)
+        {
+            <div class="col-md-2">
+                <partial name="_ContentCard" model="item" />
+            </div>
+        }
+    </div>
+</div>
+

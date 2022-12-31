@@ -31,6 +31,19 @@ namespace MovManagerr.Tmdb
             return search.Results.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Get movie by name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="year"></param>
+        /// <returns></returns>
+        public async Task<SearchMovie?> GetMovieByNameAsync(string name)
+        {
+            var search = await _client.SearchMovieAsync(name, 0, true);
+            return search.Results.FirstOrDefault();
+        }
+
+
 
         public TMDbClient GetClient()
         {

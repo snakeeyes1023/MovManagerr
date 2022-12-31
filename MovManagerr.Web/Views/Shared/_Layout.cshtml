@@ -13,10 +13,13 @@
 
     @* Uncomment to use the HtmlEditor control *@
     @* <script src="https://unpkg.com/devextreme-quill@21_2/dist/dx-quill.min.js"></script> *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
 
+    <link rel="stylesheet" href="~/boostrap/css/boostrap-grid.css" />
     <link rel="stylesheet" href="~/css/vendor.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/Site.css" />
     <script src="~/js/vendor.js" asp-append-version="true"></script>
+    
 </head>
 
 @{
@@ -105,6 +108,13 @@
                         .Option("path", Url.Action("Index", "hangfire"))
                         .Selected(IsCurrentUrl("hangfire"));
                         
+                    items.Add()
+                        .Text("Films")
+                        .Disabled(!isLogged)
+                        .Icon("detailslayout")
+                        .Option("path", GetUrl("Iptv"))
+                        .Selected(IsCurrentUrl("Iptv"));
+                
                     items.Add()
                         .Text("À propos")
                         .Disabled(!isLogged)
@@ -226,5 +236,7 @@
         });
     </script>
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
 
 </html>

@@ -22,6 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\M3USync\M3USync.csproj" />
 		<ProjectReference Include="..\MovManagerr.Explorer\MovManagerr.Explorer.csproj" />
 		<ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
 	</ItemGroup>
