@@ -1,4 +1,5 @@
-﻿using System;
+﻿using M3USync.UIs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,6 +36,8 @@ namespace M3USync.Models.Helpers
                     }
                 }
             }
+
+            AwesomeConsole.WriteWarning("ExtractSeasonAndEpisodeNumbers | Impossible de traiter la chaine : " + tvgName);
             return (string.Empty, 0, 0);
         }
     }

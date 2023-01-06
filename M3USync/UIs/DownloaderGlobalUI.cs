@@ -61,7 +61,8 @@ namespace M3USync.UIs
             Console.SetCursorPosition(0, Console.CursorTop);
 
             // On affiche le nombre de films et de séries traités
-            Console.Write($"Films traités : {TotalMovies}, Séries traitées : {TotalSeries}");
+
+            AwesomeConsole.WriteInfo($"Films traités : {TotalMovies}, Séries traitées : {TotalSeries}");
         }
     }
 }

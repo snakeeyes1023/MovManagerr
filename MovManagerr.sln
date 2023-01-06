@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Web", "MovManag
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3USync", "M3USync\M3USync.csproj", "{4FA46006-B61D-4B49-93D8-C7714EE46587}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M3USync.Tests", "M3USync.Tests\M3USync.Tests.csproj", "{86145AAE-4854-47E1-8E1A-548C6620CBF7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3USync.Tests", "M3USync.Tests\M3USync.Tests.csproj", "{86145AAE-4854-47E1-8E1A-548C6620CBF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

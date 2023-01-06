@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using M3USync.Config;
@@ -54,7 +55,11 @@ namespace M3USync.Models
             var title = string.IsNullOrEmpty(TmdbMovie?.Title) ? Name : TmdbMovie.Title;
             var year = TmdbMovie != null && TmdbMovie.ReleaseDate.HasValue ? TmdbMovie.ReleaseDate.Value.Year.ToString() : "0000";
 
-            return Path.Combine(Preferences.Instance.MovieFolder, $"{title} ({year})");
+            // Supprimer les caractères non autorisés dans le nom du répertoire, à l'exception des espaces
+            title = Regex.Replace(title, @"[^\w\.@\s\(\)-]", "");
+
+            
+            return Path.Combine($"{title} ({year})");
         }
 
         public override string GetFileName()
@@ -90,6 +95,11 @@ namespace M3USync.Models
             }
 
             return null;
+        }
+
+        public override DirectoryManager GetDirectoryManager()
+        {
+            return Preferences.Instance.MovieManager;
         }
     }
 }

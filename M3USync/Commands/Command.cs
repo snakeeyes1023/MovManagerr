@@ -1,5 +1,7 @@
-﻿using System;
+﻿using M3USync.UIs;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,30 +11,62 @@ namespace M3USync.Commands
     public abstract class Command
     {
         public readonly string CommandName;
-        public readonly string EndMessage;
+        public readonly bool timed;
+        private readonly bool WaitUserInteraction;
 
-        public Command(string commandName, string endMessage)
+        public event Action OnStarted;
+        public event Action OnEnded;
+
+        private Stopwatch TimeProcessing;
+
+        public Command(string commandName, bool timed = true, bool waitUserInteraction = true)
         {
             CommandName = commandName;
-            EndMessage = endMessage;
+            WaitUserInteraction = waitUserInteraction;
+            if (timed)
+            {
+                OnStarted += StartTimer;
+                OnEnded += StopTimer;
+            }
         }
 
-        public void Execute()
+        public void StartTimer()
         {
-            Console.WriteLine("Début de le la commande : " + CommandName);
+            AwesomeConsole.WriteSuccess("Début de le la commande : " + CommandName);
+            TimeProcessing = Stopwatch.StartNew();
+        }
 
+        public void StopTimer()
+        {
+            TimeProcessing.Stop();
+            AwesomeConsole.WriteInfo("Temps de traitement de la commande : " + TimeProcessing.ElapsedMilliseconds / 1000 + "s et " + TimeProcessing.ElapsedMilliseconds + "ms");
+        }
+
+
+        public void Execute()
+        {  
             try
             {
+                OnStarted?.Invoke();
                 Start();
-
-                Console.WriteLine(EndMessage);
-
             }
             catch (Exception e)
             {
-                Console.WriteLine("Une erreur est survenue : " + e.Message);
+                AwesomeConsole.WriteError("Une erreur est survenue : " + e.Message);
+            }
+            finally
+            {
+                OnEnded?.Invoke();
+
+                if (WaitUserInteraction)
+                {
+                    Console.WriteLine("Appuyer sur une touche pour continuer ...");
+                    Console.ReadKey();
+                }
             }
         }
+
+        
 
         protected abstract void Start();        
     }

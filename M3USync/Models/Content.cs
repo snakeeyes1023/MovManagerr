@@ -1,4 +1,5 @@
 ﻿using m3uParser;
+using M3USync.Config;
 using M3USync.Data;
 using M3USync.Models.Enums;
 using M3USync.Models.Intefaces;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace M3USync.Models
 {
-    public abstract class Content : Entity, ISave
+    public abstract class Content : Entity, ISave, IExportable<Content>
     {
         public Content(MediaM3u media)
         {
@@ -47,10 +48,11 @@ namespace M3USync.Models
 
         public abstract string GetFileName();
 
-
+        public abstract DirectoryManager GetDirectoryManager();
+        
         public string GetFullPath()
         {
-            return Path.Combine(GetDirectoryPath(), GetFileName());
+            return Path.Combine(GetDirectoryManager()._BasePath, GetDirectoryPath(), GetFileName());
         }
 
         public string GetExtension()
@@ -62,6 +64,11 @@ namespace M3USync.Models
         {
             var tags = string.Join("|", Tags);
             return $"{Name} - {Url} | {tags}";
+        }
+        
+        public virtual string Export(IExporter<Content> export)
+        {
+            return export.Export(this);
         }
     }
 }

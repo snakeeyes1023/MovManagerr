@@ -21,10 +21,14 @@ namespace M3USync
         {
             var commands = new List<Command>(2);
 
-            commands.Add(new Syncroniser());
-            commands.Add(new MovieSearcher());
-            commands.Add(new EpisodeSearcher());
-            commands.Add(new CleanBd());
+            commands.Add(new SyncroniserCommand());
+            commands.Add(new MovieSearcherCommand());
+            commands.Add(new EpisodeSearcherCommand());
+            commands.Add(new CleanBdCommand());
+            commands.Add(new ConfigValidatorCommand());
+            commands.Add(new ShowLogsCommand());
+
+            
             var menu = new ConsoleMenu(args, level: 0);
 
             foreach (var item in commands)

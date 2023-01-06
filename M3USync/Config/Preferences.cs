@@ -3,29 +3,80 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using TMDbLib.Objects.General;
 
 namespace M3USync.Config
 {
     public sealed class Preferences
     {
-        public static Preferences Instance { get { return Nested.instance; } }
+        private static Preferences _instance;
+
+        public static Preferences Instance
+        {
+            get
+            {
+                _instance ??= new Preferences();
+                return _instance;
+            }
+        }
+
+        public static void RebuildInstance()
+        {
+            _instance = new Preferences();
+        }
 
 
         private readonly string _PreferenceFolder;
 
         #region Path
         public string TempPath { get { return Path.Combine(_PreferenceFolder, "Temp"); } }
-        public string MovieFolder { get { return Configs["MoviePath"]; } }
-        public string SerieFolder { get { return Configs["SeriePath"]; } }
 
 
-        public string[] Langs { get { return Configs["Lang"].Split(','); } }
+
+        private DirectoryManager _movieManager;
+        public DirectoryManager MovieManager
+        {
+            get
+            {
+                if (_movieManager == null)
+                {
+                    _movieManager = GetDirectoryManager("movie");
+                }
+                return _movieManager;
+            }
+        }
+
+
+        private DirectoryManager _serieManager;
+        public DirectoryManager SerieManager
+        {
+            get
+            {
+                if (_serieManager == null)
+                {
+                    _serieManager = GetDirectoryManager("serie");
+                }
+                return _serieManager;
+            }
+        }
+
+        public string[] Langs { get { return Configs["lang"].Split(','); } }
 
         public string[] Links { get; private set; }
 
-        public Dictionary<string, string> Configs { get; private set; }
+        private Dictionary<string, string> Configs;
+
+        public PreferenceDownload DownloadHours
+        {
+            get
+            {
+                return new PreferenceDownload(Configs["operation_hour"]);        
+            }
+        }
+
         #endregion
 
 
@@ -66,7 +117,7 @@ namespace M3USync.Config
 
                         if (split.Length > 1 && !string.IsNullOrWhiteSpace(split[0]) && !string.IsNullOrWhiteSpace(split[1]))
                         {
-                            Configs.Add(split[0], split[1]);
+                            Configs.Add(split[0].ToLower(), split[1]);
                         }
                     }
                 }
@@ -75,8 +126,6 @@ namespace M3USync.Config
             {
                 throw new InvalidOperationException("Impossible de lire le fichier de configuration", ex);
             }
-            
-            ValidateConfiguration();
         }
 
         public void ReadLinks()
@@ -89,23 +138,27 @@ namespace M3USync.Config
             }
         }
 
-        private void ValidateConfiguration()
+        public void ValidateConfiguration()
         {
             if (Configs != null && Configs.Any())
             {
-                if (!Configs.Any(x => x.Key == "MoviePath"))
+                if (!Configs.Any(x => x.Key == "movie_path"))
                 {
                     throw new InvalidOperationException("Le chemin vers les films n'est pas configuré");
                 }
 
-                if (!Configs.Any(x => x.Key == "SeriePath"))
+                if (!Configs.Any(x => x.Key == "serie_path"))
                 {
                     throw new InvalidOperationException("Le chemin vers les séries n'est pas configuré");
                 }
 
-                if (!Configs.Any(x => x.Key == "Lang"))
+                if (!Configs.Any(x => x.Key == "lang"))
                 {
                     throw new InvalidOperationException("La langue n'est pas configurée");
+                }
+                if (!DownloadHours.IsValid)
+                {
+                    throw new InvalidOperationException("Les heures de téléchargement ne sont pas ou mal configuré");
                 }
             }
             else
@@ -114,17 +167,40 @@ namespace M3USync.Config
             }
         }
 
-
-
-        private class Nested
+        public void VerifyDriveAccessibility()
         {
-            // Explicit static constructor to tell C# compiler
-            // not to mark type as beforefieldinit
-            static Nested()
+            //check if the drive is accessible (if not, throw an exception) { movieFolder, serieFolder, tempPath }
+            foreach (var path in new DirectoryManager[] { MovieManager, SerieManager })
             {
+                if (!path.VerifyAccessibilty())
+                {
+                    throw new InvalidOperationException(string.Format("Le chemin {0} n'existe pas ou n'est pas accessible", path._BasePath));
+                }
             }
+        }
 
-            internal static readonly Preferences instance = new Preferences();
+        private DirectoryManager GetDirectoryManager(string searchManager)
+        {
+            string path = Configs.GetValueOrDefault(searchManager + "_path", string.Empty);
+            if (string.IsNullOrEmpty(path))
+            {
+                return new DirectoryManager(_PreferenceFolder);
+            }
+            else
+            {
+                string server = Configs.GetValueOrDefault(searchManager + "_server", string.Empty);
+
+                if (!string.IsNullOrEmpty(server))
+                {
+                    string user = Configs.GetValueOrDefault(searchManager + "_user", string.Empty);
+                    string password = Configs.GetValueOrDefault(searchManager + "_pass", string.Empty);
+
+                    NetworkCredential cred = new NetworkCredential(user, password);
+                    return new DirectoryCredsManager(path, server, cred);
+                }
+
+                return new DirectoryManager(path);
+            }
         }
     }
 }

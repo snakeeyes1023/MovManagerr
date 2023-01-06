@@ -43,6 +43,12 @@ namespace MovManagerr.Tmdb
             return search.Results.FirstOrDefault();
         }
 
+        public async Task<IEnumerable<SearchMovie?>> GetRelatedMovies(string name)
+        {
+            var search = await _client.SearchMovieAsync(name, 0, true);
+            return search.Results;
+        }
+
 
 
         public TMDbClient GetClient()

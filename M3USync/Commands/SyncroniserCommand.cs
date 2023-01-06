@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace M3USync.Commands
 {
-    public class Syncroniser : Command
+    public class SyncroniserCommand : Command
     {
         private readonly Preferences _preferences;
 
@@ -19,7 +19,7 @@ namespace M3USync.Commands
 
         //private readonly DownloaderGlobalUI _ui;
 
-        public Syncroniser() : base("Syncroniser les fichier M3U avec la base de donnée", "La synchronisation est terminée")
+        public SyncroniserCommand() : base("Syncroniser les fichier M3U avec la base de donnée")
         {
             _preferences = Preferences.Instance;
 
@@ -40,7 +40,8 @@ namespace M3USync.Commands
         {
             foreach (var link in _preferences.Links)
             {
-                Console.WriteLine($"Lecture du lien {link} ...");
+
+                AwesomeConsole.WriteInfo($"Lecture du lien {link} ...");
 
                 var tempPath = Path.GetTempPath();
 
@@ -48,17 +49,25 @@ namespace M3USync.Commands
 
                 downloader.Start(tempPath).Wait();
 
-                Console.WriteLine($"Fin de la lecture du lien {link}");
+                AwesomeConsole.WriteInfo($"Fin de la lecture du lien {link}");
             }
 
-            Console.WriteLine("Téléchargement terminé");
-
-            Console.WriteLine("Synchronisation des données dans la base de données");
+            AwesomeConsole.WriteInfo("Synchronisation des données dans la base de données...");
 
             foreach (var reader in _readers)
             {
-                reader.SyncInDatabase();
-                reader.Dispose();
+                AwesomeConsole.WriteInfo("Synchronisation des données | " + reader.GetType().Name + " ...");
+
+                try
+                {
+                    reader.SyncInDatabase();
+                    reader.Dispose();
+                    AwesomeConsole.WriteInfo("Synchronisation des données | " + reader.GetType().Name + " terminée");
+                }
+                catch (Exception ex)
+                {
+                    AwesomeConsole.WriteError(ex.Message);
+                }
             }
         }
     }

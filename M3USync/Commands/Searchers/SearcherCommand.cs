@@ -13,11 +13,11 @@ using TMDbLib.Objects.Search;
 
 namespace M3USync.Commands
 {
-    public class Searcher<T> : Command
+    public class SearcherCommand<T> : Command
         where T : Content
     {
         private ContentDownloader _downloader;
-        public Searcher(string contentName) : base($"Rechercher un contenue {contentName}", "La recherche est terminée")
+        public SearcherCommand(string contentName) : base($"Rechercher un contenue {contentName}", true, false)
         {
             _downloader = ContentDownloader.Instance;
         }

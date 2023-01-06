@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace M3USync.Commands.Searchers
 {
-    public class EpisodeSearcher : Searcher<Episode>
+    public class EpisodeSearcherCommand : SearcherCommand<Episode>
     {
-        public EpisodeSearcher() : base("Épisode")
+        private SerieManager SerieManager { get; set; } = new SerieManager();
+
+
+        public EpisodeSearcherCommand() : base("Épisode")
         {
         }
+
     }
 }

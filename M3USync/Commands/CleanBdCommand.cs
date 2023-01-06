@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace M3USync.Commands
 {
-    public class CleanBd : Command
+    public class CleanBdCommand : Command
     {
-        public CleanBd() : base("Néttoyer la base de donnée", "La base de donnée à été néttoyée")
+        public CleanBdCommand() : base("Néttoyer la base de donnée")
         {
         }
 

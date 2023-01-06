@@ -3,6 +3,7 @@ using M3USync.Data;
 using M3USync.Http;
 using M3USync.Http.Models;
 using M3USync.Models;
+using M3USync.UIs;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -60,28 +61,18 @@ namespace M3USync.Readers
 
         public void SyncInDatabase()
         {
-            try
+            IMongoCollection<T> collection = GetCollections();
+            IEnumerable<T> alreadyInDb = collection.Find(x => true).ToList();
+
+            // Filter out items that are already in the database
+            IEnumerable<T> newContents = Contents.Except(alreadyInDb, new ContentComparer<T>());
+
+            // Insert new items into the database
+            if (newContents.Any())
             {
-                IMongoCollection<T> collection = GetCollections();
-                IEnumerable<T> alreadyInDb = collection.Find(x => true).ToList();
+                collection.InsertMany(newContents);
 
-                if (Contents.Any())
-                {
-                    // Filter out items that are already in the database
-                    IEnumerable<T> newContents = Contents.Where(x => !alreadyInDb.Any(y => y.Equals(x)));
-
-                    // Insert new items into the database
-                    if (newContents.Any())
-                    {
-                        collection.InsertMany(newContents);
-
-                        OnContentSynced?.Invoke(newContents);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                OnContentSynced?.Invoke(newContents);
             }
         }
 

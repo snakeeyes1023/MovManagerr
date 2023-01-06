@@ -11,6 +11,7 @@ namespace M3USync.Readers
 {
     public class SerieReader : M3uContentReader<Episode>
     {
+
         protected override Expression<Func<MediaM3u, bool>> Filter()
         {
             return m => m.MuUrl.Contains("serie");
@@ -19,7 +20,6 @@ namespace M3USync.Readers
         protected override Episode? BindDataInContent(MediaM3u mediaInfo)
         {
             var episode = new Episode(mediaInfo);
-
 
             return episode;
         }

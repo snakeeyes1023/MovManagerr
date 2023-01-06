@@ -6,15 +6,15 @@ namespace MovManagerr.Web.Controllers
 {
     public class IptvController : Controller
     {
-        private readonly MovieSearcher _movieSearcher;
+        private readonly MovieSearcherCommand _movieSearcher;
         public IptvController()
         {
-            _movieSearcher = new MovieSearcher();
+            _movieSearcher = new MovieSearcherCommand();
         }
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<Content> contents = await _movieSearcher.GetAllMovies();
+            IEnumerable<Content> contents = await _movieSearcher.GetAllContentsAsync();
 
             return View(contents.Take(25));
         }

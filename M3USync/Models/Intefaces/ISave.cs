@@ -1,4 +1,5 @@
-﻿using System;
+﻿using M3USync.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,6 @@ namespace M3USync.Models.Intefaces
         string GetDirectoryPath();
         string GetFileName();
         string GetFullPath();
+        DirectoryManager GetDirectoryManager();
     }
 }

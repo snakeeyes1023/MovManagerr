@@ -3,6 +3,7 @@ using M3USync.Config;
 using M3USync.Data;
 using M3USync.Http.Models;
 using M3USync.Models;
+using M3USync.UIs;
 using MongoDB.Driver;
 using MovManagerr.Tmdb;
 using System;
@@ -36,9 +37,10 @@ namespace M3USync.Readers
 
         private void SearchOnTmdb(IEnumerable<Movie> movies)
         {
-            Console.WriteLine("Recherche des films sur TMDB");
-            var collection = GetCollections();
+            AwesomeConsole.WriteInfo("Recherche des films sur TMDB...");
 
+            
+            var collection = GetCollections();
             foreach (var movie in movies)
             {
                 try
@@ -50,8 +52,7 @@ namespace M3USync.Readers
                 }
                 catch (Exception)
                 {
-
-                    Console.WriteLine("film introuable");
+                    AwesomeConsole.WriteWarning("Le film " + movie.Name + " n'a pas été trouvé sur TMDB.");
                 }
             }
         }
