@@ -1,12 +1,6 @@
-﻿using M3USync.Config;
-using M3USync.Data;
-using M3USync.Models;
+﻿using M3USync.Data;
+using M3USync.Data.Helpers;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace M3USync.Commands
 {

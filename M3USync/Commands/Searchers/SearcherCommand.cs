@@ -1,25 +1,17 @@
-﻿using Hangfire;
-using M3USync.Data;
-using M3USync.Http;
-using M3USync.Models;
-using Microsoft.VisualBasic;
+﻿using M3USync.Data.Abstracts;
+using M3USync.Data.Helpers;
+using M3USync.Downloaders.Contents;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TMDbLib.Objects.Search;
 
-namespace M3USync.Commands
+namespace M3USync.Commands.Searchers
 {
     public class SearcherCommand<T> : Command
         where T : Content
     {
-        private ContentDownloader _downloader;
+        private ContentDownloaderClient _downloader;
         public SearcherCommand(string contentName) : base($"Rechercher un contenue {contentName}", true, false)
         {
-            _downloader = ContentDownloader.Instance;
+            _downloader = ContentDownloaderClient.Instance;
         }
 
         /// <summary>

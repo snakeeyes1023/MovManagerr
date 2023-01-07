@@ -1,17 +1,8 @@
 ﻿using ConsoleTools;
-using Hangfire;
-using Hangfire.SqlServer;
-using m3uParser;
 using M3USync.Commands;
+using M3USync.Commands.LogCommands;
 using M3USync.Commands.Searchers;
-using M3USync.Config;
-using M3USync.Data;
-using M3USync.Http;
-using M3USync.Models;
-using M3USync.Readers;
-using M3USync.UIs;
-using MongoDB.Driver;
-using TMDbLib.Objects.Search;
+using M3USync.Commands.Validators;
 
 namespace M3USync
 {

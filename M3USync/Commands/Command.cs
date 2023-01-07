@@ -1,10 +1,5 @@
-﻿using M3USync.UIs;
-using System;
-using System.Collections.Generic;
+﻿using M3USync.Infrastructures.UIs;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace M3USync.Commands
 {

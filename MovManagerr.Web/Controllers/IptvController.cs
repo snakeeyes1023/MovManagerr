@@ -1,5 +1,5 @@
-﻿using M3USync.Commands;
-using M3USync.Models;
+﻿using M3USync.Commands.Searchers;
+using M3USync.Data.Abstracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MovManagerr.Web.Controllers

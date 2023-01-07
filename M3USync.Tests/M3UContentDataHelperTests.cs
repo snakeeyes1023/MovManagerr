@@ -1,5 +1,5 @@
+using M3USync.Data.Helpers;
 using M3USync.Models;
-using M3USync.Models.Helpers;
 
 namespace M3USync.Tests
 {

@@ -1,13 +1,7 @@
-﻿using M3USync.Config;
-using M3USync.Http;
-using M3USync.Readers;
-using M3USync.UIs;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using M3USync.Downloaders.Contents.Readers;
+using M3USync.Downloaders.M3U;
+using M3USync.Infrastructures.Configurations;
+using M3USync.Infrastructures.UIs;
 
 namespace M3USync.Commands
 {
@@ -45,7 +39,7 @@ namespace M3USync.Commands
 
                 var tempPath = Path.GetTempPath();
 
-                IM3uDownloader downloader = new M3uDownloaderClient(link, _readers);
+                M3uDownloaderClient downloader = new M3uDownloaderClient(link, _readers);
 
                 downloader.Start(tempPath).Wait();
 

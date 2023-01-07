@@ -17,14 +17,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Config\Temp\" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="ConsoleMenu-simple" Version="2.4.3" />
 		<PackageReference Include="ConsoleProgressBar" Version="2.0.0" />
 		<PackageReference Include="Downloader" Version="3.0.1" />
-		<PackageReference Include="Hangfire.Core" Version="1.7.32" />
 		<PackageReference Include="Hangfire.SqlServer" Version="1.7.32" />
 		<PackageReference Include="m3uParser.NET" Version="1.0.17" />
 		<PackageReference Include="MongoDB.Driver" Version="2.18.0" />
@@ -36,10 +31,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Config\links.conf">
+	  <None Update="Infrastructures\Configurations\Config\links.conf">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Config\pref.conf">
+	  <None Update="Infrastructures\Configurations\Config\pref.conf">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

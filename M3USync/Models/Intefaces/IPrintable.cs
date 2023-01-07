@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using M3USync.Data;
+using M3USync.Data.Abstracts;
 
 namespace M3USync.Models.Intefaces
 {

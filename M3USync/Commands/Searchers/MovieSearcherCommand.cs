@@ -1,17 +1,8 @@
-﻿using Hangfire;
-using M3USync.Config;
-using M3USync.Data;
-using M3USync.Http;
-using M3USync.Models;
+﻿using M3USync.Data;
+using M3USync.Infrastructures.Configurations;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static M3USync.Program;
 
-namespace M3USync.Commands
+namespace M3USync.Commands.Searchers
 {
     public class MovieSearcherCommand : SearcherCommand<Movie>
     {
@@ -22,7 +13,7 @@ namespace M3USync.Commands
         protected override IEnumerable<Movie> GetCandidate(string query, IEnumerable<Movie> contentsInDb)
         {
             var tmdb = Preferences.GetTmdbInstance();
-            
+
             var perfectMatchs = tmdb.GetRelatedMovies(query).Result;
 
             foreach (var item in contentsInDb)
