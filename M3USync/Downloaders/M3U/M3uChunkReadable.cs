@@ -1,12 +1,5 @@
-﻿using m3uParser;
-using m3uParser.Model;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Collections;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace M3USync.Downloaders.M3U
 {

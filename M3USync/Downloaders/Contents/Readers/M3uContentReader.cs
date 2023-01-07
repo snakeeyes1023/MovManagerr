@@ -1,8 +1,8 @@
-﻿using M3USync.Data.Abstracts;
+﻿using LiteDB;
+using M3USync.Data.Abstracts;
 using M3USync.Data.Helpers;
 using M3USync.Downloaders.M3U;
 using M3USync.Infrastructures.Configurations;
-using MongoDB.Driver;
 using System.Linq.Expressions;
 
 namespace M3USync.Downloaders.Contents.Readers
@@ -53,32 +53,30 @@ namespace M3USync.Downloaders.Contents.Readers
 
         public void SyncInDatabase()
         {
-            IMongoCollection<T> collection = GetCollections();
-            IEnumerable<T> alreadyInDb = collection.Find(x => true).ToList();
-
-            // Filter out items that are already in the database
-            IEnumerable<T> newContents = Contents.Except(alreadyInDb, new ContentComparer<T>());
-
-            // Insert new items into the database
-            if (newContents.Any())
+            // Open database (or create if doesn't exist)
+            using (var db = new LiteDatabase(Preferences.Instance._DbPath))
             {
-                collection.InsertMany(newContents);
 
-                OnContentSynced?.Invoke(newContents);
+                ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+                IEnumerable<T> alreadyInDb = collection.FindAll();
+
+                // Filter out items that are already in the database
+                IEnumerable<T> newContents = Contents.Except(alreadyInDb, new ContentComparer<T>());
+
+                // Insert new items into the database
+                if (newContents.Any())
+                {
+                    collection.InsertBulk(newContents);
+
+                    OnContentSynced?.Invoke(newContents);
+                }
             }
-        }
-
-        protected IMongoCollection<T> GetCollections()
-        {
-            return DatabaseHelper.GetInstance<T>();
+            #endregion
         }
 
         public void Dispose()
         {
             Contents.Clear();
         }
-
-        #endregion
     }
 }
-

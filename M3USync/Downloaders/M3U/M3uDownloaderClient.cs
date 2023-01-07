@@ -1,17 +1,5 @@
 ﻿using Downloader;
 using M3USync.Downloaders.Contents.Readers;
-using M3USync.Models;
-using MongoDB.Bson;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace M3USync.Downloaders.M3U
 {
