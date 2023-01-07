@@ -37,11 +37,9 @@ namespace M3USync.Commands
 
                 AwesomeConsole.WriteInfo($"Lecture du lien {link} ...");
 
-                var tempPath = Path.GetTempPath();
-
                 M3uDownloaderClient downloader = new M3uDownloaderClient(link, _readers);
 
-                downloader.Start(tempPath).Wait();
+                downloader.Start(Path.GetTempPath()).Wait();
 
                 AwesomeConsole.WriteInfo($"Fin de la lecture du lien {link}");
             }

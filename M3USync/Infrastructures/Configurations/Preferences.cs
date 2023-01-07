@@ -28,13 +28,9 @@ namespace M3USync.Infrastructures.Configurations
             _instance = new Preferences();
         }
 
+        #region Path
 
         private readonly string _PreferenceFolder;
-
-        #region Path
-        public string TempPath { get { return Path.Combine(_PreferenceFolder, "Temp"); } }
-
-
 
         private DirectoryManager _movieManager;
         public DirectoryManager MovieManager
@@ -83,7 +79,7 @@ namespace M3USync.Infrastructures.Configurations
         private Preferences()
         {
             // L'orde est important
-            _PreferenceFolder = Path.Combine(Environment.CurrentDirectory, "Configuration", "Config");
+            _PreferenceFolder = Path.Combine(Environment.CurrentDirectory, "Config");
 
             ReadConfig();
             ReadLinks();
