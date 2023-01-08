@@ -63,6 +63,8 @@ namespace M3USync.Infrastructures.Configurations
 
         public string[] Links { get; private set; }
 
+        public readonly string _DbPath;
+
         private Dictionary<string, string> Configs;
 
         public PreferenceDownload DownloadHours
@@ -80,6 +82,7 @@ namespace M3USync.Infrastructures.Configurations
         {
             // L'orde est important
             _PreferenceFolder = Path.Combine(Environment.CurrentDirectory, "Config");
+            _DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "movmanagerr.db");
 
             ReadConfig();
             ReadLinks();

@@ -2,8 +2,6 @@
 using M3USync.Downloaders.M3U;
 using M3USync.Infrastructures.Configurations;
 using M3USync.Models.Intefaces;
-using MongoDB.Driver;
-using Sprache;
 
 namespace M3USync.Data.Abstracts
 {

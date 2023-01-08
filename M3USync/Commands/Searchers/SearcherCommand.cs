@@ -1,7 +1,8 @@
-﻿using M3USync.Data.Abstracts;
+﻿using LiteDB;
+using M3USync.Data.Abstracts;
 using M3USync.Data.Helpers;
 using M3USync.Downloaders.Contents;
-using MongoDB.Driver;
+using M3USync.Infrastructures.Configurations;
 
 namespace M3USync.Commands.Searchers
 {
@@ -86,8 +87,12 @@ namespace M3USync.Commands.Searchers
 
         public Task<List<T>> GetAllContentsAsync()
         {
-            var collection = DatabaseHelper.GetInstance<T>();
-            return collection.Find(x => true).ToListAsync();
+            using (var db = new LiteDatabase(Preferences.Instance._DbPath))
+            {
+                ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+
+                return Task.FromResult(collection.FindAll().ToList());
+            }
         }
     }
 }

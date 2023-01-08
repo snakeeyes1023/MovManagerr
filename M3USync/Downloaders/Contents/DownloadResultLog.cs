@@ -1,11 +1,5 @@
 ﻿using M3USync.Infrastructures.Loggers;
 using M3USync.Infrastructures.UIs;
-using MongoDB.Bson.Serialization.IdGenerators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace M3USync.Downloaders.Contents
 {

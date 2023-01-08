@@ -1,7 +1,8 @@
-﻿using M3USync.Data;
+﻿using LiteDB;
+using M3USync.Data;
+using M3USync.Data.Helpers;
 using M3USync.Downloaders.M3U;
 using M3USync.Infrastructures.UIs;
-using MongoDB.Driver;
 using System.Linq.Expressions;
 
 namespace M3USync.Downloaders.Contents.Readers
@@ -30,19 +31,23 @@ namespace M3USync.Downloaders.Contents.Readers
             AwesomeConsole.WriteInfo("Recherche des films sur TMDB...");
 
 
-            var collection = GetCollections();
-            foreach (var movie in movies)
+            using (var db = new LiteDatabase(Preferences._DbPath))
             {
-                try
-                {
-                    movie.SearchMovie();
 
-                    var filter = Builders<Movie>.Filter.Eq(s => s._id, movie._id);
-                    var result = collection.ReplaceOne(filter, movie);
-                }
-                catch (Exception)
+                ILiteCollection<Movie> collection = DatabaseHelper.GetCollection<Movie>(db);
+
+                foreach (var movie in movies)
                 {
-                    AwesomeConsole.WriteWarning("Le film " + movie.Name + " n'a pas été trouvé sur TMDB.");
+                    try
+                    {
+                        movie.SearchMovie();
+
+                        collection.Update(movie);
+                    }
+                    catch (Exception)
+                    {
+                        AwesomeConsole.WriteWarning("Le film " + movie.Name + " n'a pas été trouvé sur TMDB.");
+                    }
                 }
             }
         }

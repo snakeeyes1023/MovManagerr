@@ -1,6 +1,5 @@
 ﻿using M3USync.Data;
 using M3USync.Infrastructures.Configurations;
-using MongoDB.Driver;
 
 namespace M3USync.Commands.Searchers
 {
