@@ -30,7 +30,7 @@ namespace M3USync.Infrastructures.Configurations
 
         #region Path
 
-        private readonly string _PreferenceFolder;
+        public readonly string _PreferenceFolder;
 
         private DirectoryManager _movieManager;
         public DirectoryManager MovieManager

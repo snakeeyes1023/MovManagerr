@@ -15,7 +15,9 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
-
+	<PropertyGroup>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ConsoleMenu-simple" Version="2.4.3" />
 		<PackageReference Include="Downloader" Version="3.0.2" />

@@ -8,7 +8,6 @@ using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using MovManagerr.Explorer.Services;
-using Hangfire;
 using Newtonsoft.Json;
 using MovManagerr.Web.Infrastructure;
 
@@ -21,15 +20,15 @@ namespace MovManagerr.Controllers
     {
         private readonly ContentServices _contentServices;
         private readonly MovieServices _movieService;
-        private readonly IBackgroundJobClient _backgroundJobs;
+        //private readonly IBackgroundJobClient _backgroundJobs;
 
         public MovieDataController(
             ContentServices contentServices,
-            IBackgroundJobClient backgroundJobs,
+            //IBackgroundJobClient backgroundJobs,
             MovieServices movieServices)
         {
             _contentServices = contentServices;
-            _backgroundJobs = backgroundJobs;
+            //_backgroundJobs = backgroundJobs;
             _movieService = movieServices;
         }
 
@@ -53,7 +52,7 @@ namespace MovManagerr.Controllers
             {
                 if (change.Type == "remove")
                 {
-                    _backgroundJobs.Enqueue<MovieServices>(x => x.FullDeleteMovie(Convert.ToInt32(change.Key.ToString())));
+                   // _backgroundJobs.Enqueue<MovieServices>(x => x.FullDeleteMovie(Convert.ToInt32(change.Key.ToString())));
                 }          
             }
 

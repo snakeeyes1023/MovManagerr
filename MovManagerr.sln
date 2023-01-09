@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3USync", "M3USync\M3USync.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3USync.Tests", "M3USync.Tests\M3USync.Tests.csproj", "{86145AAE-4854-47E1-8E1A-548C6620CBF7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.App", "MovManagerr.App\MovManagerr.App.csproj", "{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{86145AAE-4854-47E1-8E1A-548C6620CBF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86145AAE-4854-47E1-8E1A-548C6620CBF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86145AAE-4854-47E1-8E1A-548C6620CBF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
