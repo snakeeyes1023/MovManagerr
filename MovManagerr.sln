@@ -8,10 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevExtreme NuGet.config", "
 		NuGet.config = NuGet.config
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Explorer", "MovManagerr.Explorer\MovManagerr.Explorer.csproj", "{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Models", "MovManagerr.Models\MovManagerr.Models.csproj", "{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E94BD231-C656-4F6D-A27A-1A7F91111933}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -33,14 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C6C397A2-97CA-4422-81C3-87EDB6BD2E16}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48DB75C0-C679-482C-8B45-D9F2CFE4ADC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FACD27A8-4898-4643-8A73-A64B39F284C2}.Release|Any CPU.ActiveCfg = Release|Any CPU

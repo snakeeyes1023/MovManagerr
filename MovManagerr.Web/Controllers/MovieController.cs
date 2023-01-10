@@ -4,15 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MovManagerr.Web.Controllers
 {
-    public class IptvController : Controller
+    public class MovieController : Controller
     {
         private readonly MovieSearcherCommand _movieSearcher;
-        public IptvController()
+        public MovieController()
         {
             _movieSearcher = new MovieSearcherCommand();
         }
-
-        public async Task<IActionResult> Index()
+        
+        public async Task<IActionResult> RecentlyAdded()
         {
             IEnumerable<Content> contents = await _movieSearcher.GetAllContentsAsync();
 

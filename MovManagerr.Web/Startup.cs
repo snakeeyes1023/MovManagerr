@@ -28,19 +28,12 @@ namespace MovManagerr.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {            
-            // Add services to the container.
-            services.ConfigureSingletonServices<MovManagerr.Explorer.Config.ExplorerPathConfig>(Configuration, "ExplorerPathConfig");
-            services.ConfigureSingletonServices<MovManagerr.Explorer.Config.RadarrInstanceConfig>(Configuration, "RadarrInstanceConfig");
-            services.ConfigureSingletonServices<MovManagerr.Explorer.Config.FtpConfig>(Configuration, "FtpConfig");
-            services.ConfigureSingletonServices<MovManagerr.Tmdb.Config.TmdbConfig>(Configuration, "TmdbConfig");
+            services.ConfigureSingletonServices<Tmdb.Config.TmdbConfig>(Configuration, "TmdbConfig");
 
             //inject content service class
-            services.AddScoped<MovManagerr.Tmdb.TmdbClientService>();
-            services.AddScoped<MovManagerr.Tmdb.Service.FavoriteService>();
-            //services.AddScoped<MovManagerr.Explorer.Services.ContentServices>();
-            services.AddScoped<MovManagerr.Explorer.Services.MovieServices>();
-            services.AddScoped<AdminActionFilter>();
-
+            services.AddScoped<Tmdb.TmdbClientService>();
+            services.AddScoped<Tmdb.Service.FavoriteService>();
+            
             services.AddHttpContextAccessor();
             
             services.AddDistributedMemoryCache();
