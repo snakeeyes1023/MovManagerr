@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3USync.Tests", "M3USync.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.App", "MovManagerr.App\MovManagerr.App.csproj", "{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovManagerr.Blazor", "MovManagerr.Blazor\MovManagerr.Blazor.csproj", "{E2B924F1-3623-49A2-AB24-F6FE64BD0658}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{011FFEAF-D2DA-49AE-B351-BB6648ACA42E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2B924F1-3623-49A2-AB24-F6FE64BD0658}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2B924F1-3623-49A2-AB24-F6FE64BD0658}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2B924F1-3623-49A2-AB24-F6FE64BD0658}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2B924F1-3623-49A2-AB24-F6FE64BD0658}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
