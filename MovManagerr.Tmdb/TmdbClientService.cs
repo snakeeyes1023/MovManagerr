@@ -1,4 +1,5 @@
-﻿using MovManagerr.Tmdb.Service;
+﻿using Microsoft.Extensions.Options;
+using MovManagerr.Tmdb.Service;
 using TMDbLib.Client;
 using TMDbLib.Objects.Authentication;
 using TMDbLib.Objects.Search;
@@ -10,11 +11,11 @@ namespace MovManagerr.Tmdb
         private readonly TMDbClient _client;
         public readonly FavoriteService Favorites;
         
-        public TmdbClientService(Tmdb.Config.TmdbConfig config)
+        public TmdbClientService(IOptions<Tmdb.Config.TmdbConfig> config)
         {
-            _client = new TMDbClient(config.ApiKey, config.UseSsl, config.Url);
-            _client.SetSessionInformationAsync(config.Session, SessionType.UserSession).Wait();
-            _client.DefaultLanguage = config.Language;
+            _client = new TMDbClient(config.Value.ApiKey, config.Value.UseSsl, config.Value.Url);
+            _client.SetSessionInformationAsync(config.Value.Session, SessionType.UserSession).Wait();
+            _client.DefaultLanguage = config.Value.Language;
 
             Favorites = new FavoriteService(this);
         }

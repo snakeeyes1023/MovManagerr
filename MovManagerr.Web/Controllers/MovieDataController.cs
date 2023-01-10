@@ -18,18 +18,18 @@ namespace MovManagerr.Controllers
     [Route("api/[controller]")]
     public class MovieDataController : Controller
     {
-        private readonly ContentServices _contentServices;
-        private readonly MovieServices _movieService;
+        //private readonly ContentServices _contentServices;
+        //private readonly MovieServices _movieService;
         //private readonly IBackgroundJobClient _backgroundJobs;
 
         public MovieDataController(
-            ContentServices contentServices,
+            //ContentServices contentServices,
             //IBackgroundJobClient backgroundJobs,
             MovieServices movieServices)
         {
-            _contentServices = contentServices;
-            //_backgroundJobs = backgroundJobs;
-            _movieService = movieServices;
+            //_contentServices = contentServices;
+            ////_backgroundJobs = backgroundJobs;
+            //_movieService = movieServices;
         }
 
         [HttpGet]
@@ -37,10 +37,10 @@ namespace MovManagerr.Controllers
         {
             List<MovieDirectorySpec> movies = new List<MovieDirectorySpec>();
 
-            await foreach (var movie in _contentServices.GetAllMoviesFromFilesAsync(loadOptions.Take, loadOptions.Skip))
-            {
-                movies.Add(movie);
-            }
+            //await foreach (var movie in _contentServices.GetAllMoviesFromFilesAsync(loadOptions.Take, loadOptions.Skip))
+            //{
+            //    movies.Add(movie);
+            //}
             
             return DataSourceLoader.Load(movies, loadOptions);
         }

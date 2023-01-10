@@ -12,11 +12,9 @@ namespace MovManagerr.Controllers
     public class HomeController : Controller
     {
         //constructor
-        private readonly ContentServices _contentServices;
         
-        public HomeController(ContentServices contentServices)
+        public HomeController()
         {
-            _contentServices = contentServices;
         }
 
         public IActionResult Index()

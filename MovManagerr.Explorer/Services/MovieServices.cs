@@ -11,13 +11,13 @@ namespace MovManagerr.Explorer.Services
 {
     public class MovieServices
     {
-        private readonly ContentServices _contentServices;
+        //private readonly ContentServices _contentServices;
         private readonly TmdbClientService _tmdbClient;
         private readonly ILogger<MovieServices> _logger;
 
-        public MovieServices(ContentServices contentService, TmdbClientService tmdbClient, ILogger<MovieServices> logger)
+        public MovieServices(/*ContentServices contentService, */TmdbClientService tmdbClient, ILogger<MovieServices> logger)
         {
-            _contentServices = contentService;
+            //_contentServices = contentService;
             _tmdbClient = tmdbClient;
             _logger = logger;
         }
@@ -28,22 +28,22 @@ namespace MovManagerr.Explorer.Services
         /// <returns></returns>
         public async Task SyncMovieListByFolderAsync()
         {
-            var downloadedMovie = _contentServices.GetAllMoviesFromFolderAsync();
+            //var downloadedMovie = _contentServices.GetAllMoviesFromFolderAsync();
 
-            await foreach (var movie in downloadedMovie)
-            {
-                try
-                {
-                    if (!await _tmdbClient.Favorites.LikeMovieByNameAndYearAsync(movie.Title, movie.Year))
-                    {
-                        throw new System.Exception("Movie not found");
-                    };
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error while syncing movie");
-                }
-            }
+            //await foreach (var movie in downloadedMovie)
+            //{
+            //    try
+            //    {
+            //        if (!await _tmdbClient.Favorites.LikeMovieByNameAndYearAsync(movie.Title, movie.Year))
+            //        {
+            //            throw new System.Exception("Movie not found");
+            //        };
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _logger.LogError(ex, "Error while syncing movie");
+            //    }
+            //}
         }
 
 
@@ -55,17 +55,17 @@ namespace MovManagerr.Explorer.Services
         /// <returns></returns>
         public async Task FullDeleteMovie(int key)
         {
-            var movies = _contentServices.GetAllMoviesFromFilesAsync();
+            //var movies = _contentServices.GetAllMoviesFromFilesAsync();
 
-            await foreach (var movieData in movies)
-            {
-                if (movieData.Id == key)
-                {
-                    await _tmdbClient.Favorites.DislikeMovieAsync(movieData.Id);
-                    await _contentServices.DeleteElementAsync(movieData.FullPath);
-                    return;
-                }
-            }
+            //await foreach (var movieData in movies)
+            //{
+            //    if (movieData.Id == key)
+            //    {
+            //        await _tmdbClient.Favorites.DislikeMovieAsync(movieData.Id);
+            //        await _contentServices.DeleteElementAsync(movieData.FullPath);
+            //        return;
+            //    }
+            //}
         }
 
 
@@ -75,12 +75,12 @@ namespace MovManagerr.Explorer.Services
         /// <returns>The number of deleted movies</returns>
         public async Task DeleteBadMovie()
         {
-            var movies = _contentServices.GetAllMoviesFromFilesAsync();
+            //var movies = _contentServices.GetAllMoviesFromFilesAsync();
 
-            await foreach (var movie in movies)
-            {
-                 await DeleteMovie(movie);
-            }
+            //await foreach (var movie in movies)
+            //{
+            //     await DeleteMovie(movie);
+            //}
         }
 
 
@@ -94,7 +94,7 @@ namespace MovManagerr.Explorer.Services
         {
             if (movie.IsWebRip())
             {
-                await _contentServices.DeleteElementAsync(movie.FullPath);
+                //await _contentServices.DeleteElementAsync(movie.FullPath);
             }
 
             if (movie.Movie != null && movie.Movie.OriginalLanguage == "ja")

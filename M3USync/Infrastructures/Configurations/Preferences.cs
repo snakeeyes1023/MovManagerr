@@ -90,14 +90,15 @@ namespace M3USync.Infrastructures.Configurations
 
         public static TmdbClientService GetTmdbInstance()
         {
-            return new TmdbClientService(new MovManagerr.Tmdb.Config.TmdbConfig()
-            {
-                ApiKey = "b41cf1ce06b0bf7826e538951a966a49",
-                Session = "82e668e10bbfbf820bf326fcca5a487cc4f44652",
-                Language = "fr",
-                UseSsl = false,
-                Url = "http://api.themoviedb.org"
-            });
+            return default;
+            //return new TmdbClientService(new MovManagerr.Tmdb.Config.TmdbConfig()
+            //{
+            //    ApiKey = "b41cf1ce06b0bf7826e538951a966a49",
+            //    Session = "82e668e10bbfbf820bf326fcca5a487cc4f44652",
+            //    Language = "fr",
+            //    UseSsl = false,
+            //    Url = "http://api.themoviedb.org"
+            //});
         }
 
         public void ReadConfig()

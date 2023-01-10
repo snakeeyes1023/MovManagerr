@@ -37,15 +37,12 @@ namespace MovManagerr.Web
             //inject content service class
             services.AddScoped<MovManagerr.Tmdb.TmdbClientService>();
             services.AddScoped<MovManagerr.Tmdb.Service.FavoriteService>();
-            services.AddScoped<MovManagerr.Explorer.Services.ContentServices>();
+            //services.AddScoped<MovManagerr.Explorer.Services.ContentServices>();
             services.AddScoped<MovManagerr.Explorer.Services.MovieServices>();
             services.AddScoped<AdminActionFilter>();
 
-
             services.AddHttpContextAccessor();
-            services.TryAddScoped<IActionContextAccessor, ActionContextAccessor>();
-
-
+            
             services.AddDistributedMemoryCache();
 
             services.AddSession(options =>
