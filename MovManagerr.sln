@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Tmdb", "MovManagerr.Tmdb\MovManagerr.Tmdb.csproj", "{FACD27A8-4898-4643-8A73-A64B39F284C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core.Tests", "M3USync.Tests\MovManagerr.Core.Tests.csproj", "{86145AAE-4854-47E1-8E1A-548C6620CBF7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core.Tests", "MovManagerr.Core.Tests\MovManagerr.Core.Tests.csproj", "{86145AAE-4854-47E1-8E1A-548C6620CBF7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Blazor", "MovManagerr.Blazor\MovManagerr.Blazor.csproj", "{E2B924F1-3623-49A2-AB24-F6FE64BD0658}"
 EndProject
