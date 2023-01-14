@@ -22,7 +22,7 @@ namespace M3USync.Commands.Backgrounds.MovieTask
 
         protected override void PerformTask(CancellationToken cancellationToken)
         {
-            var getAllMovieToSearch = GetAllUnSearcherMovie();
+            var getAllMovieToSearch = GetAllUnFoundedMovie();
 
             try
             {
@@ -58,7 +58,7 @@ namespace M3USync.Commands.Backgrounds.MovieTask
         {
             var defaultMessage = base.GetEndedMessage();
 
-            defaultMessage += $"</br> (<b>{TotalContentProceeded} contenue ont été traité. {GetAllUnSearcherMovie().Count()} restants. {TotalContentNotFounded} films non trouvé.)</b>";
+            defaultMessage += $"</br> (<b>{TotalContentProceeded} contenue ont été traité. {GetAllUnFoundedMovie().Count()} restants. {TotalContentNotFounded} films non trouvé.)</b>";
 
             return defaultMessage;
         }
@@ -72,7 +72,7 @@ namespace M3USync.Commands.Backgrounds.MovieTask
         }
 
 
-        private IEnumerable<Movie> GetAllUnSearcherMovie()
+        private IEnumerable<Movie> GetAllUnFoundedMovie()
         {
             var db = new LiteDatabase(Preferences.Instance._DbPath);
 

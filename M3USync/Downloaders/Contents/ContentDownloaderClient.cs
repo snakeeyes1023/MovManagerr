@@ -18,6 +18,7 @@ namespace M3USync.Downloaders.Contents
         public TimeSpan DelayBetweenAttempt { get; set; }
 
         public List<DownloadContentTask> AllTasks { get; set; } = new List<DownloadContentTask>();
+        private Content? ContentInDownload { get; set; }
 
 
         private ContentDownloaderClient(int attempt = 3)
@@ -74,6 +75,16 @@ namespace M3USync.Downloaders.Contents
             CheckForPendingTasks();
         }
 
+        public bool IsOnWaitingList(Content content)
+        {
+            return AllTasks.Any(x => x.Content == content && !x.IsFinish);
+        }
+
+        public bool IsDownloading(Content content)
+        {
+            return ContentInDownload == content;
+        }
+
 
         /// <summary>
         /// Downloads as chunk.
@@ -83,6 +94,8 @@ namespace M3USync.Downloaders.Contents
         {
             try
             {
+                ContentInDownload = task.Content;
+                
                 WaitWhileNotInOperationHour();
 
                 SimpleLogger.AddLog(new BasicLog<ContentDownloaderClient>($"Téléchargement en cours... {task.Origin}"), LogType.Info);
@@ -115,6 +128,7 @@ namespace M3USync.Downloaders.Contents
             }
             finally
             {
+                ContentInDownload = null;
                 CanHandle = true;
                 Attempt = 0;
                 CheckForPendingTasks();
@@ -147,7 +161,7 @@ namespace M3USync.Downloaders.Contents
                 EndedTimeJob = DateTime.Now,
                 StartedTimeJob = StartedTime
             });
-            
+
             task.IsFinish = true;
 
         }
