@@ -1,16 +1,10 @@
 ﻿@page "/search/movie"
-@using M3USync.Commands.Backgrounds.MovieTask
-@using M3USync.Commands.Searchers
-@using M3USync.Data
-@using M3USync.Data.Abstracts
-@using Microsoft.Extensions.Hosting
-@inject MovieSearcherCommand MovieSearcherCommand
-@inject SearchAllMoviesOnTmdb SearchOnTmdbBgService
+@inject IMovieService movieService
 
 <div class="row py-5">
     <div class="col-12">
         <RadzenCard>
-            <BackgroundTaskButton BackgroundService="SearchOnTmdbBgService" Text="Rechercher tous les films sur Tmdb" />
+            <BackgroundTaskButton BackgroundService="movieService.GetSearchAllMovieOnTmdbService" Text="Rechercher tous les films sur Tmdb" />
         </RadzenCard>
     </div>
     <div class="col-12">
@@ -27,12 +21,12 @@
                         <div class="container">
                             <div class="row" style="margin-left: calc(var(--bs-gutter-x) * -1); margin-right: calc(var(--bs-gutter-x) * -1)">
                                 <div class="col-lg-3 p-3 product-title">
-                                    <img class="img-fluid" src="https://image.tmdb.org/t/p/w200/@(movie.TmdbMovie.PosterPath)" />
+                                    <img class="img-fluid" src="https://image.tmdb.org/t/p/w200/@(movie.TmdbMovie?.PosterPath)" />
                                 </div>
                                 <div class="col-lg-7 p-3">
                                     <div class="row d-flex">
                                         <div class="col">
-                                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="mb-0">@(movie.TmdbMovie.OriginalTitle)</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="mb-0">@(movie.TmdbMovie?.OriginalTitle)</RadzenText>
 
                                                 <RadzenText TextStyle="TextStyle.Subtitle1" class="mb-sm-2 mb-lg-0 my-3">Origine</RadzenText>
 
@@ -40,14 +34,14 @@
 
                                                 <RadzenText TextStyle="TextStyle.Subtitle1" class="mb-sm-2 mb-lg-0 my-3">Résumé</RadzenText>
 
-                                                <RadzenText TextStyle="TextStyle.Body1" class="mb-sm-2 mb-lg-0">@(movie.TmdbMovie.Overview)</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body1" class="mb-sm-2 mb-lg-0">@(movie.TmdbMovie?.Overview)</RadzenText>
 
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-lg-2 p-3">
                                         <RadzenButton Text="Télécharger" Click=@(args => Download(movie)) Class="w-100" />
-                                    </div>
+                                </div>
                                 </div>
                             </div>
                         </RadzenCard>
@@ -100,11 +94,12 @@
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            movies = MovieSearcherCommand.GetRecent(25).OrderByDescending(x => x.TmdbMovie.ReleaseDate);
+            movies = movieService.GetRecent(50);
         }
         else
         {
-            movies = MovieSearcherCommand.GetCandidateInAll(value);
+            SearchQuery searchQuery = new SearchQuery() { EnteredText = value };
+            movies = movieService.GetCandidates(searchQuery);
         }
     }
 }

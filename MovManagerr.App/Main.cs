@@ -1,8 +1,5 @@
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
-using System.Security.Policy;
-using System.Windows.Forms;
-using M3USync.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Configurations;
 
 namespace MovManagerr.App
 {

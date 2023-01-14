@@ -1,0 +1,106 @@
+﻿<div class="row">
+    <div class="col-12">
+        <RadzenButton BusyText="Recherche en cours" IsBusy=@InProcess Click=@(args => ToggleTask()) Text="@Text" />
+        @if (InProcess)
+        {
+            <RadzenButton ButtonStyle="ButtonStyle.Warning" Click=@(args => ToggleTask()) Text="Annuler" />
+        }
+    </div>
+</div>
+
+
+@code {
+
+    private bool InProcess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (OnStatusChanged != null)
+        {
+            CurrentBackgroundService.OnStatusChanged += OnStatusChanged;
+        }
+
+        CurrentBackgroundService.OnStatusChanged += RefreshUIAsync;
+
+        InProcess = CurrentBackgroundService.CurrentlyInProcess();
+    }
+
+
+    public void Dispose()
+    {
+        if (OnStatusChanged != null)
+        {
+            CurrentBackgroundService.OnStatusChanged -= OnStatusChanged;
+        }
+
+        CurrentBackgroundService.OnStatusChanged -= RefreshUIAsync;
+
+    }
+
+    private async void RefreshUIAsync()
+    {
+        // InvokeAsync is inherited, it syncs the call back to the render thread
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+
+        if (InProcess != CurrentBackgroundService.CurrentlyInProcess())
+        {
+            InProcess = CurrentBackgroundService.CurrentlyInProcess();
+            StateHasChanged();
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    protected async Task ToggleTask()
+    {
+        if (InProcess)
+        {
+            await CurrentBackgroundService.StopAsync(new System.Threading.CancellationToken());
+        }
+        else
+        {
+            await CurrentBackgroundService.StartAsync(new System.Threading.CancellationToken());
+        }
+    }
+
+    protected EventedBackgroundService CurrentBackgroundService
+    {
+        get
+        {
+            if (_BackgroundService == null)
+            {
+                _BackgroundService = BackgroundService?.Invoke();
+            }
+
+            return _BackgroundService;
+        }
+    }
+
+
+    public delegate EventedBackgroundService myBackgroundService();
+
+    private EventedBackgroundService _BackgroundService { get; set; }
+
+    [Parameter]
+    public myBackgroundService BackgroundService { get; set; }
+
+    [Parameter]
+    public Action OnStatusChanged { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+}

@@ -1,18 +1,11 @@
-using M3USync.Commands.Backgrounds;
-using M3USync.Commands.Backgrounds.MovieTask;
-using M3USync.Commands.Searchers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MovManagerr.Core.Services.Movies;
+using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using Radzen;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Blazor
 {
@@ -31,11 +24,25 @@ namespace MovManagerr.Blazor
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+
+            
             services.ConfigureSingletonServices<Tmdb.Config.TmdbConfig>(Configuration, "TmdbConfig");
+
+            
             services.AddScoped<Tmdb.TmdbClientService>();
             services.AddScoped<Tmdb.Service.FavoriteService>();
-            services.AddScoped<MovieSearcherCommand>();
+
+            #region MyServices
+
+            services.AddScoped<IMovieService, MovieService>();
+
+            #endregion
+
+            #region BackgroundService
+
             services.AddSingleton<SearchAllMoviesOnTmdb>();
+
+            #endregion
             //radzen
             services.AddScoped<DialogService>();
             services.AddScoped<NotificationService>();

@@ -18,10 +18,8 @@
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
 	</ItemGroup>
-
 	<ItemGroup>
-		<ProjectReference Include="..\M3USync\M3USync.csproj" />
-		<ProjectReference Include="..\MovManagerr.Web\MovManagerr.Web.csproj" />
+	  <ProjectReference Include="..\MovManagerr.Blazor\MovManagerr.Blazor.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
