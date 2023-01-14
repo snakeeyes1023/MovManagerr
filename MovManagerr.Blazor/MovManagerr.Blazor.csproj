@@ -5,19 +5,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\M3USync\M3USync.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Data\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <PackageReference Include="Radzen.Blazor" Version="4.5.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="Shared\Logs.razor">
+	  <ProjectReference Include="..\MovManagerr.Core\MovManagerr.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="Components\Logs.razor">
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	  </Content>
 	</ItemGroup>

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TMDbLib.Client;
+﻿using TMDbLib.Client;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Tmdb.Service

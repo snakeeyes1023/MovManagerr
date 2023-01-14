@@ -1,4 +1,3 @@
-using System.Threading;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -39,7 +38,7 @@ namespace MovManagerr.App
             if (!IsWebHostStated())
             {
                 // Start the web host on a new thread
-                webHost = Web.Program.CreateHostBuilder(Array.Empty<string>()).Build();
+                webHost = Blazor.Program.CreateHostBuilder(Array.Empty<string>()).Build();
                 webHostThread = new Thread(() => webHost.Run());
                 webHostThread.Start();
                 OnWebServerStatusChanged?.Invoke(true);
