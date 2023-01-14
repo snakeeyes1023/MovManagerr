@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
+using MovManagerr.Tmdb.Config;
 using MovManagerr.Tmdb.Service;
 using TMDbLib.Client;
 using TMDbLib.Objects.Authentication;
+using TMDbLib.Objects.General;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Tmdb
@@ -10,7 +12,8 @@ namespace MovManagerr.Tmdb
     {
         private readonly TMDbClient _client;
         public readonly FavoriteService Favorites;
-        
+        private TmdbConfig tmdbConfig;
+
         public TmdbClientService(IOptions<Tmdb.Config.TmdbConfig> config)
         {
             _client = new TMDbClient(config.Value.ApiKey, config.Value.UseSsl, config.Value.Url);
@@ -44,13 +47,17 @@ namespace MovManagerr.Tmdb
             return search.Results.FirstOrDefault();
         }
 
-        public async Task<IEnumerable<SearchMovie?>> GetRelatedMovies(string name)
+        public SearchMovie? GetMovieByName(string name)
         {
-            var search = await _client.SearchMovieAsync(name, 0, true);
-            return search.Results;
+            Task<SearchMovie?> task = Task.Run<SearchMovie?>(async () => await GetMovieByNameAsync(name));
+            return task.Result;
         }
 
-
+        public IEnumerable<SearchMovie?>? GetRelatedMovies(string name)
+        {
+            Task<SearchContainer<SearchMovie>?> task = Task.Run<SearchContainer<SearchMovie>?>(async () => await _client.SearchMovieAsync(name, 0, true));
+           return task.Result?.Results;
+        }
 
         public TMDbClient GetClient()
         {

@@ -1,6 +1,7 @@
 ﻿using M3USync.Data.Abstracts;
 using M3USync.Infrastructures.Configurations;
 using M3USync.Infrastructures.Loggers;
+using M3USync.Infrastructures.UIs;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -16,23 +17,19 @@ namespace M3USync.Downloaders.Contents
         private int Attempt { get; set; }
         public TimeSpan DelayBetweenAttempt { get; set; }
 
-        public List<Action> PendingTasks { get; set; } = new List<Action>();
+        public List<DownloadContentTask> AllTasks { get; set; } = new List<DownloadContentTask>();
 
-        public readonly List<ILog> Logs;
-
-        public event Action<ILog> OnNewLogAdded;
 
         private ContentDownloaderClient(int attempt = 3)
         {
             NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
             CanHandle = true;
             Attempt = attempt;
-            Logs = new List<ILog>();
         }
 
         private void NetworkChange_NetworkAvailabilityChanged(object? sender, NetworkAvailabilityEventArgs e)
         {
-            AddLog(new BasicLog { Message = $"Changement d'état de réseaux (Est connecté : {e.IsAvailable})" });
+            SimpleLogger.AddLog(new BasicLog<ContentDownloaderClient>($"Changement d'état de réseaux (Est connecté : {e.IsAvailable})"), LogType.Info);
 
             if (e.IsAvailable)
             {
@@ -42,7 +39,7 @@ namespace M3USync.Downloaders.Contents
             }
         }
 
-        public void Download(ISave content)
+        public void Download(Content content)
         {
             try
             {
@@ -52,24 +49,26 @@ namespace M3USync.Downloaders.Contents
                     .GetDirectoryManager()
                     .CreateDirectory(path);
 
-                AppendTask(content);
+                var downloadTask = new DownloadContentTask()
+                {
+                    Content = content,
+                    Destination = content.GetFullPath(),
+                    IsFinish = false,
+                    Origin = content.Url
+                };
+
+                AppendTask(downloadTask);
             }
             catch (Exception ex)
             {
-                AddLog(new BasicLog { Message = "Impossible de créer le répertoire" + ex });
+                SimpleLogger.AddLog(new BasicLog<ContentDownloaderClient>("Impossible de créer le répertoire" + ex), LogType.Error);
                 Thread.Sleep(2000);
             }
         }
 
-        private void AppendTask(ISave content)
+        private void AppendTask(DownloadContentTask task)
         {
-            PendingTasks.Add(() =>
-            {
-                CurrentTask = Task.Run(() =>
-                {
-                    Start(content.Url, content.GetFullPath());
-                });
-            });
+            AllTasks.Add(task);
 
             // Vérifie s'il y a des tâches en attente et exécute la prochaine tâche si possible
             CheckForPendingTasks();
@@ -80,38 +79,38 @@ namespace M3USync.Downloaders.Contents
         /// Downloads as chunk.
         /// </summary>
         /// <returns></returns>
-        public void Start(string url, string destinationPath)
+        public void Start(DownloadContentTask task)
         {
             try
             {
                 WaitWhileNotInOperationHour();
 
-                AddLog(new BasicLog() { Message = $"Téléchargement en cours... {url}" });
+                SimpleLogger.AddLog(new BasicLog<ContentDownloaderClient>($"Téléchargement en cours... {task.Origin}"), LogType.Info);
 
                 CanHandle = false;
 
                 Thread.Sleep(1000);
 
                 WebClient myWebClient = new WebClient();
-                myWebClient.DownloadFile(url, destinationPath);
+                myWebClient.DownloadFile(task.Origin, task.Destination);
 
-                OnSucceeded(destinationPath);
+                OnSucceeded(task);
             }
             catch (Exception ex)
             {
                 ++Attempt;
 
-                OnFailed(url, destinationPath, ex);
+                OnFailed(task, ex);
 
                 if (Attempt > 3)
                 {
-                    AddLog(new BasicLog { Message = "Téléchargement abandonné" });
+                    SimpleLogger.AddLog(new BasicLog<ContentDownloaderClient>("Téléchargement abandonné"), LogType.Error);
                     Attempt = 0;
                 }
                 else
                 {
-                    AddLog(new BasicLog { Message = "Nouvelle tentative dans " + DelayBetweenAttempt.TotalMinutes + " minutes" });
-                    Start(url, destinationPath);
+                    SimpleLogger.AddLog(new BasicLog<ContentDownloaderClient>("Nouvelle tentative dans " + DelayBetweenAttempt.TotalMinutes + " minutes"), LogType.Info);
+                    Start(task);
                 }
             }
             finally
@@ -122,47 +121,50 @@ namespace M3USync.Downloaders.Contents
             }
         }
 
-        private void OnFailed(string url, string destinationPath, Exception ex)
+        private void OnFailed(DownloadContentTask task, Exception ex)
         {
-            AddLog(new DownloadResultLog
+            SimpleLogger.AddLog(new DownloadResultLog<ContentDownloaderClient>
             {
                 HasSucceeded = false,
-                Origin = url,
-                Destination = destinationPath,
+                Origin = task.Origin,
+                Destination = task.Destination,
                 Exception = ex ?? new ArgumentNullException(nameof(ex)),
                 EndedTimeJob = DateTime.Now,
                 StartedTimeJob = StartedTime,
                 Attempts = Attempt
             });
+
+            task.IsFinish = true;
+            task.HasSucceeded = false;
         }
 
-        private void OnSucceeded(string destinationPath)
+        private void OnSucceeded(DownloadContentTask task)
         {
-            AddLog(new DownloadResultLog
+            SimpleLogger.AddLog(new DownloadResultLog<ContentDownloaderClient>
             {
                 HasSucceeded = true,
-                Destination = destinationPath,
+                Destination = task.Destination,
                 EndedTimeJob = DateTime.Now,
                 StartedTimeJob = StartedTime
             });
-        }
+            
+            task.IsFinish = true;
 
-        private void AddLog(ILog log)
-        {
-            Logs.Add(log);
-            OnNewLogAdded?.Invoke(log);
         }
 
         private void CheckForPendingTasks()
         {
-            if (CanHandle && PendingTasks.Any())
+            if (CanHandle && AllTasks != null && AllTasks.Any())
             {
                 StartedTime = DateTime.Now;
 
-                // Exécute la prochaine tâche en attente
-                PendingTasks[0]();
-                // Supprime la tâche de la liste des tâches en attente
-                PendingTasks.RemoveAt(0);
+                CurrentTask = Task.Run(() =>
+                {
+                    if (AllTasks.FirstOrDefault(x => !x.IsFinish) is DownloadContentTask task)
+                    {
+                        Start(task);
+                    }
+                });
             }
         }
 
@@ -184,6 +186,15 @@ namespace M3USync.Downloaders.Contents
 
             internal static readonly ContentDownloaderClient instance = new ContentDownloaderClient();
         }
+    }
+
+    public class DownloadContentTask
+    {
+        public string Destination { get; set; }
+        public string Origin { get; set; }
+        public Content Content { get; set; }
+        public bool IsFinish { get; set; } = false;
+        public bool HasSucceeded { get; set; } = true;
     }
 }
 

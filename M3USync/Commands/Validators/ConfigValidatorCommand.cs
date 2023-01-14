@@ -26,12 +26,12 @@ namespace M3USync.Commands.Validators
 
                 config.VerifyDriveAccessibility();
 
-                AwesomeConsole.WriteSuccess("Vos configuration son valide.");
+                SimpleLogger.AddLog("Vos configuration son valide.");
             }
             catch (Exception ex)
             {
-                AwesomeConsole.WriteError("La configuration n'est pas valide.");
-                AwesomeConsole.WriteWarning(ex.Message);
+                SimpleLogger.AddLog("La configuration n'est pas valide.");
+                SimpleLogger.AddLog(ex.Message);
             }
         }
     }

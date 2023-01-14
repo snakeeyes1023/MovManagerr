@@ -1,3 +1,6 @@
+using M3USync.Commands.Backgrounds;
+using M3USync.Commands.Backgrounds.MovieTask;
+using M3USync.Commands.Searchers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -5,7 +8,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MovManagerr.Blazor.Data;
+using Radzen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +31,16 @@ namespace MovManagerr.Blazor
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<WeatherForecastService>();
+            services.ConfigureSingletonServices<Tmdb.Config.TmdbConfig>(Configuration, "TmdbConfig");
+            services.AddScoped<Tmdb.TmdbClientService>();
+            services.AddScoped<Tmdb.Service.FavoriteService>();
+            services.AddScoped<MovieSearcherCommand>();
+            services.AddSingleton<SearchAllMoviesOnTmdb>();
+            //radzen
+            services.AddScoped<DialogService>();
+            services.AddScoped<NotificationService>();
+            services.AddScoped<TooltipService>();
+            services.AddScoped<ContextMenuService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +67,16 @@ namespace MovManagerr.Blazor
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+        }
+    }
+
+
+    public static class StartupExtensions
+    {
+        public static void ConfigureSingletonServices<T>(this IServiceCollection service, IConfiguration configuration, string sectionName) where T : class
+        {
+            var section = configuration.GetSection(sectionName);
+            service.Configure<T>(section);
         }
     }
 }

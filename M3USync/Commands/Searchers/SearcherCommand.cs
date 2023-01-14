@@ -3,6 +3,8 @@ using M3USync.Data.Abstracts;
 using M3USync.Data.Helpers;
 using M3USync.Downloaders.Contents;
 using M3USync.Infrastructures.Configurations;
+using M3USync.Infrastructures.UIs;
+using System.Collections.Generic;
 
 namespace M3USync.Commands.Searchers
 {
@@ -38,7 +40,7 @@ namespace M3USync.Commands.Searchers
             StartAsync().Wait();
         }
 
-        protected virtual IEnumerable<T> GetCandidate(string query, IEnumerable<T> contentsInDb)
+        public virtual IEnumerable<T> GetCandidate(string query, IEnumerable<T> contentsInDb)
         {
             return contentsInDb.Where(x => x.Name.Contains(query, StringComparison.InvariantCultureIgnoreCase));
         }
@@ -85,14 +87,45 @@ namespace M3USync.Commands.Searchers
             return null;
         }
 
-        public Task<List<T>> GetAllContentsAsync()
+        public Task<IEnumerable<T>> GetAllContentsAsync()
         {
             using (var db = new LiteDatabase(Preferences.Instance._DbPath))
             {
                 ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
 
-                return Task.FromResult(collection.FindAll().ToList());
+                return Task.FromResult(collection.FindAll());
             }
+        }
+
+        public IEnumerable<T> GetCandidateInAll(string query)
+        {
+            var db = new LiteDatabase(Preferences.Instance._DbPath);
+
+            ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+
+            var alls = collection.FindAll().ToList();
+
+            db.Dispose();
+
+            SimpleLogger.AddLog("Load All content for : query : " + query);
+
+
+            return GetCandidate(query, alls);
+        }
+
+        public IEnumerable<T> GetRecent(int limit)
+        {
+            var db = new LiteDatabase(Preferences.Instance._DbPath);
+
+            ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+
+            var recents = collection.Find(x => !string.IsNullOrWhiteSpace(x.TMDBID)).Take(limit).ToList();
+
+            db.Dispose();
+
+            SimpleLogger.AddLog("Load Recent content");
+
+            return recents;
         }
     }
 }

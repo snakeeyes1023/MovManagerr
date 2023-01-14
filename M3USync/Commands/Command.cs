@@ -27,14 +27,14 @@ namespace M3USync.Commands
 
         public void StartTimer()
         {
-            AwesomeConsole.WriteSuccess("Début de le la commande : " + CommandName);
+            SimpleLogger.AddLog("Début de le la commande : " + CommandName);
             TimeProcessing = Stopwatch.StartNew();
         }
 
         public void StopTimer()
         {
             TimeProcessing.Stop();
-            AwesomeConsole.WriteInfo("Temps de traitement de la commande : " + TimeProcessing.ElapsedMilliseconds / 1000 + "s et " + TimeProcessing.ElapsedMilliseconds + "ms");
+            SimpleLogger.AddLog("Temps de traitement de la commande : " + TimeProcessing.ElapsedMilliseconds / 1000 + "s et " + TimeProcessing.ElapsedMilliseconds + "ms");
         }
 
 
@@ -47,7 +47,7 @@ namespace M3USync.Commands
             }
             catch (Exception e)
             {
-                AwesomeConsole.WriteError("Une erreur est survenue : " + e.Message);
+                SimpleLogger.AddLog("Une erreur est survenue : " + e.Message);
             }
             finally
             {

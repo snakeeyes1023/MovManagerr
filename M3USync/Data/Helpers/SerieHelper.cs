@@ -37,7 +37,7 @@ namespace M3USync.Data.Helpers
                 }
             }
 
-            AwesomeConsole.WriteWarning("ExtractSeasonAndEpisodeNumbers | Impossible de traiter la chaine : " + tvgName);
+            SimpleLogger.AddLog("ExtractSeasonAndEpisodeNumbers | Impossible de traiter la chaine : " + tvgName);
             return (string.Empty, 0, 0);
         }
     }

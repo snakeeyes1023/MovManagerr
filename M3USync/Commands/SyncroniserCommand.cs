@@ -35,30 +35,30 @@ namespace M3USync.Commands
             foreach (var link in _preferences.Links)
             {
 
-                AwesomeConsole.WriteInfo($"Lecture du lien {link} ...");
+                SimpleLogger.AddLog($"Lecture du lien {link} ...");
 
                 M3uDownloaderClient downloader = new M3uDownloaderClient(link, _readers);
 
                 downloader.Start(Path.GetTempPath()).Wait();
 
-                AwesomeConsole.WriteInfo($"Fin de la lecture du lien {link}");
+                SimpleLogger.AddLog($"Fin de la lecture du lien {link}");
             }
 
-            AwesomeConsole.WriteInfo("Synchronisation des données dans la base de données...");
+            SimpleLogger.AddLog("Synchronisation des données dans la base de données...");
 
             foreach (var reader in _readers)
             {
-                AwesomeConsole.WriteInfo("Synchronisation des données | " + reader.GetType().Name + " ...");
+                SimpleLogger.AddLog("Synchronisation des données | " + reader.GetType().Name + " ...");
 
                 try
                 {
                     reader.SyncInDatabase();
                     reader.Dispose();
-                    AwesomeConsole.WriteInfo("Synchronisation des données | " + reader.GetType().Name + " terminée");
+                    SimpleLogger.AddLog("Synchronisation des données | " + reader.GetType().Name + " terminée");
                 }
                 catch (Exception ex)
                 {
-                    AwesomeConsole.WriteError(ex.Message);
+                    SimpleLogger.AddLog(ex.Message);
                 }
             }
         }

@@ -55,7 +55,7 @@ namespace M3USync.Infrastructures.UIs
 
             // On affiche le nombre de films et de séries traités
 
-            AwesomeConsole.WriteInfo($"Films traités : {TotalMovies}, Séries traitées : {TotalSeries}");
+            SimpleLogger.AddLog($"Films traités : {TotalMovies}, Séries traitées : {TotalSeries}", LogType.Info);
         }
     }
 }

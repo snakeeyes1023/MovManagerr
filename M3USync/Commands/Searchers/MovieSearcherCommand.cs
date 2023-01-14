@@ -9,17 +9,20 @@ namespace M3USync.Commands.Searchers
         {
         }
 
-        protected override IEnumerable<Movie> GetCandidate(string query, IEnumerable<Movie> contentsInDb)
+        public override IEnumerable<Movie> GetCandidate(string query, IEnumerable<Movie> contentsInDb)
         {
             var tmdb = Preferences.GetTmdbInstance();
 
-            var perfectMatchs = tmdb.GetRelatedMovies(query).Result;
+            var perfectMatchs = tmdb.GetRelatedMovies(query);
 
-            foreach (var item in contentsInDb)
+            if (perfectMatchs != null)
             {
-                if (perfectMatchs.Any(x => x?.Id.ToString() == item.TMDBID))
+                foreach (var item in contentsInDb)
                 {
-                    yield return item;
+                    if (perfectMatchs.Any(x => x?.Id.ToString() == item.TMDBID))
+                    {
+                        yield return item;
+                    }
                 }
             }
         }

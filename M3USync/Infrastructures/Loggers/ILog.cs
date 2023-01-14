@@ -8,6 +8,10 @@ namespace M3USync.Infrastructures.Loggers
 {
     public interface ILog
     {
-        public void Log();
+        public string Message { get; }
+    }
+
+    public interface ILog<T> : ILog
+    {
     }
 }

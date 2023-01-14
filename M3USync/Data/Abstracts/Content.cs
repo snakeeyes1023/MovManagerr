@@ -5,7 +5,7 @@ using M3USync.Models.Intefaces;
 
 namespace M3USync.Data.Abstracts
 {
-    public abstract class Content : Entity, ISave, IExportable<Content>
+    public abstract class Content : Entity, IExportable<Content>
     {
         public Content(MediaM3u media)
         {

@@ -1,0 +1,80 @@
+﻿@page "/content/downloads"
+@using M3USync.Data
+@using M3USync.Data.Abstracts
+@using System.IO
+@using System.Diagnostics
+
+<h1>Téléchargement en cours</h1>
+
+@foreach (var pendingTask in pendingTasks)
+{
+    if (pendingTask.Content is Movie movie)
+    {
+        string imgPath = "https://image.tmdb.org/t/p/w200/" + movie.TmdbMovie.PosterPath;
+        <RadzenCard Class="m-3">
+            <div class="d-flex flex-row p-3">
+                <RadzenImage Path="@imgPath" Class="rounded-circle float-start me-3" Style="width: 100px; height: 100px;" />
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Nom</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(movie.Name)</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Company</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@pendingTask.Destination</b></RadzenText>
+                </div>
+            </div>
+            <RadzenCard Class="my-3 rz-background-color-primary-lighter rz-shadow-0 rz-border-radius-0" style="margin: 0 calc(-1 * var(--rz-card-padding)); padding: 2rem;">
+                <RadzenText TextStyle="TextStyle.H6" Class="rz-color-primary-light"><strong>Status</strong></RadzenText>
+                <div class="row">
+                    <div class="col-md-12">
+                        <RadzenText TextStyle="TextStyle.Overline" Class="rz-color-primary-light d-flex mt-3 mb-0">Actif</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@(pendingTask.IsFinish ? "Terminé" : "En cours")</b></RadzenText>
+                        @if (pendingTask.IsFinish)
+                        {
+                            <RadzenText TextStyle="TextStyle.Overline" Class="rz-color-primary-light d-flex mt-3 mb-0">Résulat</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@pendingTask.HasSucceeded</b></RadzenText>
+                        }
+
+                    </div>
+                </div>
+            </RadzenCard>
+            <div class="text-end">
+                @if (!pendingTask.IsFinish)
+                {
+                    <RadzenButton Class="rz-text-secondary-color" Text="Annuler" />
+                }
+                <RadzenButton Text="Ouvir dans l'explorateur" Click="(args) => OpenInExplorer(movie.GetFullPath())" />
+            </div>
+        </RadzenCard>
+    }
+}
+
+
+@code {
+    private ContentDownloaderClient contentDownloader;
+    public IEnumerable<DownloadContentTask> pendingTasks;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        contentDownloader = ContentDownloaderClient.Instance;
+
+        pendingTasks = contentDownloader.AllTasks;
+    }
+
+    protected void OpenInExplorer(string path)
+    {
+        var basePath = System.IO.Path.GetDirectoryName(path);
+
+        if (Directory.Exists(basePath))
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    Arguments = basePath,
+                    FileName = "explorer.exe"
+                };
+
+            Process.Start(startInfo);
+        }
+
+    }
+}

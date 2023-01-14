@@ -41,7 +41,7 @@ namespace M3USync.UIs
 
         public abstract void ApplyConfiguration(Collection<ICardConfiguration> configs);
     }
-}
+
 
 
 /// <summary>

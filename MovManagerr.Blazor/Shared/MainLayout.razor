@@ -1,17 +1,34 @@
-﻿@inherits LayoutComponentBase
+﻿@using M3USync.Infrastructures.UIs
+@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <div class="main">
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <div class="content px-4">
-            @Body
-        </div>
-    </div>
+    <RadzenLayout>
+        <RadzenHeader>
+            <div class="d-flex align-items-center">
+                <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+                <RadzenLabel Text="Movmanagerr" />
+            </div>
+        </RadzenHeader>
+        <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+            <RadzenPanelMenu>
+                <RadzenPanelMenuItem Text="Général" Icon="home" Path="/search/movie" />
+                <RadzenPanelMenuItem Text="Gestion des téléchargements" Icon="downloading" Path="/content/downloads" />
+                <RadzenPanelMenuItem Text="Dernière activité" Icon="list" />
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+        <RadzenBody>
+            
+            <div class="p-2">
+                @Body
+            </div>
+        </RadzenBody>
+        <RadzenFooter>
+                <Logs></Logs>
+  
+        </RadzenFooter>
+    </RadzenLayout>
 </div>
+
+@code {
+    bool sidebar1Expanded = true;
+}

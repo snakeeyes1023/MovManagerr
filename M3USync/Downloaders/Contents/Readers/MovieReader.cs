@@ -28,7 +28,7 @@ namespace M3USync.Downloaders.Contents.Readers
 
         private void SearchOnTmdb(IEnumerable<Movie> movies)
         {
-            AwesomeConsole.WriteInfo("Recherche des films sur TMDB...");
+            SimpleLogger.AddLog("Recherche des films sur TMDB...", LogType.Info);
 
 
             using (var db = new LiteDatabase(Preferences._DbPath))
@@ -46,7 +46,7 @@ namespace M3USync.Downloaders.Contents.Readers
                     }
                     catch (Exception)
                     {
-                        AwesomeConsole.WriteWarning("Le film " + movie.Name + " n'a pas été trouvé sur TMDB.");
+                        SimpleLogger.AddLog("Le film " + movie.Name + " n'a pas été trouvé sur TMDB.", LogType.Error);
                     }
                 }
             }

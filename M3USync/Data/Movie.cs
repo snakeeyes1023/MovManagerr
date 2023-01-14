@@ -22,7 +22,6 @@ namespace M3USync.Data
     {
         private TMDbLib.Objects.Search.SearchMovie? _movie;
 
-        [BsonIgnore]
         public TMDbLib.Objects.Search.SearchMovie? TmdbMovie
         {
             get
@@ -88,12 +87,16 @@ namespace M3USync.Data
 
         public TMDbLib.Objects.Search.SearchMovie? SearchMovie()
         {
-            if (Name != null)
+            if (Name != null && Preferences.GetTmdbInstance() is TmdbClientService client)
             {
-                var result = Preferences.GetTmdbInstance().GetMovieByNameAsync(Name).Result;
-                TMDBID = (result?.Id ?? 0).ToString();
+                var movie = client.GetMovieByName(Name);
 
-                return result;
+                if (movie != null)
+                {
+                    TMDBID = movie.Id.ToString();
+                    
+                    return movie;
+                }
             }
 
             return null;

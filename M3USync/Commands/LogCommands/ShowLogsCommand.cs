@@ -11,16 +11,16 @@ namespace M3USync.Commands.LogCommands
 
         protected override void Start()
         {
-            AwesomeConsole.WriteWarning("Appuyer sur ctrl-x pour quitter les logs");
+            SimpleLogger.AddLog("Appuyer sur ctrl-x pour quitter les logs");
 
             var downloaderInstance = ContentDownloaderClient.Instance;
 
-            downloaderInstance.OnNewLogAdded += (log) => log.Log();
+            //SimpleLogger. += (log) => log.Log();
 
-            foreach (var log in downloaderInstance.Logs)
-            {
-                log.Log();
-            }
+            //foreach (var log in downloaderInstance.Logs)
+            //{
+            //    log.Log();
+            //}
 
             ConsoleKeyInfo cki;
             do

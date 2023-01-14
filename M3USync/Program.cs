@@ -15,6 +15,7 @@ namespace M3USync
             commands.Add(new SyncroniserCommand());
             commands.Add(new MovieSearcherCommand());
             commands.Add(new EpisodeSearcherCommand());
+            commands.Add(new SearchMovieOnTmdb());
             commands.Add(new CleanBdCommand());
             commands.Add(new ConfigValidatorCommand());
             commands.Add(new ShowLogsCommand());

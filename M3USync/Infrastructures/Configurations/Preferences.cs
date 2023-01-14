@@ -1,4 +1,5 @@
-﻿using MovManagerr.Tmdb;
+﻿using Microsoft.Extensions.Options;
+using MovManagerr.Tmdb;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +8,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TMDbLib.Objects.General;
+using static System.Collections.Specialized.BitVector32;
+using TMDbLib.Objects.Languages;
 
 namespace M3USync.Infrastructures.Configurations
 {
@@ -82,7 +85,7 @@ namespace M3USync.Infrastructures.Configurations
         {
             // L'orde est important
             _PreferenceFolder = Path.Combine(Environment.CurrentDirectory, "Config");
-            _DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "movmanagerr.db");
+            _DbPath = "Filename=" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "movmanagerr.db") + ";Connection=shared";
 
             ReadConfig();
             ReadLinks();
@@ -90,15 +93,18 @@ namespace M3USync.Infrastructures.Configurations
 
         public static TmdbClientService GetTmdbInstance()
         {
-            return default;
-            //return new TmdbClientService(new MovManagerr.Tmdb.Config.TmdbConfig()
-            //{
-            //    ApiKey = "b41cf1ce06b0bf7826e538951a966a49",
-            //    Session = "82e668e10bbfbf820bf326fcca5a487cc4f44652",
-            //    Language = "fr",
-            //    UseSsl = false,
-            //    Url = "http://api.themoviedb.org"
-            //});
+            var tmdbConfig = new MovManagerr.Tmdb.Config.TmdbConfig()
+            {
+                ApiKey = "b41cf1ce06b0bf7826e538951a966a49",
+                Session = "82e668e10bbfbf820bf326fcca5a487cc4f44652",
+                Language = "fr",
+                UseSsl = false,
+                Url = "http://api.themoviedb.org"
+            };
+            
+            IOptions<MovManagerr.Tmdb.Config.TmdbConfig> tmdb = Options.Create(tmdbConfig);
+            
+            return new TmdbClientService(tmdb);
         }
 
         public void ReadConfig()

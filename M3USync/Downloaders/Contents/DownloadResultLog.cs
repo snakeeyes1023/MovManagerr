@@ -3,7 +3,7 @@ using M3USync.Infrastructures.UIs;
 
 namespace M3USync.Downloaders.Contents
 {
-    public class DownloadResultLog : ILog
+    public class DownloadResultLog<T> : ILog<T>
     {
         public string Origin { get; set; }
         public string Destination { get; set; }
@@ -14,16 +14,6 @@ namespace M3USync.Downloaders.Contents
         public DateTime StartedTimeJob { get; set; }
         public DateTime EndedTimeJob { get; set; }
 
-        public void Log()
-        {
-            if (HasSucceeded)
-            {
-                AwesomeConsole.WriteSuccess($"Téléchargement de {Origin} vers {Destination} réussi");
-            }
-            else
-            {
-                AwesomeConsole.WriteError($"Téléchargement de {Origin} vers {Destination} échoué après {Attempts} tentatives");
-            }
-        }
+        public string Message => $"Téléchargement de {Origin} vers {Destination} : {(HasSucceeded ? "réussi" : "échoué")} après {Attempts} tentatives.";
     }
 }
