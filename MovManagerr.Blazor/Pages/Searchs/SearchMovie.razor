@@ -1,5 +1,6 @@
 ﻿@page "/search/movie"
 @inject IMovieService movieService
+@using MovManagerr.Blazor.Pages.Searchs.Components;
 
 <div class="row py-5">
     <div class="col-12">
@@ -7,99 +8,6 @@
             <BackgroundTaskButton BackgroundService="movieService.GetSearchAllMovieOnTmdbService" Text="Rechercher tous les films sur Tmdb" />
         </RadzenCard>
     </div>
-    <div class="col-12">
-        <RadzenCard>
-            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Rechercher un film</RadzenText>
-            <RadzenTextBox @oninput=@(args => OnChange(args.Value.ToString())) Class="w-100" />
-        </RadzenCard>
-    </div>
-    <div class="col-12">
-        <RadzenCard>
-            <RadzenDataList WrapItems="true" AllowPaging="true" Data="@movies" TItem="Movie" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
-                <Template Context="movie">
-                    <RadzenCard Style="width: 100%; padding: 0; overflow: hidden;">
-                        <div class="container">
-                            <div class="row" style="margin-left: calc(var(--bs-gutter-x) * -1); margin-right: calc(var(--bs-gutter-x) * -1)">
-                                <div class="col-lg-3 p-3 product-title">
-                                    <img class="img-fluid" src="https://image.tmdb.org/t/p/w200/@(movie.TmdbMovie?.PosterPath)" />
-                                </div>
-                                <div class="col-lg-7 p-3">
-                                    <div class="row d-flex">
-                                        <div class="col">
-                                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="mb-0">@(movie.TmdbMovie?.OriginalTitle)</RadzenText>
 
-                                                <RadzenText TextStyle="TextStyle.Subtitle1" class="mb-sm-2 mb-lg-0 my-3">Origine</RadzenText>
-
-                                                <RadzenText TextStyle="TextStyle.Body1" class="mb-sm-2 mb-lg-0 my-3">@(movie.Url)</RadzenText>
-
-                                                <RadzenText TextStyle="TextStyle.Subtitle1" class="mb-sm-2 mb-lg-0 my-3">Résumé</RadzenText>
-
-                                                <RadzenText TextStyle="TextStyle.Body1" class="mb-sm-2 mb-lg-0">@(movie.TmdbMovie?.Overview)</RadzenText>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-2 p-3">
-                                        <RadzenButton Text="Télécharger" Click=@(args => Download(movie)) Class="w-100" />
-                                </div>
-                                </div>
-                            </div>
-                        </RadzenCard>
-                    </Template>
-                </RadzenDataList>
-            </RadzenCard>
-        </div>
-    </div>
-
-    <style>
-        .product-title {
-            min-height: 72px;
-            background-color: var(--rz-secondary-lighter);
-        }
-
-        .price-badge {
-            font-size: 16px;
-            font-weight: bold;
-            line-height: 20px;
-            padding: 8px;
-        }
-    </style>
-    @code {
-    private ContentDownloaderClient contentDownloader;
-    public IEnumerable<Movie> movies;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        contentDownloader = ContentDownloaderClient.Instance;
-    }
-
-    protected void Download(Movie movie)
-    {
-        contentDownloader.Download(movie);
-    }
-
-    protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            OnChange(string.Empty);
-            StateHasChanged();
-        }
-        return base.OnAfterRenderAsync(firstRender);
-    }
-
-    protected void OnChange(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            movies = movieService.GetRecent(50);
-        }
-        else
-        {
-            SearchQuery searchQuery = new SearchQuery() { EnteredText = value };
-            movies = movieService.GetCandidates(searchQuery);
-        }
-    }
-}
+    <MovieList></MovieList>
+</div>
