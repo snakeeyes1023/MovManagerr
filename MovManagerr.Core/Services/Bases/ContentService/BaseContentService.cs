@@ -2,6 +2,7 @@
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Loggers;
 using System.Linq.Expressions;
 
 namespace MovManagerr.Core.Services.Bases.ContentService
@@ -12,15 +13,24 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// Gets all.
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerable<T> GetAll()
+        public virtual IEnumerable<T> GetAll(int offset, int limit)
         {
             (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
 
-            var results = collection.FindAll();
+            var results = collection.FindAll().Skip(offset);
+
+            if (limit != 0)
+            {
+                results = results.Take(limit);
+            }
+
+            SimpleLogger.AddLog("Liste de films recherché");
+
+            var listedResult = results.ToList();
 
             db.Dispose();
 
-            return results;
+            return listedResult;
         }
 
         /// <summary>
@@ -37,7 +47,11 @@ namespace MovManagerr.Core.Services.Bases.ContentService
 
             db.Dispose();
 
-            return results;
+            SimpleLogger.AddLog("Liste de films recherché");
+
+            var listedResult = results.ToList();
+
+            return listedResult;
         }
 
         /// <summary>
@@ -59,6 +73,21 @@ namespace MovManagerr.Core.Services.Bases.ContentService
             var db = new LiteDatabase(Preferences.Instance._DbPath);
             ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
             return (collection, db);
+        }
+
+        /// <summary>
+        /// Gets the count.
+        /// </summary>
+        /// <returns></returns>
+        public int GetCount()
+        {
+            (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
+
+            var count = collection.Count();
+
+            db.Dispose();
+
+            return count;
         }
     }
 }

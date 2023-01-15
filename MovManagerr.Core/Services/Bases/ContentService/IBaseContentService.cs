@@ -4,7 +4,8 @@ namespace MovManagerr.Core.Services.Bases.ContentService
 {
     public interface IBaseContentService<T> where T : Content
     {
-        IEnumerable<T> GetAll();
+        IEnumerable<T> GetAll(int offset = 0, int limit = 0);
         IEnumerable<T> GetCandidates(SearchQuery searchQuery);
+        int GetCount();
     }
 }

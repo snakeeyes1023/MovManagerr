@@ -1,0 +1,131 @@
+﻿@inject IMovieService movieService
+@inject DialogService DialogService
+
+
+<div class="col-12">
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Rechercher un film</RadzenText>
+        <RadzenTextBox @oninput=@(args => InputQueryChanged(args.Value.ToString())) Class="w-100" />
+    </RadzenCard>
+</div>
+<div class="col-12 movie-list">
+    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@movies" TItem="Movie">
+        <Template Context="movie">
+            <RadzenCard Style="width:300px;">
+                <img class="img-fluid" src="https://image.tmdb.org/t/p/w300/@(movie.TmdbMovie?.PosterPath)">
+                <hr style="border: none; background-color: rgba(0,0,0,.08); height: 1px; margin: 1rem 0;" />
+                <div class="row">
+                    <div class="col-md-8 text-truncate">
+                        <b>@(movie.Name)</b>
+                    </div>
+                    <div class="col-md-4 text-end float-right">
+                        @foreach (var badge in movie.Tags)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@(badge) />
+                        }
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Outlined" Click=@(args => ShowMovieDialog(movie)) Text="Télécharger" />
+                </div>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+    <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@(searchQuery.Take)" PageNumbersCount="5" PageChanged="@PageChanged" />
+    <RadzenDialog />
+</div>
+
+<style>
+    .movie-list {
+        overflow-y: hidden;
+    }
+</style>
+
+@code {
+
+    IEnumerable<Movie> movies;
+    private ContentDownloaderClient contentDownloader;
+    string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
+    int count;
+
+    SearchQuery searchQuery;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        contentDownloader = ContentDownloaderClient.Instance;
+        searchQuery = new SearchQuery()
+                {
+                    Skip = 0,
+                    Take = 20
+                };
+    }
+
+    protected void Download(Movie movie)
+    {
+        contentDownloader.Download(movie);
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            OnChange();
+            StateHasChanged();
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    async Task ShowMovieDialog(Movie movie)
+    {
+        var result = await DialogService.OpenAsync("Confirmer le téléchargement", ds =>
+        @<div>
+                    <p class="mb-4"><b>Voulez-vous télécharger le film : @(movie.Name)</b>?</p>
+                    <div class="row">
+                        <div class="col">
+                            <RadzenButton Text="Télécharger" Click="() => ds.Close(true)" Class="me-1" Style="width: 120px;" />
+                            <RadzenButton Text="Annuler" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" Class="me-1" />
+                        </div>
+                    </div>
+            </div>
+        );
+
+        if (result is bool confirm && confirm)
+        {
+            Download(movie);
+        }
+    }
+
+    #region Content query
+
+    protected void InputQueryChanged(string newQuery)
+    {
+        searchQuery.EnteredText = newQuery;
+        OnChange();
+        StateHasChanged();
+    }
+
+    protected void OnChange()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery.EnteredText))
+        {
+            movies = movieService.GetAll(searchQuery.Skip, searchQuery.Take);
+            count = movieService.GetCount();
+        }
+        else
+        {
+            movies = movieService.GetCandidates(searchQuery);
+            count = movieService.GetCandidates(new SearchQuery() { EnteredText = searchQuery.EnteredText }).Count();
+        }
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        searchQuery.Skip = args.Skip;
+        searchQuery.Take = args.Top;
+        OnChange();
+    }
+
+    #endregion
+}

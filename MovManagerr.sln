@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core.Tests", "M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Blazor", "MovManagerr.Blazor\MovManagerr.Blazor.csproj", "{E2B924F1-3623-49A2-AB24-F6FE64BD0658}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovManagerr.Core", "MovManagerr.Core\MovManagerr.Core.csproj", "{1CBD48F0-8BAF-4085-83F0-EC100EC73A6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core", "MovManagerr.Core\MovManagerr.Core.csproj", "{1CBD48F0-8BAF-4085-83F0-EC100EC73A6C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.App", "MovManagerr.App\MovManagerr.App.csproj", "{DC7F5C55-333B-4886-8BFA-622C79B3B991}"
 EndProject
