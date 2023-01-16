@@ -57,7 +57,7 @@ namespace MovManagerr.Core.Downloaders.M3U
         /// Downloads as chunk.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> Start(string destinationPath)
+        public async Task<bool> Start(string destinationPath, CancellationToken cancellationToken = default)
         {
             DirectoryInfo path = new DirectoryInfo(destinationPath);
 
@@ -65,7 +65,7 @@ namespace MovManagerr.Core.Downloaders.M3U
             {
                 var downloadService = GetDownloadeService();
 
-                await downloadService.DownloadFileTaskAsync(_url, path);
+                await downloadService.DownloadFileTaskAsync(_url, path, cancellationToken);
             }
             catch (Exception)
             {

@@ -17,7 +17,7 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         {
             (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
 
-            var results = collection.FindAll().Skip(offset);
+            var results = collection.FindAll().OrderByDescending(x => x._id).Skip(offset);
 
             if (limit != 0)
             {

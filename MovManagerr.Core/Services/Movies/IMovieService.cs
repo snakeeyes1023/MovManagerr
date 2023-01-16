@@ -8,5 +8,6 @@ namespace MovManagerr.Core.Services.Movies
     {
         IEnumerable<Movie> GetRecent(int limit);
         EventedBackgroundService GetSearchAllMovieOnTmdbService();
+        EventedBackgroundService GetSyncM3UFilesInDbService();
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MovManagerr.Core.Services.Movies;
+using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
 using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using Radzen;
 
@@ -41,6 +42,7 @@ namespace MovManagerr.Blazor
             #region BackgroundService
 
             services.AddSingleton<SearchAllMoviesOnTmdb>();
+            services.AddSingleton<SyncM3UFiles>();
 
             #endregion
             //radzen

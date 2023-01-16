@@ -1,0 +1,36 @@
+﻿@page "/mylists/"
+
+@inject IMovieService movieService
+
+<div class="row py-5">
+    <div class="col-md-3">
+        <RadzenCard Class="rz-border-radius-3">
+            <div class="row">
+                <RadzenImage Path="images/earthSyncronisation.png" Class="rz-border-radius-10 float-start me-3 p-4" Style="width: 100%; height: auto;" />
+
+                <div class="col-12 mt-2">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="mb-2"><strong>Rechercher le contenue</strong></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2" Style="min-height: 100px" class="mb-2">Fait une recherche de tous les films ayant été trouver sur les listes et les cherches pour obtenir les informations telle que l'année, la pochette du film, etc.'</RadzenText>
+                </div>
+                <div class="col-12 align-items-center text-center my-4">
+                    <BackgroundTaskButton BackgroundService="movieService.GetSearchAllMovieOnTmdbService" Text="Rechercher tous les films sur Tmdb" />
+                </div>
+            </div>
+        </RadzenCard>
+    </div>
+    <div class="col-md-3">
+        <RadzenCard Class="rz-border-radius-3">
+            <div class="row">
+                <RadzenImage Path="images/m3uSyncronisation.png" Class="rz-border-radius-10 float-start me-3 p-4" Style="width: 100%; height: auto;" />
+
+                <div class="col-12 mt-2">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="mb-2"><strong>Syncroniser les fichiers M3U</strong></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2" Style="min-height: 100px" class="mb-2">Syncroniser tous les fichiers M3U dans la base données (ATTENTION : ne cherche pas directement sur TMDB)</RadzenText>
+                </div>
+                <div class="col-12 align-items-center text-center my-4">
+                    <BackgroundTaskButton BackgroundService="movieService.GetSyncM3UFilesInDbService" Text="Syncronisation M3U" />
+                </div>
+            </div>
+        </RadzenCard>
+    </div>
+</div>

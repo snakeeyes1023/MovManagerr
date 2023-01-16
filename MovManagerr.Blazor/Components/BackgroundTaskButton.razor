@@ -1,12 +1,12 @@
-﻿<div class="row">
-    <div class="col-12">
-        <RadzenButton BusyText="Recherche en cours" IsBusy=@InProcess Click=@(args => ToggleTask()) Text="@Text" />
+﻿@*<div class="row">
+    <div class="col-12">*@
+        <RadzenButton BusyText="En éxécution" IsBusy=@InProcess Click=@(args => ToggleTask()) Text="@Text" />
         @if (InProcess)
         {
             <RadzenButton ButtonStyle="ButtonStyle.Warning" Click=@(args => ToggleTask()) Text="Annuler" />
         }
-    </div>
-</div>
+@*    </div>
+</div>*@
 
 
 @code {

@@ -2,6 +2,7 @@
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Services.Bases.ContentService;
 using MovManagerr.Core.Tasks.Backgrounds;
+using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
 using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using System.Linq.Expressions;
 
@@ -10,7 +11,7 @@ namespace MovManagerr.Core.Services.Movies
     public class MovieService : BaseContentService<Movie>, IMovieService
     {
         private readonly IServiceProvider _serviceProvider;
-        
+
         public MovieService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -20,7 +21,7 @@ namespace MovManagerr.Core.Services.Movies
         {
             return base.SearchQueryFilter(searchQuery);
         }
-        
+
         public IEnumerable<Movie> GetRecent(int limit)
         {
             (ILiteCollection<Movie> collection, LiteDatabase db) = GetDataAccess();
@@ -44,7 +45,19 @@ namespace MovManagerr.Core.Services.Movies
                 throw new InvalidCastException("Impossible de trouver la tâche");
             }
 
-            return service;           
+            return service;
+        }
+
+        public EventedBackgroundService GetSyncM3UFilesInDbService()
+        {
+            var service = (EventedBackgroundService?)_serviceProvider.GetService(typeof(SyncM3UFiles));
+
+            if (service == null)
+            {
+                throw new InvalidCastException("Impossible de trouver la tâche");
+            }
+
+            return service;
         }
     }
 }
