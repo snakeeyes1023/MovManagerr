@@ -4,6 +4,7 @@ using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace MovManagerr.Core.Services.Bases.ContentService
 {
@@ -17,7 +18,9 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         {
             (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
 
-            var results = collection.FindAll().OrderByDescending(x => x._id).Skip(offset);
+            var results = BaseOrderQuery(collection.FindAll());
+
+            results = results.Skip(offset);
 
             if (limit != 0)
             {
@@ -62,6 +65,16 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         protected virtual Expression<Func<T, bool>> SearchQueryFilter(SearchQuery searchQuery)
         {
             return x => x.Name.Contains(searchQuery.EnteredText, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// Bases the results query. Order by ID descending default
+        /// </summary>
+        /// <param name="results">The results.</param>
+        /// <returns></returns>
+        protected virtual IEnumerable<T> BaseOrderQuery(IEnumerable<T> results)
+        {
+            return results.OrderByDescending(x => x._id);         
         }
 
         /// <summary>

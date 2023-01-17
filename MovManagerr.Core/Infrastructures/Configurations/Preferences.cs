@@ -26,6 +26,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
         public readonly string _PreferenceFolder;
 
+        public readonly string _AppData;
+
         private DirectoryManager _movieManager;
         public DirectoryManager MovieManager
         {
@@ -75,11 +77,27 @@ namespace MovManagerr.Core.Infrastructures.Configurations
         private Preferences()
         {
             // L'orde est important
-            _PreferenceFolder = Path.Combine(Environment.CurrentDirectory, "Config");
-            _DbPath = "Filename=" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "movmanagerr.db") + ";Connection=shared";
+            _AppData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Movmanagerr");
+            _PreferenceFolder = Path.Combine(_AppData, "preferences");
+            _DbPath = "Filename=" + Path.Combine(_AppData, "movmanagerr.db") + ";Connection=shared";
+
+            InitaliseAppDataFolders();
 
             ReadConfig();
             ReadLinks();
+        }
+
+        private void InitaliseAppDataFolders()
+        {
+            if (!Directory.Exists(_AppData))
+            {
+                Directory.CreateDirectory(_AppData);
+            }
+
+            if (!Directory.Exists(_PreferenceFolder))
+            {
+                Directory.CreateDirectory(_PreferenceFolder);
+            }
         }
 
         public static TmdbClientService GetTmdbInstance()

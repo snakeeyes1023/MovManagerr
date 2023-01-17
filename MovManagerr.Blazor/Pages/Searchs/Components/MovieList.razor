@@ -2,6 +2,7 @@
 @inject DialogService DialogService
 @implements IDisposable;
 @using System.Timers
+@using MovManagerr.Core.Data.Abstracts
 
 
 <div class="col-12 mt-0 pt-0">
@@ -15,14 +16,14 @@
     <RadzenDataList WrapItems="true" AllowPaging="false" Data="@movies" TItem="Movie">
         <Template Context="movie">
             <RadzenCard Style="width:300px;">
-                <img class="img-fluid" src="https://image.tmdb.org/t/p/w300/@(movie.TmdbMovie?.PosterPath)">
+                <img class="img-fluid" style="min-width : 100%" src="@(movie.Poster)">
                 <hr style="border: none; background-color: rgba(0,0,0,.08); height: 1px; margin: 1rem 0;" />
                 <div class="row">
                     <div class="col-md-8 text-truncate">
                         <b>@(movie.Name)</b>
                     </div>
                     <div class="col-md-4 text-end float-right">
-                        @foreach (var badge in movie.Tags)
+                        @foreach (var badge in movie.GetCombinedTags())
                         {
                             <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@(badge) />
                         }
@@ -64,15 +65,15 @@
 
         contentDownloader = ContentDownloaderClient.Instance;
         searchQuery = new SearchQuery()
-        {
-            Skip = 0,
-            Take = 20
-        };
+                {
+                    Skip = 0,
+                    Take = 20
+                };
     }
 
     protected void Download(Movie movie)
     {
-        contentDownloader.Download(movie);
+        //contentDownloader.Download(movie);
     }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
@@ -86,22 +87,42 @@
 
     async Task ShowMovieDialog(Movie movie)
     {
+        movie.SearchMovieOnTmdb();
+
         var result = await DialogService.OpenAsync("Confirmer le téléchargement", ds =>
     @<div>
         <p class="mb-4"><b>Voulez-vous télécharger le film : @(movie.Name)</b>?</p>
+
+        <p class="my-2">Traduction de : @(movie.GetCustomData<string>("parsedFrom"))</p>
+
+        @foreach (var downloadContent in movie.DownloadableContents)
+        {
+
+            @if (downloadContent is DirectLinkDownload movieDownloadContent)
+            {
+                <div class="row mb-3">
+                    <div class="col">
+                        <RadzenCard>
+                            <p>@movieDownloadContent.Link</p>
+                            <a download="films" href="@movieDownloadContent.Link">Direct DL</a>
+                        </RadzenCard>
+                    </div>
+                </div>
+            }
+        }
+
         <div class="row">
             <div class="col">
-                <RadzenButton Text="Télécharger" Click="() => ds.Close(true)" Class="me-1" Style="width: 120px;" />
                 <RadzenButton Text="Annuler" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" Class="me-1" />
             </div>
         </div>
     </div>
         );
 
-        if (result is bool confirm && confirm)
-        {
-            Download(movie);
-        }
+        //if (result is bool confirm && confirm)
+        //{
+        //    Download(movie);
+        //}
     }
 
     #region Content query

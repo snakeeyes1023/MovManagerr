@@ -44,6 +44,15 @@ namespace MovManagerr.Tmdb
         public async Task<SearchMovie?> GetMovieByNameAsync(string name)
         {
             var search = await _client.SearchMovieAsync(name, 0, true);
+
+            // get perfect match
+            var perfectMatch = search.Results.FirstOrDefault(x => x.Title.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+
+            if (perfectMatch != null)
+            {
+                return perfectMatch;
+            }
+
             return search.Results.FirstOrDefault();
         }
 

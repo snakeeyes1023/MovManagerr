@@ -25,7 +25,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
                 {
                     try
                     {
-                        item.TmdbMovie = item.SearchMovie();
+                        item.SearchMovieOnTmdb();
 
                         if (item.TmdbMovie != null)
                         {
@@ -73,7 +73,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
 
             ILiteCollection<Movie> collection = DatabaseHelper.GetCollection<Movie>(db);
 
-            var recents = collection.Find(x => string.IsNullOrWhiteSpace(x.TMDBID)).ToList();
+            var recents = collection.FindAll().ToList();
 
             db.Dispose();
 

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -14,15 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Config\links.conf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\pref.conf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

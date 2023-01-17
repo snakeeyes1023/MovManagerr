@@ -1,55 +1,40 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Data;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Loggers;
+using System;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers
 {
     public class MovieReader : M3uContentReader<Movie>
     {
-        public MovieReader()
-        {
-            OnContentSynced += SearchOnTmdb;
-        }
-
         protected override Movie? BindDataInContent(MediaM3u mediaInfo)
         {
-            var movie = new Movie(mediaInfo);
+            //movie data
+            string movieName = (mediaInfo.MuName.Split("|").Last() ?? "").Trim();
+            string poster = mediaInfo.MuLogo;
+
+            var movie = new Movie(movieName, poster);
+
+            //link data
+            List<string> linkTags = mediaInfo.MuName.Split("|").ToList().Where(x => string.IsNullOrWhiteSpace(x) == false).Select(x => x.Trim()).ToList();
+            linkTags.RemoveAt(linkTags.Count - 1);
+
+            movie.AddDownloadableContent(new M3UContentLink() { Link = mediaInfo.MuUrl, Tags = linkTags });
+
+            movie.AddCustomData("parsedFrom", mediaInfo.MuFullContent);
 
             return movie;
         }
 
         protected override Expression<Func<MediaM3u, bool>> Filter()
         {
-            return m => m.MuUrl.Contains("movie");
-        }
-
-        private void SearchOnTmdb(IEnumerable<Movie> movies)
-        {
-            SimpleLogger.AddLog("Recherche des films sur TMDB...", LogType.Info);
-
-
-            using (var db = new LiteDatabase(Preferences._DbPath))
-            {
-
-                ILiteCollection<Movie> collection = DatabaseHelper.GetCollection<Movie>(db);
-
-                foreach (var movie in movies)
-                {
-                    try
-                    {
-                        movie.SearchMovie();
-
-                        collection.Update(movie);
-                    }
-                    catch (Exception)
-                    {
-                        SimpleLogger.AddLog("Le film " + movie.Name + " n'a pas été trouvé sur TMDB.", LogType.Error);
-                    }
-                }
-            }
+            return m => m.MuUrl.Contains("movie") && m.MuName.Contains("|FR|", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

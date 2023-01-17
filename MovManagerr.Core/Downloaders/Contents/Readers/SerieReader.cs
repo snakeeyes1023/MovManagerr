@@ -14,7 +14,7 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
 
         protected override Episode? BindDataInContent(MediaM3u mediaInfo)
         {
-            var episode = new Episode(mediaInfo);
+            var episode = new Episode();
 
             return episode;
         }

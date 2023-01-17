@@ -1,5 +1,5 @@
+using MovManagerr.App.Updates;
 using System.Diagnostics;
-using MovManagerr.Core.Infrastructures.Configurations;
 
 namespace MovManagerr.App
 {
@@ -13,7 +13,7 @@ namespace MovManagerr.App
 
             // Cache le winform
             this.Load += new EventHandler(Main_OnLoad);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.FormBorderStyle = FormBorderStyle.None;
             this.ShowInTaskbar = false;
 
 
@@ -28,7 +28,30 @@ namespace MovManagerr.App
 
             notifyIcon.ContextMenuStrip = menu;
 
-            RestartServer_Click(default, default);
+            //RestartServer_Click(default, default);
+
+            UpdateManager updateManager = new UpdateManager();
+
+            if (updateManager.IsUpdateAvailable())
+            {
+                DialogResult dialogResult = MessageBox.Show("Une nouvelle mise à jour est disponnible, Voulez-vous l'installer toute suite?", "Nouvelle mise à jour", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+#if !DEBUG
+                    Task.Run(() =>
+                    {
+                        updateManager.DownloadUpdate(updateManager.GetLatestVersion());
+
+                        Process.Start(Application.ExecutablePath);
+                        Application.Exit();
+
+                });
+#endif
+#if DEBUG
+                    updateManager.DownloadUpdate(updateManager.GetLatestVersion());
+#endif
+                }
+            }
         }
 
         private void Program_OnWebServerStatusChanged(bool newStatus)
@@ -89,7 +112,7 @@ namespace MovManagerr.App
 
         private void ManageConfigurationsMenuItem_Click(object? sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("explorer.exe", Preferences.Instance._PreferenceFolder);
+            //System.Diagnostics.Process.Start("explorer.exe", Preferences.Instance._PreferenceFolder);
         }
 
         private void OpenInBrowserMenuItem_Click(object? sender, EventArgs e)

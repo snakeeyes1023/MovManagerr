@@ -38,8 +38,8 @@ namespace MovManagerr.Core.Downloaders.Contents
                 CheckForPendingTasks();
             }
         }
-
-        public void Download(Content content)
+        
+        public void Download(Content content, DirectLinkDownload link)
         {
             try
             {
@@ -49,12 +49,15 @@ namespace MovManagerr.Core.Downloaders.Contents
                     .GetDirectoryManager()
                     .CreateDirectory(path);
 
+                string fullPath = Path.Combine(content.GetDirectoryManager()._BasePath, path, link.GetFilename());
+
+
                 var downloadTask = new DownloadContentTask()
                 {
                     Content = content,
-                    Destination = content.GetFullPath(),
+                    Destination = fullPath,
                     IsFinish = false,
-                    Origin = content.Url
+                    Origin = link.Link
                 };
 
                 AppendTask(downloadTask);

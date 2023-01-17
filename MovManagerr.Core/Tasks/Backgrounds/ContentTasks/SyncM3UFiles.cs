@@ -21,12 +21,12 @@ namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
             _preferences = Preferences.Instance;
 
             var movieReaders = new MovieReader();
-            var serieReaders = new SerieReader();
+            //var serieReaders = new SerieReader();
 
             _readers = new List<IReader>
             {
                 movieReaders,
-                serieReaders
+                //serieReaders
             };
         }
 

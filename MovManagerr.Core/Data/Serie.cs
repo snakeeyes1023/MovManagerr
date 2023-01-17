@@ -65,21 +65,17 @@ namespace MovManagerr.Core.Data
 
         public int SaisonNumber { get; set; }
 
-        public Episode(MediaM3u media) : base(media)
-        {
-        }
+        //public override string ExtractName(string muName)
+        //{
+        //    var name = base.ExtractName(muName);
 
-        public override string ExtractName(string muName)
-        {
-            var name = base.ExtractName(muName);
+        //    var data = SerieHelper.ExtractSeasonAndEpisodeNumbers(name);
 
-            var data = SerieHelper.ExtractSeasonAndEpisodeNumbers(name);
+        //    EpisodeNumber = data.episodeNumber;
+        //    SaisonNumber = data.seasonNumber;
 
-            EpisodeNumber = data.episodeNumber;
-            SaisonNumber = data.seasonNumber;
-
-            return data.show;
-        }
+        //    return data.show;
+        //}
 
         public override bool Equals(Content content)
         {
@@ -93,10 +89,10 @@ namespace MovManagerr.Core.Data
             return $@"{Name}\Saison {SaisonNumber}\";
         }
 
-        public override string GetFileName()
-        {
-            return $@"{Name} - Saison {SaisonNumber} - Episode {EpisodeNumber}.{GetExtension()}";
-        }
+        //public override string GetFileName()
+        //{
+        //    return $@"{Name} - Saison {SaisonNumber} - Episode {EpisodeNumber}.{GetExtension()}";
+        //}
 
         public override DirectoryManager GetDirectoryManager()
         {
