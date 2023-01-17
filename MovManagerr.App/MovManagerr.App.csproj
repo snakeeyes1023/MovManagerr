@@ -6,7 +6,6 @@
 		<Nullable>enable</Nullable>
 		<UseWindowsForms>true</UseWindowsForms>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<SelfContained>true</SelfContained>
 	</PropertyGroup>
 	<PropertyGroup>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -17,9 +16,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\MovManagerr.Blazor\MovManagerr.Blazor.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

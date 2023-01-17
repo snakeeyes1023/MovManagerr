@@ -16,16 +16,18 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
         private readonly Func<MediaM3u, bool> s_isValid;
         #endregion
 
-        #region Events
-        public event Action OnContentProceeded;
-        public event Action<IEnumerable<T>> OnContentSynced;
-        #endregion
-
         public M3uContentReader()
         {
             s_isValid = Filter().Compile();
             Contents = new List<T>();
             Preferences = Preferences.Instance;
+
+            using (var db = new LiteDatabase(Preferences._DbPath))
+            {
+                ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+
+                Contents = collection.FindAll().ToList();
+            }
         }
 
         #region Abstractions
@@ -41,34 +43,33 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
             {
                 T? content = BindDataInContent(mediaInfo);
 
-                if (content != null
-                    && !Contents.Any(x => x.Equals(content))
-                    && Preferences.Langs.Any(l => content.Tags.Contains(l)))
+                if (content is not null)
                 {
-                    Contents.Add(content);
-                    OnContentProceeded?.Invoke();
+                    T? existingContent = Contents.FirstOrDefault(c => c.Name == content?.Name);
+
+                    if (existingContent == null)
+                    {
+                        Contents.Add(content);
+                    }
+                    else
+                    {
+                        existingContent.Merge(content);
+                    }
                 }
             }
         }
+
 
         public void SyncInDatabase()
         {
             // Open database (or create if doesn't exist)
             using (var db = new LiteDatabase(Preferences.Instance._DbPath))
             {
-
                 ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
-                IEnumerable<T> alreadyInDb = collection.FindAll();
 
-                // Filter out items that are already in the database
-                IEnumerable<T> newContents = Contents.Except(alreadyInDb, new ContentComparer<T>());
-
-                // Insert new items into the database
-                if (newContents.Any())
+                foreach (var content in Contents)
                 {
-                    collection.InsertBulk(newContents);
-
-                    OnContentSynced?.Invoke(newContents);
+                    collection.Upsert(content);
                 }
             }
             #endregion

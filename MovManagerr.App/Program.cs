@@ -1,13 +1,15 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
 
 namespace MovManagerr.App
 {
     internal static class Program
     {
         public static event Action<bool> OnWebServerStatusChanged;
-        private static Thread webHostThread;
+        private static Process webHostThread;
         private static IHost webHost;
+
+        private const string executablePath = "/web/MovManagerr.Blazor.exe";
 
         /// <summary>
         ///  The main entry point for the application.
@@ -19,6 +21,9 @@ namespace MovManagerr.App
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
             Application.Run(new Main());
         }
 
@@ -26,9 +31,7 @@ namespace MovManagerr.App
         {
             if (IsWebHostStated())
             {
-                // Stop the web host
-                webHost.StopAsync().Wait();
-                webHostThread.Join();
+                webHostThread.Kill();
                 OnWebServerStatusChanged?.Invoke(false);
             }
         }
@@ -37,17 +40,21 @@ namespace MovManagerr.App
         {
             if (!IsWebHostStated())
             {
-                // Start the web host on a new thread
-                webHost = Blazor.Program.CreateHostBuilder(Array.Empty<string>()).Build();
-                webHostThread = new Thread(() => webHost.Run());
-                webHostThread.Start();
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + executablePath,
+                    CreateNoWindow = true
+                };
+
+                webHostThread = Process.Start(startInfo) ?? throw new InvalidOperationException("Impossible de lancer le serveur");
+
                 OnWebServerStatusChanged?.Invoke(true);
             }
         }
 
         public static bool IsWebHostStated()
         {
-            return webHostThread != null && webHostThread.IsAlive;
+            return webHostThread != null && !webHostThread.HasExited;
         }
     }
 }

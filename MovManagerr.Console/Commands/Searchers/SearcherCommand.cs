@@ -45,10 +45,10 @@ namespace MovManagerr.Cls.Commands.Searchers
             return contentsInDb.Where(x => x.Name.Contains(query, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        protected void Proceed(T element)
-        {
-            _downloader.Download(element);
-        }
+        //protected void Proceed(T element)
+        //{
+        //    _downloader.Download(element);
+        //}
 
         public async Task StartAsync()
         {
@@ -62,7 +62,7 @@ namespace MovManagerr.Cls.Commands.Searchers
 
             if (selected != null)
             {
-                Proceed(selected);
+                //Proceed(selected);
             }
         }
 
@@ -111,21 +111,6 @@ namespace MovManagerr.Cls.Commands.Searchers
 
 
             return GetCandidate(query, alls);
-        }
-
-        public IEnumerable<T> GetRecent(int limit)
-        {
-            var db = new LiteDatabase(Preferences.Instance._DbPath);
-
-            ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
-
-            var recents = collection.Find(x => !string.IsNullOrWhiteSpace(x.TMDBID)).Take(limit).ToList();
-
-            db.Dispose();
-
-            SimpleLogger.AddLog("Load Recent content");
-
-            return recents;
         }
     }
 }

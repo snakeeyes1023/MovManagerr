@@ -36,14 +36,14 @@ namespace MovManagerr.Cls.UIs
 
             foreach (var reader in readers)
             {
-                if (reader is MovieReader)
-                {
-                    reader.OnContentProceeded += () => { TotalMovies++; };
-                }
-                else if (reader is SerieReader)
-                {
-                    reader.OnContentProceeded += () => { TotalSeries++; };
-                }
+                //if (reader is MovieReader)
+                //{
+                //    reader.OnContentProceeded += () => { TotalMovies++; };
+                //}
+                //else if (reader is SerieReader)
+                //{
+                //    reader.OnContentProceeded += () => { TotalSeries++; };
+                //}
             }
         }
 

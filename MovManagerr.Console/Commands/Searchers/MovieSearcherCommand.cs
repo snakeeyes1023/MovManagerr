@@ -19,7 +19,7 @@ namespace MovManagerr.Cls.Commands.Searchers
             {
                 foreach (var item in contentsInDb)
                 {
-                    if (perfectMatchs.Any(x => x?.Id.ToString() == item.TMDBID))
+                    if (perfectMatchs.Any(x => x?.Id == item.TmdbId))
                     {
                         yield return item;
                     }

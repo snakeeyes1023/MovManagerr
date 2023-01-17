@@ -19,17 +19,29 @@ namespace MovManagerr.Core.Services.Movies
 
         protected override Expression<Func<Movie, bool>> SearchQueryFilter(SearchQuery searchQuery)
         {
-            return base.SearchQueryFilter(searchQuery);
+            // add tmdb id filter to base.searchqueryfilter
+            Expression<Func<Movie, bool>> onTmdb = m => m.TmdbId == searchQuery.Skip;
+
+            var baseFilter = base.SearchQueryFilter(searchQuery);
+            var combinedFilter = Expression.Lambda<Func<Movie, bool>>(
+                Expression.AndAlso(baseFilter.Body, onTmdb.Body),
+                baseFilter.Parameters);
+            return combinedFilter;
         }
+
+        protected override IEnumerable<Movie> BaseOrderQuery(IEnumerable<Movie> results)
+        {
+            return results
+                .Where(x => x.IsSearchedOnTmdb())
+                .OrderByDescending(x => x.TmdbMovie?.ReleaseDate);
+        }
+
 
         public IEnumerable<Movie> GetRecent(int limit)
         {
             (ILiteCollection<Movie> collection, LiteDatabase db) = GetDataAccess();
-
-            var results = collection
-                .Find(x => !string.IsNullOrWhiteSpace(x.TMDBID))
-                .OrderByDescending(x => x.TmdbMovie?.ReleaseDate)
-                .Take(limit);
+            
+            var results = BaseOrderQuery(collection.FindAll()).Take(limit);
 
             db.Dispose();
 

@@ -19,8 +19,8 @@ namespace MovManagerr.Cls.UIs.Intefaces
         {
             return new HtmlCardBuilder()
                 .Title(obj.Name)
-                .Img(obj.Poster)
-                .AddTags(obj.Tags);
+                .Img(obj.Poster);
+                //.AddTags(obj.Tags);
         }
 
         public string Export(Content obj)
