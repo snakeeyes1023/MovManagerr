@@ -29,13 +29,14 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
 
                         if (item.TmdbMovie != null)
                         {
-                            UpdateMovie(item);
                             Interlocked.Increment(ref TotalContentProceeded);
                         }
                         else
                         {
                             Interlocked.Increment(ref TotalContentNotFounded);
                         }
+
+                        UpdateMovie(item);
                     }
                     catch (Exception)
                     {
@@ -73,7 +74,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
 
             ILiteCollection<Movie> collection = DatabaseHelper.GetCollection<Movie>(db);
 
-            var recents = collection.FindAll().ToList();
+            var recents = collection.FindAll().Where(x => !x.IsSearchedOnTmdb()).ToList();
 
             db.Dispose();
 

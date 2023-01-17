@@ -97,6 +97,7 @@
 
         @foreach (var downloadContent in movie.DownloadableContents)
         {
+            RenderFragment renderFragment = (builder) => { builder.OpenComponent(0, downloadContent.GetType()); builder.CloseComponent(); };
 
             @if (downloadContent is DirectLinkDownload movieDownloadContent)
             {

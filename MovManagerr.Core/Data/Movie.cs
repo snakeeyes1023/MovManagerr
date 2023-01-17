@@ -1,9 +1,6 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Data.Enums;
-using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Tmdb;
-using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 
@@ -23,6 +20,7 @@ namespace MovManagerr.Core.Data
         #region Tmdb
         public int TmdbId { get; set; }
         public TMDbLib.Objects.Search.SearchMovie? TmdbMovie { get; private set; }
+        public DateTime? LastSearchAttempt { get; set; }
         #endregion
 
         /// <summary>
@@ -47,6 +45,8 @@ namespace MovManagerr.Core.Data
         /// <returns></returns>
         public void SearchMovieOnTmdb()
         {
+            LastSearchAttempt = DateTime.Now;
+
             if (Name != null && Preferences.GetTmdbInstance() is TmdbClientService client)
             {
                 TmdbMovie = client.GetMovieByName(Name);
@@ -79,7 +79,12 @@ namespace MovManagerr.Core.Data
 
         public bool IsSearchedOnTmdb()
         {
-            return TmdbMovie != null;
+            return LastSearchAttempt.HasValue || TmdbMovie != null;
+        }
+
+        public bool IsSearchedOnTmdbFailed()
+        {
+            return LastSearchAttempt.HasValue && TmdbMovie == null;
         }
 
         public override void Merge(Entity entity)

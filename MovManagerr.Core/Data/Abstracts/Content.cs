@@ -1,9 +1,4 @@
-﻿using MovManagerr.Core.Data.Enums;
-using MovManagerr.Core.Downloaders.M3U;
-using MovManagerr.Core.Infrastructures.Configurations;
-using System;
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
+﻿using MovManagerr.Core.Infrastructures.Configurations;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
@@ -11,21 +6,21 @@ namespace MovManagerr.Core.Data.Abstracts
     {
         public Content()
         {
-            DownloadableContents = new List<IDownloadableContent>();
+            DownloadableContents = new List<DownloadableContent>();
         }
 
         public Content(string name, string poster)
         {
             Name = name;
             Poster = poster;
-            DownloadableContents = new List<IDownloadableContent>();
+            DownloadableContents = new List<DownloadableContent>();
         }
 
         public string Name { get; set; }
 
         public string Poster { get; set; }
 
-        public List<IDownloadableContent> DownloadableContents { get; protected set; }
+        public List<DownloadableContent> DownloadableContents { get; protected set; }
 
         public Dictionary<string, object> CustomData { get; protected set; }
 
@@ -35,7 +30,7 @@ namespace MovManagerr.Core.Data.Abstracts
 
         public abstract DirectoryManager GetDirectoryManager();
 
-        public void AddDownloadableContent(IDownloadableContent downloable)
+        public void AddDownloadableContent(DownloadableContent downloable)
         {
             if (DownloadableContents.Any(x => downloable.Equals(x)))
             {
@@ -45,7 +40,7 @@ namespace MovManagerr.Core.Data.Abstracts
             DownloadableContents.Add(downloable);
         }
 
-        public void AddDownloadableContent(IEnumerable<IDownloadableContent> downloads)
+        public void AddDownloadableContent(IEnumerable<DownloadableContent> downloads)
         {
             foreach (var downloable in downloads)
             {
@@ -120,7 +115,7 @@ namespace MovManagerr.Core.Data.Abstracts
         #endregion
     }
 
-    public interface IDownloadableContent
+    public abstract class DownloadableContent : IEquatable<DownloadableContent>
     {
         /// <summary>
         /// Gets or sets a value indicating whether this instance is downloaded.
@@ -129,12 +124,13 @@ namespace MovManagerr.Core.Data.Abstracts
         ///   <c>true</c> if this instance is downloaded; otherwise, <c>false</c>.
         /// </value>
         public bool IsDownloaded { get; set; }
+
+        public abstract bool Equals(DownloadableContent? other);
     }
 
-    public abstract class DirectLinkDownload : IDownloadableContent, IEquatable<IDownloadableContent>
+    public abstract class DirectLinkDownload : DownloadableContent
     {
         public string Link { get; set; }
-        public bool IsDownloaded { get; set; }
 
         public virtual string GetExtension()
         {
@@ -163,20 +159,21 @@ namespace MovManagerr.Core.Data.Abstracts
             return $"{title}{extension}";
         }
 
-        public bool Equals(IDownloadableContent? other)
+        public override bool Equals(DownloadableContent? other)
         {
-            if (other is DirectLinkDownload directLinkDownload)
-            {
-                return Link == directLinkDownload.Link;
-            }
-            return false;
+            return other is DirectLinkDownload directLinkDownload 
+                && directLinkDownload.Link.Equals(this.Link, StringComparison.InvariantCultureIgnoreCase);
+        }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
-
 
     public class M3UContentLink : DirectLinkDownload
     {
         public List<string> Tags { get; set; }
+
     }
 }
