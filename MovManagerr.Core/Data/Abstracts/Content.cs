@@ -1,4 +1,5 @@
 ﻿using MovManagerr.Core.Infrastructures.Configurations;
+using System.Net;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
@@ -67,16 +68,16 @@ namespace MovManagerr.Core.Data.Abstracts
 
             return default;
         }
-        
+
         public abstract bool Equals(Content content);
 
         public string[] GetCombinedTags()
         {
-           return DownloadableContents
-                    .OfType<M3UContentLink>()
-                    .SelectMany(x => x.Tags)
-                    .Distinct()
-                    .ToArray();
+            return DownloadableContents
+                     .OfType<M3UContentLink>()
+                     .SelectMany(x => x.Tags)
+                     .Distinct()
+                     .ToArray();
         }
 
         public override void Merge(Entity entity)
@@ -123,7 +124,13 @@ namespace MovManagerr.Core.Data.Abstracts
         /// <value>
         ///   <c>true</c> if this instance is downloaded; otherwise, <c>false</c>.
         /// </value>
-        public bool IsDownloaded { get; set; }
+        public virtual bool IsDownloaded { get; set; }
+        public virtual string Source { get; set; }
+        public virtual string CodecVideo { get; set; }
+        public virtual string InfoAudio { get; set; }
+        public virtual string Size { get; set; }
+        public virtual string Langues { get; set; }
+        public virtual string Quality { get; set; }
 
         public abstract bool Equals(DownloadableContent? other);
     }
@@ -131,6 +138,29 @@ namespace MovManagerr.Core.Data.Abstracts
     public abstract class DirectLinkDownload : DownloadableContent
     {
         public string Link { get; set; }
+
+        public override string Size
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(base.Size))
+                {
+                    //// make a get request to get the size
+                    //var request = WebRequest.Create(Link);
+                    //request.Method = "HEAD";
+                    //using var response = request.GetResponse();
+                    //Size = response.Headers.Get("Content-Length");
+
+                    if (string.IsNullOrWhiteSpace(base.Size))
+                    {
+                        Size = "Unknown";
+                    }
+                }
+             
+                return base.Size;
+            }
+            set => base.Size = value;
+        }
 
         public virtual string GetExtension()
         {
@@ -161,7 +191,7 @@ namespace MovManagerr.Core.Data.Abstracts
 
         public override bool Equals(DownloadableContent? other)
         {
-            return other is DirectLinkDownload directLinkDownload 
+            return other is DirectLinkDownload directLinkDownload
                 && directLinkDownload.Link.Equals(this.Link, StringComparison.InvariantCultureIgnoreCase);
         }
 

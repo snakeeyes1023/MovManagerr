@@ -35,6 +35,8 @@
             </RadzenCard>
         </Template>
     </RadzenDataList>
+
+
     <RadzenDialog />
 </div>
 
@@ -87,43 +89,9 @@
 
     async Task ShowMovieDialog(Movie movie)
     {
-        movie.SearchMovieOnTmdb();
-
-        var result = await DialogService.OpenAsync("Confirmer le téléchargement", ds =>
-    @<div>
-        <p class="mb-4"><b>Voulez-vous télécharger le film : @(movie.Name)</b>?</p>
-
-        <p class="my-2">Traduction de : @(movie.GetCustomData<string>("parsedFrom"))</p>
-
-        @foreach (var downloadContent in movie.DownloadableContents)
-        {
-            RenderFragment renderFragment = (builder) => { builder.OpenComponent(0, downloadContent.GetType()); builder.CloseComponent(); };
-
-            @if (downloadContent is DirectLinkDownload movieDownloadContent)
-            {
-                <div class="row mb-3">
-                    <div class="col">
-                        <RadzenCard>
-                            <p>@movieDownloadContent.Link</p>
-                            <a download="films" href="@movieDownloadContent.Link">Direct DL</a>
-                        </RadzenCard>
-                    </div>
-                </div>
-            }
-        }
-
-        <div class="row">
-            <div class="col">
-                <RadzenButton Text="Annuler" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" Class="me-1" />
-            </div>
-        </div>
-    </div>
-        );
-
-        //if (result is bool confirm && confirm)
-        //{
-        //    Download(movie);
-        //}
+        await DialogService.OpenAsync<Contents.Show>(movie.Name,
+            new Dictionary<string, object>() { { "ID", movie._id } },
+            new DialogOptions() { Width = "95%", Height = "95%", Resizable = true, Draggable = true });
     }
 
     #region Content query

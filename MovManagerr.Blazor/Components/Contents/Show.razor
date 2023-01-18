@@ -1,0 +1,63 @@
+﻿@page "/content/show/{ID}"
+
+@inject IMovieService movieService;
+@using MovManagerr.Core.Data.Abstracts;
+@inject Radzen.DialogService dialogService
+
+
+<div class="row">
+    <div class="col-md-4">
+        <img src="@Content.Poster" alt="Poster for @Content.Name" class="img-fluid">
+    </div>
+    <div class="col-md-8">
+        <h1>@Content.Name</h1>
+        @*        <p>@Content.OriginalTitle</p>
+        <p>Release Date: @Content.ReleaseDate.ToString("MMMM dd, yyyy")</p>
+        <p>Is Adult: @Content.Adult</p>
+        <p>Has Video: @Content.Video</p>*@
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        @*        <img src="@Content.BackdropPath" alt="Background for @Content.Title" class="img-fluid">
+        *@
+    </div>
+
+    <div class="col-md-12">        
+        <RadzenDataGrid @ref="downloadablesGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" Data="@downloadables">
+            <Columns>
+                <RadzenDataGridColumn TItem="DownloadableContent" Property="Source" Title="Source" />
+                <RadzenDataGridColumn TItem="DownloadableContent" Property="CodecVideo" Title="Codec vidéo" />
+                <RadzenDataGridColumn TItem="DownloadableContent" Property="InfoAudio" Title="Info audio" />
+                <RadzenDataGridColumn TItem="DownloadableContent" Property="Size" Title="Taille" />
+                <RadzenDataGridColumn TItem="DownloadableContent" Property="Langues" Title="Langues" />
+                <RadzenDataGridColumn TItem="DownloadableContent" Property="Quality" Title="Qualité" />
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 text-end">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="Cancel" Style="width: 120px" Class="me-1" />
+        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="OK" Style="width: 120px" />
+    </div>
+</div>
+
+@code {
+
+    RadzenDataGrid<DownloadableContent> downloadablesGrid;
+    IList<DownloadableContent> downloadables;
+    Content Content { get; set; }
+
+    [Parameter] public LiteDB.ObjectId ID { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Content = movieService.GetMovieById(ID);
+
+        downloadables = Content.DownloadableContents;
+    }
+}

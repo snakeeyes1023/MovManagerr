@@ -71,5 +71,16 @@ namespace MovManagerr.Core.Services.Movies
 
             return service;
         }
+
+        public Movie GetMovieById(ObjectId _id)
+        {
+            (ILiteCollection<Movie> collection, LiteDatabase db) = GetDataAccess();
+
+            Movie movie = collection.FindById(_id);
+
+            db.Dispose();
+
+            return movie;
+        }
     }
 }
