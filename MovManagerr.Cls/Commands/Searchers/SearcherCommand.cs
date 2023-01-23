@@ -89,28 +89,32 @@ namespace MovManagerr.Cls.Commands.Searchers
 
         public Task<IEnumerable<T>> GetAllContentsAsync()
         {
-            using (var db = new LiteDatabase(Preferences.Instance._DbPath))
-            {
-                ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+            throw new Exception("Not implemented");
 
-                return Task.FromResult(collection.FindAll());
-            }
+            //using (var db = new LiteDatabase(Preferences.Instance._DbPath))
+            //{
+            //    ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+
+            //    return Task.FromResult(collection.FindAll());
+            //}
         }
 
         public IEnumerable<T> GetCandidateInAll(string query)
         {
-            var db = new LiteDatabase(Preferences.Instance._DbPath);
+            throw new Exception("Not implemented");
 
-            ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
+            //var db = new LiteDatabase(Preferences.Instance._DbPath);
 
-            var alls = collection.FindAll().ToList();
+            //ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
 
-            db.Dispose();
+            //var alls = collection.FindAll().ToList();
 
-            SimpleLogger.AddLog("Load All content for : query : " + query);
+            //db.Dispose();
+
+            //SimpleLogger.AddLog("Load All content for : query : " + query);
 
 
-            return GetCandidate(query, alls);
+            //return GetCandidate(query, alls);
         }
     }
 }

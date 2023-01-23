@@ -17,14 +17,14 @@ namespace MovManagerr.Cls.Commands
         {
             _preferences = Preferences.Instance;
 
-            var movieReaders = new MovieReader();
-            var serieReaders = new SerieReader();
+            //var movieReaders = new MovieReader();
+            //var serieReaders = new SerieReader();
 
-            _readers = new List<IReader>
-            {
-                movieReaders,
-                serieReaders
-            };
+            //_readers = new List<IReader>
+            //{
+            //    movieReaders,
+            //    serieReaders
+            //};
 
             //_ui = new DownloaderGlobalUI(_readers);
         }
@@ -52,7 +52,7 @@ namespace MovManagerr.Cls.Commands
 
                 try
                 {
-                    reader.SyncInDatabase();
+                    //reader.SyncInDatabase();
                     reader.Dispose();
                     SimpleLogger.AddLog("Synchronisation des données | " + reader.GetType().Name + " terminée");
                 }

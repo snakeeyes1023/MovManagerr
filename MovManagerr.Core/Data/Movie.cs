@@ -1,7 +1,9 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Tmdb;
+using Snake.LiteDb.Extensions.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 namespace MovManagerr.Core.Data
@@ -81,6 +83,16 @@ namespace MovManagerr.Core.Data
         {
             return LastSearchAttempt.HasValue || TmdbMovie != null;
         }
+
+        public static Expression<Func<Movie, bool>> GetIsSearchOnTmdbExpressionEnable(bool isSearched)
+        {
+            if (isSearched)
+            {
+                return x => x.LastSearchAttempt.HasValue || x.TmdbMovie != null;
+            }
+            return x => !x.LastSearchAttempt.HasValue || x.TmdbMovie != null;
+        }
+
 
         public bool IsSearchedOnTmdbFailed()
         {

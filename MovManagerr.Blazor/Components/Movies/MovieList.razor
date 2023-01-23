@@ -3,7 +3,7 @@
 @implements IDisposable;
 @using System.Timers
 @using MovManagerr.Core.Data.Abstracts
-
+@inject IServiceProvider ServiceProvider
 
 <div class="col-12 mt-0 pt-0">
     <RadzenCard>
@@ -35,9 +35,6 @@
             </RadzenCard>
         </Template>
     </RadzenDataList>
-
-
-    <RadzenDialog />
 </div>
 
 <style>
@@ -49,7 +46,6 @@
 @code {
 
     IEnumerable<Movie> movies;
-    private ContentDownloaderClient contentDownloader;
     string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
     int count;
 
@@ -65,17 +61,11 @@
         aTimer.Elapsed += OnChange;
         aTimer.AutoReset = false;
 
-        contentDownloader = ContentDownloaderClient.Instance;
         searchQuery = new SearchQuery()
                 {
                     Skip = 0,
                     Take = 20
                 };
-    }
-
-    protected void Download(Movie movie)
-    {
-        //contentDownloader.Download(movie);
     }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
@@ -89,9 +79,9 @@
 
     async Task ShowMovieDialog(Movie movie)
     {
-        await DialogService.OpenAsync<Contents.Show>(movie.Name,
+        await DialogService.OpenAsync<Contents.Show>(string.Empty,
             new Dictionary<string, object>() { { "ID", movie._id } },
-            new DialogOptions() { Width = "95%", Height = "95%", Resizable = true, Draggable = true });
+            new DialogOptions() { Width = "95%", Height = "95%", CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
     }
 
     #region Content query

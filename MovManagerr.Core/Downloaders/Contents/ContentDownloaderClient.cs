@@ -1,15 +1,15 @@
-﻿using MovManagerr.Core.Data.Abstracts;
+﻿using MovManagerr.Core.Data;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System.Net;
 using System.Net.NetworkInformation;
 
 namespace MovManagerr.Core.Downloaders.Contents
 {
-    public sealed class ContentDownloaderClient
+    public class ContentDownloaderClient
     {
-        public static ContentDownloaderClient Instance { get { return Nested.instance; } }
-
         private bool CanHandle { get; set; }
         public Task CurrentTask { get; set; }
         public DateTime StartedTime { get; set; }
@@ -19,12 +19,14 @@ namespace MovManagerr.Core.Downloaders.Contents
         public List<DownloadContentTask> AllTasks { get; set; } = new List<DownloadContentTask>();
         private Content? ContentInDownload { get; set; }
 
+        private readonly IContentDbContext ContentDbContext;
 
-        private ContentDownloaderClient(int attempt = 3)
+        public ContentDownloaderClient(IContentDbContext contentDbContext)
         {
             NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
             CanHandle = true;
-            Attempt = attempt;
+            Attempt = 3;
+            ContentDbContext = contentDbContext;
         }
 
         private void NetworkChange_NetworkAvailabilityChanged(object? sender, NetworkAvailabilityEventArgs e)
@@ -43,6 +45,8 @@ namespace MovManagerr.Core.Downloaders.Contents
         {
             try
             {
+                link.IsDownloading = true;
+
                 var path = content.GetDirectoryPath();
 
                 content
@@ -57,7 +61,7 @@ namespace MovManagerr.Core.Downloaders.Contents
                     Content = content,
                     Destination = fullPath,
                     IsFinish = false,
-                    Origin = link.Link
+                    Origin = link
                 };
 
                 AppendTask(downloadTask);
@@ -107,7 +111,7 @@ namespace MovManagerr.Core.Downloaders.Contents
                 Thread.Sleep(1000);
 
                 WebClient myWebClient = new WebClient();
-                myWebClient.DownloadFile(task.Origin, task.Destination);
+                myWebClient.DownloadFile(task.Origin.Link, task.Destination);
 
                 OnSucceeded(task);
             }
@@ -142,7 +146,7 @@ namespace MovManagerr.Core.Downloaders.Contents
             SimpleLogger.AddLog(new DownloadResultLog<ContentDownloaderClient>
             {
                 HasSucceeded = false,
-                Origin = task.Origin,
+                Origin = task.Origin.Link,
                 Destination = task.Destination,
                 Exception = ex ?? new ArgumentNullException(nameof(ex)),
                 EndedTimeJob = DateTime.Now,
@@ -152,6 +156,18 @@ namespace MovManagerr.Core.Downloaders.Contents
 
             task.IsFinish = true;
             task.HasSucceeded = false;
+
+            if (task.Content is Movie movie)
+            {
+                ContentDbContext.Movies.TrackEntity(movie);
+                movie.SetDirty();
+            }
+
+            task.Origin.IsDownloading = false;
+            task.Origin.IsDownloaded = false;
+
+            ContentDbContext.Movies.SaveChanges();
+
         }
 
         private void OnSucceeded(DownloadContentTask task)
@@ -166,6 +182,16 @@ namespace MovManagerr.Core.Downloaders.Contents
 
             task.IsFinish = true;
 
+            if (task.Content is Movie movie)
+            {
+                ContentDbContext.Movies.TrackEntity(movie);
+                movie.SetDirty();
+            }
+
+            task.Origin.IsDownloading = false;
+            task.Origin.IsDownloaded = true;
+
+            ContentDbContext.Movies.SaveChanges();
         }
 
         private void CheckForPendingTasks()
@@ -191,23 +217,12 @@ namespace MovManagerr.Core.Downloaders.Contents
                 Thread.Sleep(5 * 60 * 1000);
             }
         }
-
-        private class Nested
-        {
-            // Explicit static constructor to tell C# compiler
-            // not to mark type as beforefieldinit
-            static Nested()
-            {
-            }
-
-            internal static readonly ContentDownloaderClient instance = new ContentDownloaderClient();
-        }
     }
 
     public class DownloadContentTask
     {
         public string Destination { get; set; }
-        public string Origin { get; set; }
+        public DirectLinkDownload Origin { get; set; }
         public Content Content { get; set; }
         public bool IsFinish { get; set; } = false;
         public bool HasSucceeded { get; set; } = true;

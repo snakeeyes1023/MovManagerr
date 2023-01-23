@@ -3,27 +3,32 @@
 @inject IMovieService movieService;
 @using MovManagerr.Core.Data.Abstracts;
 @inject Radzen.DialogService dialogService
-
+@inject IServiceProvider ServiceProvider
 
 <div class="row">
-    <div class="col-md-4">
-        <img src="@Content.Poster" alt="Poster for @Content.Name" class="img-fluid">
-    </div>
-    <div class="col-md-8">
-        <h1>@Content.Name</h1>
-        @*        <p>@Content.OriginalTitle</p>
-        <p>Release Date: @Content.ReleaseDate.ToString("MMMM dd, yyyy")</p>
-        <p>Is Adult: @Content.Adult</p>
-        <p>Has Video: @Content.Video</p>*@
+    <div class="col d-flex">
+        <img src="@Content.Poster" alt="Poster for @Content.Name" style="max-height: 250px" class="img-fluid">
+        <div class="mx-3" style="max-width: 700px">
+            <RadzenText TextStyle="TextStyle.Subtitle1">@Content.Name</RadzenText>
+
+            @if (Content?.TmdbMovie != null)
+            {
+                <RadzenText TextStyle="TextStyle.Body1">@Content.TmdbMovie.Overview</RadzenText>
+            }
+        </div>
     </div>
 </div>
+<hr/>
 <div class="row">
     <div class="col-md-12">
+
+        <RadzenText TextStyle="TextStyle.Subtitle1">Téléchargement disponibles (@(downloadables.Count()))</RadzenText>
+
         @*        <img src="@Content.BackdropPath" alt="Background for @Content.Title" class="img-fluid">
         *@
     </div>
 
-    <div class="col-md-12">        
+    <div class="col-md-12">
         <RadzenDataGrid @ref="downloadablesGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" Data="@downloadables">
             <Columns>
                 <RadzenDataGridColumn TItem="DownloadableContent" Property="Source" Title="Source" />
@@ -32,6 +37,11 @@
                 <RadzenDataGridColumn TItem="DownloadableContent" Property="Size" Title="Taille" />
                 <RadzenDataGridColumn TItem="DownloadableContent" Property="Langues" Title="Langues" />
                 <RadzenDataGridColumn TItem="DownloadableContent" Property="Quality" Title="Qualité" />
+                <RadzenDataGridColumn TItem="DownloadableContent" Title="Actions" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenButton IsBusy="data.IsDownloading" Click="(arg => Download(data))" Text="Télécharger"></RadzenButton>
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
     </div>
@@ -47,7 +57,7 @@
 
     RadzenDataGrid<DownloadableContent> downloadablesGrid;
     IList<DownloadableContent> downloadables;
-    Content Content { get; set; }
+    Movie Content { get; set; }
 
     [Parameter] public LiteDB.ObjectId ID { get; set; }
 
@@ -59,5 +69,10 @@
         Content = movieService.GetMovieById(ID);
 
         downloadables = Content.DownloadableContents;
+    }
+
+    protected void Download(DownloadableContent provider)
+    {
+        Content.Download(ServiceProvider, provider);
     }
 }
