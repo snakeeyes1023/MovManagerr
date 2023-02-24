@@ -1,5 +1,6 @@
 ﻿using Downloader;
 using MovManagerr.Core.Downloaders.Contents.Readers;
+using MovManagerr.Core.Infrastructures.Loggers;
 
 namespace MovManagerr.Core.Downloaders.M3U
 {
@@ -67,8 +68,9 @@ namespace MovManagerr.Core.Downloaders.M3U
 
                 await downloadService.DownloadFileTaskAsync(_url, path, cancellationToken);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                SimpleLogger.AddLog("Impossible de lire certains éléments.", LogType.Error);
                 return false;
             }
 
@@ -82,7 +84,7 @@ namespace MovManagerr.Core.Downloaders.M3U
         /// <param name="e">The <see cref="Downloader.DownloadProgressChangedEventArgs"/> instance containing the event data.</param>
         private void OnChunkDownloadProgressChanged(byte[] bytes)
         {
-            Chunks.Add(bytes);
+            Chunks.Add(bytes, _url);
         }
 
         private DownloadService GetDownloadeService()

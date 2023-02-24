@@ -4,8 +4,8 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
 {
     public interface IReader : IDisposable
     {
-        void Read(MediaM3u mediaInfo);
+        void Read(MediaM3u mediaInfo, string link);
 
-        void SyncInDatabase();
+        void SaveChanges();
     }
 }

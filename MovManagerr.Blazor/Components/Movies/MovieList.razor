@@ -1,0 +1,125 @@
+﻿@inject IMovieService movieService
+@inject DialogService DialogService
+@implements IDisposable;
+@using System.Timers
+@using MovManagerr.Core.Data.Abstracts
+@inject IServiceProvider ServiceProvider
+
+<div class="col-12 mt-0 pt-0">
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Rechercher un film</RadzenText>
+        <RadzenTextBox @oninput=@(args => InputQueryChanged(args.Value.ToString())) Class="w-100" />
+    </RadzenCard>
+</div>
+<div class="col-12 movie-list my-2">
+    <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@(searchQuery.Take)" PageNumbersCount="5" PageChanged="@PageChanged" />
+    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@movies" TItem="Movie">
+        <Template Context="movie">
+            <RadzenCard Style="width:300px;">
+                <img class="img-fluid" style="min-width : 100%" src="@(movie.Poster)">
+                <hr style="border: none; background-color: rgba(0,0,0,.08); height: 1px; margin: 1rem 0;" />
+                <div class="row">
+                    <div class="col-md-8 text-truncate">
+                        <b>@(movie.Name)</b>
+                    </div>
+                    <div class="col-md-4 text-end float-right">
+                        @foreach (var badge in movie.GetCombinedTags())
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@(badge) />
+                        }
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Outlined" Click=@(args => ShowMovieDialog(movie)) Text="Télécharger" />
+                </div>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+</div>
+
+<style>
+    .movie-list {
+        overflow-y: hidden;
+    }
+</style>
+
+@code {
+
+    IEnumerable<Movie> movies;
+    string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
+    int count;
+
+    private Timer aTimer = default!;
+
+    SearchQuery searchQuery;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        aTimer = new Timer(1000);
+        aTimer.Elapsed += OnChange;
+        aTimer.AutoReset = false;
+
+        searchQuery = new SearchQuery()
+                {
+                    Skip = 0,
+                    Take = 20
+                };
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            OnChange();
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    async Task ShowMovieDialog(Movie movie)
+    {
+        await DialogService.OpenAsync<Contents.Show>(string.Empty,
+            new Dictionary<string, object>() { { "ID", movie._id } },
+            new DialogOptions() { Width = "95%", Height = "95%", CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
+    }
+
+    #region Content query
+
+    protected void InputQueryChanged(string newQuery)
+    {
+        searchQuery.EnteredText = newQuery;
+        aTimer.Stop();
+        aTimer.Start();
+    }
+
+    protected async void OnChange(Object? source = null, ElapsedEventArgs e = null)
+    {
+        await InvokeAsync(() =>
+        {
+            if (string.IsNullOrWhiteSpace(searchQuery.EnteredText))
+            {
+                movies = movieService.GetAll(searchQuery.Skip, searchQuery.Take);
+                count = movieService.GetCount();
+            }
+            else
+            {
+                movies = movieService.GetCandidates(searchQuery);
+                count = movieService.GetCandidates(new SearchQuery() { EnteredText = searchQuery.EnteredText }).Count();
+            }
+
+            StateHasChanged();
+        });
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        searchQuery.Skip = args.Skip;
+        searchQuery.Take = args.Top;
+        OnChange();
+    }
+
+    void IDisposable.Dispose() => aTimer?.Dispose();
+
+    #endregion
+}

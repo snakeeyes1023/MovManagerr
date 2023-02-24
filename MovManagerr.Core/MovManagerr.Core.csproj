@@ -8,12 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Downloader" Version="3.0.2" />
-    <PackageReference Include="LiteDB" Version="5.0.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
+    <ProjectReference Include="..\Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

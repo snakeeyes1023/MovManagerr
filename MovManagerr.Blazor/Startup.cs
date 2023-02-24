@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MovManagerr.Core.Downloaders.Contents;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Services.Movies;
 using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
 using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using Radzen;
+using ElectronNET.API;
 
 namespace MovManagerr.Blazor
 {
@@ -43,6 +46,7 @@ namespace MovManagerr.Blazor
 
             services.AddSingleton<SearchAllMoviesOnTmdb>();
             services.AddSingleton<SyncM3UFiles>();
+            services.AddSingleton<ContentDownloaderClient>();
 
             #endregion
             //radzen
@@ -50,6 +54,7 @@ namespace MovManagerr.Blazor
             services.AddScoped<NotificationService>();
             services.AddScoped<TooltipService>();
             services.AddScoped<ContextMenuService>();
+            services.AddSingleton<IContentDbContext, ContentDbContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,6 +81,19 @@ namespace MovManagerr.Blazor
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            if (HybridSupport.IsElectronActive)
+            {
+                CreateWindow();
+            }
+        }
+
+        private async void CreateWindow()
+        {
+            var window = await Electron.WindowManager.CreateWindowAsync();
+            window.OnClosed += () => {
+                Electron.App.Quit();
+            };
         }
     }
 

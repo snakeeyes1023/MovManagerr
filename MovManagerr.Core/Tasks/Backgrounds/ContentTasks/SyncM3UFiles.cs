@@ -2,6 +2,7 @@
 using MovManagerr.Core.Downloaders.Contents.Readers;
 using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System;
 using System.Collections.Generic;
@@ -16,17 +17,13 @@ namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
         private readonly List<IReader> _readers;
         private readonly Preferences _preferences;
 
-        public SyncM3UFiles() : base("Synchronisation des fichiers M3U")
+        public SyncM3UFiles(IContentDbContext contentDbContext) : base("Synchronisation des fichiers M3U")
         {
             _preferences = Preferences.Instance;
 
-            var movieReaders = new MovieReader();
-            //var serieReaders = new SerieReader();
-
             _readers = new List<IReader>
             {
-                movieReaders,
-                //serieReaders
+                new MovieReader(contentDbContext),
             };
         }
 
@@ -40,7 +37,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
 
                     M3uDownloaderClient downloader = new M3uDownloaderClient(link, _readers);
 
-                    downloader.Start(Path.GetTempPath(), cancellationToken).Wait();
+                    var result = Task.Run(async () => await downloader.Start(Path.GetTempPath(), cancellationToken)).Result;
 
                     SimpleLogger.AddLog($"Fin de la lecture du lien {link}");
                 }
@@ -56,7 +53,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
 
                     try
                     {
-                        reader.SyncInDatabase();
+                        reader.SaveChanges();
                         reader.Dispose();
                         SimpleLogger.AddLog("Synchronisation des données | " + reader.GetType().Name + " terminée");
                     }

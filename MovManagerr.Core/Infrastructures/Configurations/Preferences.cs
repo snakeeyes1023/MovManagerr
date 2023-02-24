@@ -81,10 +81,17 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             _PreferenceFolder = Path.Combine(_AppData, "preferences");
             _DbPath = "Filename=" + Path.Combine(_AppData, "movmanagerr.db") + ";Connection=shared";
 
-            InitaliseAppDataFolders();
+            try
+            {
+                InitaliseAppDataFolders();
 
-            ReadConfig();
-            ReadLinks();
+                ReadConfig();
+                ReadLinks();
+            }
+            catch (Exception)
+            {
+                
+            }
         }
 
         private void InitaliseAppDataFolders()
@@ -139,7 +146,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Impossible de lire le fichier de configuration", ex);
+                //throw new InvalidOperationException("Impossible de lire le fichier de configuration", ex);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Data;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Services.Bases.ContentService;
 using MovManagerr.Core.Tasks.Backgrounds;
 using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
@@ -12,40 +13,18 @@ namespace MovManagerr.Core.Services.Movies
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public MovieService(IServiceProvider serviceProvider)
+        public MovieService(IServiceProvider serviceProvider, IContentDbContext contentDbContext) : base(contentDbContext)
         {
             _serviceProvider = serviceProvider;
         }
 
-        protected override Expression<Func<Movie, bool>> SearchQueryFilter(SearchQuery searchQuery)
-        {
-            // add tmdb id filter to base.searchqueryfilter
-            Expression<Func<Movie, bool>> onTmdb = m => m.TmdbId == searchQuery.Skip;
-
-            var baseFilter = base.SearchQueryFilter(searchQuery);
-            var combinedFilter = Expression.Lambda<Func<Movie, bool>>(
-                Expression.AndAlso(baseFilter.Body, onTmdb.Body),
-                baseFilter.Parameters);
-            return combinedFilter;
-        }
-
-        protected override IEnumerable<Movie> BaseOrderQuery(IEnumerable<Movie> results)
-        {
-            return results
-                .Where(x => x.IsSearchedOnTmdb())
-                .OrderByDescending(x => x.TmdbMovie?.ReleaseDate);
-        }
-
-
         public IEnumerable<Movie> GetRecent(int limit)
         {
-            (ILiteCollection<Movie> collection, LiteDatabase db) = GetDataAccess();
-            
-            var results = BaseOrderQuery(collection.FindAll()).Take(limit);
-
-            db.Dispose();
-
-            return results;
+            return _currentCollection.UseQuery(x =>
+            {
+                x.Limit(limit);
+                BaseOrderQuery(x);
+            }).ToList();
         }
 
         public EventedBackgroundService GetSearchAllMovieOnTmdbService()
@@ -70,6 +49,26 @@ namespace MovManagerr.Core.Services.Movies
             }
 
             return service;
+        }
+
+        public Movie? GetMovieById(ObjectId _id)
+        {
+            Movie? movie = _currentCollection.UseQuery(x =>
+            {
+                x.Where(x => x._id == _id).FirstOrDefault();
+                
+            }).FirstOrDefault();
+
+            if (movie != null && !movie.IsSearchedOnTmdb())
+            {
+                movie.SearchMovieOnTmdb();
+
+                movie.SetDirty(true);
+
+                _currentCollection.SaveChanges();
+            }
+
+            return movie;
         }
     }
 }

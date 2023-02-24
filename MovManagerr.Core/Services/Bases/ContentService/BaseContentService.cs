@@ -2,7 +2,11 @@
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
+using Snake.LiteDb.Extensions.Mappers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
@@ -10,30 +14,34 @@ namespace MovManagerr.Core.Services.Bases.ContentService
 {
     public abstract class BaseContentService<T> : IBaseContentService<T> where T : Content
     {
+        private readonly IContentDbContext _contentDbContext;
+
+        protected readonly LiteDbSet<T> _currentCollection;
+
+        public BaseContentService(IContentDbContext contentDbContext)
+        {
+            _contentDbContext = contentDbContext;
+
+            _currentCollection = _contentDbContext.GetCollection<T>();
+        }
+
         /// <summary>
         /// Gets all.
         /// </summary>
         /// <returns></returns>
         public virtual IEnumerable<T> GetAll(int offset, int limit)
         {
-            (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
-
-            var results = BaseOrderQuery(collection.FindAll());
-
-            results = results.Skip(offset);
-
-            if (limit != 0)
-            {
-                results = results.Take(limit);
-            }
-
             SimpleLogger.AddLog("Liste de films recherché");
 
-            var listedResult = results.ToList();
-
-            db.Dispose();
-
-            return listedResult;
+            var entities = _currentCollection.UseQuery(x =>
+             {
+                 x.Skip(offset);
+                 x.Limit(limit);
+                 
+                 BaseOrderQuery(x);
+             });
+            
+            return entities.ToList();
         }
 
         /// <summary>
@@ -43,28 +51,17 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// <returns></returns>
         public virtual IEnumerable<T> GetCandidates(SearchQuery searchQuery)
         {
-            (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
+            var entities = _currentCollection.UseQuery(x =>
+            {
+                x.Where(x => x.Name.Contains(searchQuery.EnteredText));
 
-            var results = collection
-                .Find(SearchQueryFilter(searchQuery), searchQuery.Skip, searchQuery.Take);
-
-            db.Dispose();
+                x.Skip(searchQuery.Skip);
+                x.Limit(searchQuery.Take);
+            });
 
             SimpleLogger.AddLog("Liste de films recherché");
 
-            var listedResult = results.ToList();
-
-            return listedResult;
-        }
-
-        /// <summary>
-        /// Searches the query filter.
-        /// </summary>
-        /// <param name="searchQuery">The search query.</param>
-        /// <returns></returns>
-        protected virtual Expression<Func<T, bool>> SearchQueryFilter(SearchQuery searchQuery)
-        {
-            return x => x.Name.Contains(searchQuery.EnteredText, StringComparison.InvariantCultureIgnoreCase);
+            return entities.ToList();
         }
 
         /// <summary>
@@ -72,20 +69,9 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// </summary>
         /// <param name="results">The results.</param>
         /// <returns></returns>
-        protected virtual IEnumerable<T> BaseOrderQuery(IEnumerable<T> results)
+        protected virtual void BaseOrderQuery(ILiteQueryable<T> queryable)
         {
-            return results.OrderByDescending(x => x._id);         
-        }
-
-        /// <summary>
-        /// Gets the data access.
-        /// </summary>
-        /// <returns></returns>
-        protected (ILiteCollection<T>, LiteDatabase) GetDataAccess()
-        {
-            var db = new LiteDatabase(Preferences.Instance._DbPath);
-            ILiteCollection<T> collection = DatabaseHelper.GetCollection<T>(db);
-            return (collection, db);
+            queryable.OrderByDescending(x => x._id);
         }
 
         /// <summary>
@@ -94,13 +80,7 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// <returns></returns>
         public int GetCount()
         {
-            (ILiteCollection<T> collection, LiteDatabase db) = GetDataAccess();
-
-            var count = collection.Count();
-
-            db.Dispose();
-
-            return count;
+            return _currentCollection.Count();
         }
     }
 }

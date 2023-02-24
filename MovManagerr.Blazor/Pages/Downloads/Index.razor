@@ -1,7 +1,6 @@
 ﻿@page "/content/downloads"
 @using System.IO
 @using System.Diagnostics
-
 <h1>Téléchargement en cours</h1>
 
 @foreach (var pendingTask in pendingTasks)
@@ -47,16 +46,13 @@
 
 
 @code {
-    private ContentDownloaderClient contentDownloader;
     public IEnumerable<DownloadContentTask> pendingTasks;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        contentDownloader = ContentDownloaderClient.Instance;
-
-        pendingTasks = contentDownloader.AllTasks;
+        //pendingTasks = contentDownloader.AllTasks;
     }
 
     protected void OpenInExplorer(string path)

@@ -6,7 +6,7 @@ namespace MovManagerr.Core.Downloaders.M3U
     public class M3uChunkReadable : IEnumerable<MediaM3u>
     {
         #region Events
-        public event Action<MediaM3u> OnContentFounded;
+        public event Action<MediaM3u, string> OnContentFounded;
         public event Action OnContentRead;
         #endregion
 
@@ -34,17 +34,17 @@ namespace MovManagerr.Core.Downloaders.M3U
         /// Adds the specified bytes.
         /// </summary>
         /// <param name="bytes">The bytes.</param>
-        public void Add(byte[] bytes)
+        public void Add(byte[] bytes, string source)
         {
             _pendingChunk.Append(Encoding.UTF8.GetString(bytes));
 
-            Proceeded();
+            Proceeded(source);
         }
 
         /// <summary>
         /// Proceededs this instance.
         /// </summary>
-        public void Proceeded()
+        public void Proceeded(string source)
         {
             // Sépare le chunk en attente par \n
             string[] chunks = _pendingChunk.ToString().Split('\n');
@@ -79,7 +79,7 @@ namespace MovManagerr.Core.Downloaders.M3U
                     else
                     {
                         _chunks.Last().SetUrl(cleanChunk);
-                        OnContentFounded?.Invoke(_chunks.Last());
+                        OnContentFounded?.Invoke(_chunks.Last(), source);
 
                         //Remove it from the list cuase it's already read
                         _chunks.RemoveAt(_chunks.Count - 1);

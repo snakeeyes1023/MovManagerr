@@ -3,6 +3,7 @@ using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Downloaders.M3U;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System;
 using System.Linq.Expressions;
@@ -13,7 +14,11 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
 {
     public class MovieReader : M3uContentReader<Movie>
     {
-        protected override Movie? BindDataInContent(MediaM3u mediaInfo)
+        public MovieReader(IContentDbContext contentDbContext) : base(contentDbContext)
+        {
+        }
+
+        protected override Movie? BindDataInContent(MediaM3u mediaInfo, string link)
         {
             //movie data
             string movieName = (mediaInfo.MuName.Split("|").Last() ?? "").Trim();
@@ -25,7 +30,7 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
             List<string> linkTags = mediaInfo.MuName.Split("|").ToList().Where(x => string.IsNullOrWhiteSpace(x) == false).Select(x => x.Trim()).ToList();
             linkTags.RemoveAt(linkTags.Count - 1);
 
-            movie.AddDownloadableContent(new M3UContentLink() { Link = mediaInfo.MuUrl, Tags = linkTags });
+            movie.AddDownloadableContent(new M3UContentLink() { Link = mediaInfo.MuUrl, Tags = linkTags, Source = link });
 
             movie.AddCustomData("parsedFrom", mediaInfo.MuFullContent);
 
