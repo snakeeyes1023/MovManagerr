@@ -21,13 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core", "MovMana
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.App", "MovManagerr.App\MovManagerr.App.csproj", "{DC7F5C55-333B-4886-8BFA-622C79B3B991}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Cls", "MovManagerr.Cls\MovManagerr.Cls.csproj", "{A20281BB-9019-4844-8831-E187A0C27109}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core.Tests", "MovManagerr.Core.Tests\MovManagerr.Core.Tests.csproj", "{81B3D69A-49F5-4C74-BD54-51E0C897A339}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snake.LiteDb.Extensions", "Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj", "{F210C189-2C45-4926-A29A-5BC80026E6F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions", "Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj", "{F210C189-2C45-4926-A29A-5BC80026E6F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snake.LiteDb.Extensions.Tests", "Snake.LiteDb.Extensions.Tests\Snake.LiteDb.Extensions.Tests.csproj", "{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions.Tests", "Snake.LiteDb.Extensions.Tests\Snake.LiteDb.Extensions.Tests.csproj", "{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,10 +49,6 @@ Global
 		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A20281BB-9019-4844-8831-E187A0C27109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A20281BB-9019-4844-8831-E187A0C27109}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A20281BB-9019-4844-8831-E187A0C27109}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A20281BB-9019-4844-8831-E187A0C27109}.Release|Any CPU.Build.0 = Release|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Release|Any CPU.ActiveCfg = Release|Any CPU

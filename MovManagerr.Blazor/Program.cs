@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using ElectronNET.API;
 
 namespace MovManagerr.Blazor
 {
@@ -14,6 +15,8 @@ namespace MovManagerr.Blazor
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseElectron(args);
+                    webBuilder.UseEnvironment("Development");
                     webBuilder.UseStartup<Startup>();
                 });
     }

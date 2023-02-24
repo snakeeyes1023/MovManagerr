@@ -9,6 +9,7 @@ using MovManagerr.Core.Services.Movies;
 using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
 using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using Radzen;
+using ElectronNET.API;
 
 namespace MovManagerr.Blazor
 {
@@ -80,6 +81,19 @@ namespace MovManagerr.Blazor
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            if (HybridSupport.IsElectronActive)
+            {
+                CreateWindow();
+            }
+        }
+
+        private async void CreateWindow()
+        {
+            var window = await Electron.WindowManager.CreateWindowAsync();
+            window.OnClosed += () => {
+                Electron.App.Quit();
+            };
         }
     }
 
