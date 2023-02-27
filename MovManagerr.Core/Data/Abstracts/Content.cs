@@ -10,6 +10,7 @@ namespace MovManagerr.Core.Data.Abstracts
         public Content()
         {
             DownloadableContents = new List<DownloadableContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
 
         public Content(string name, string poster)
@@ -17,20 +18,58 @@ namespace MovManagerr.Core.Data.Abstracts
             Name = name;
             Poster = poster;
             DownloadableContents = new List<DownloadableContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
 
         public string Name { get; set; }
 
         public string Poster { get; set; }
 
+        public List<DownloadedContent> DownloadedContents { get; protected set; }
+
         public List<DownloadableContent> DownloadableContents { get; protected set; }
 
         public Dictionary<string, object> CustomData { get; protected set; }
 
+        public bool IsDownloaded
+        {
+            get
+            {
+                return DownloadedContents.Count > 0;
+            }
+        }
+
         #region Methods
 
-        public abstract string GetDirectoryPath();
+        /// <summary>
+        /// Retourne le chemin du dossier de téléchargement du contenu
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetPath(bool createDirectory = true)
+        {
+            var path = GetDirectoryManager()._BasePath;
+            
+            if (createDirectory)
+            {
+                Directory.CreateDirectory(path);
+            }
+            return path;
+        }
 
+        /// <summary>
+        /// Gets the full path.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns></returns>
+        public virtual string GetFullPath(string fileName, bool createDirectory = true)
+        {
+            return Path.Combine(GetPath(createDirectory), fileName);
+        }
+
+        /// <summary>
+        /// Représente l'emplacement ou son stocker les contenues du même type (exemple : les films dans le dossier "Films")
+        /// </summary>
+        /// <returns></returns>
         public abstract DirectoryManager GetDirectoryManager();
 
         public void AddDownloadableContent(DownloadableContent downloable)
@@ -131,5 +170,20 @@ namespace MovManagerr.Core.Data.Abstracts
             }
         }
         #endregion
+    }
+
+    public class DownloadedContent
+    {
+        public DownloadedContent() { }
+        public DownloadedContent(string fullPath, DownloadableContent? method = null)
+        {
+            FullPath = fullPath;
+            Method = method;
+            CreationDate = DateTime.Now;
+        }
+
+        public string FullPath { get; set; }
+        public DownloadableContent? Method { get; protected set; }
+        public DateTime CreationDate { get; protected set; }
     }
 }

@@ -5,6 +5,7 @@ using Snake.LiteDb.Extensions.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Data
 {
@@ -18,7 +19,7 @@ namespace MovManagerr.Core.Data
         public Movie()
         {
         }
-        
+
         #region Tmdb
         public int TmdbId { get; set; }
         public TMDbLib.Objects.Search.SearchMovie? TmdbMovie { get; private set; }
@@ -29,17 +30,42 @@ namespace MovManagerr.Core.Data
         /// Gets the directory path.
         /// </summary>
         /// <returns></returns>
-        public override string GetDirectoryPath()
+        public override string GetPath(bool createDirectory = true)
         {
-            var title = string.IsNullOrEmpty(TmdbMovie?.Title) ? Name : TmdbMovie.Title;
+            var title = string.IsNullOrEmpty(TmdbMovie?.OriginalTitle) ? Name : TmdbMovie.OriginalTitle;
             var year = TmdbMovie != null && TmdbMovie.ReleaseDate.HasValue ? TmdbMovie.ReleaseDate.Value.Year.ToString() : "0000";
 
-            // Supprimer les caractères non autorisés dans le nom du répertoire, à l'exception des espaces
-            title = Regex.Replace(title, @"[^\w\.@\s\(\)-]", "");
+            char[] invalidChars = Path.GetInvalidPathChars();
+            var path = string.Join("_", title.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
 
+            // replace  by nothing in Regex.Replace(path, @"[ ]{2,}", " ");
 
-            return Path.Combine($"{title} ({year})");
+            path = Regex.Replace(path, @"[ ]{2,}", " ").Replace(":", string.Empty);
+            path = $"{path} ({year})";
+
+            var directoryPath = Path.Combine(base.GetPath(createDirectory), path);
+
+            if (createDirectory)
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            return directoryPath;
         }
+
+        public bool IsInValidFolder()
+        {
+            foreach (var downloaded in DownloadedContents)
+            {
+                if (GetPath(false) != Path.GetDirectoryName(downloaded.FullPath))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
 
         /// <summary>
         /// Searches the movie on TMDB. (base on the name)
@@ -66,7 +92,11 @@ namespace MovManagerr.Core.Data
         /// <returns></returns>
         public override DirectoryManager GetDirectoryManager()
         {
-            return Preferences.Instance.MovieManager;
+            var preference = Preferences.Instance.Settings.GetContentPreference<Movie>();
+
+            return preference
+                      .GetDirectoryManager()
+                      .CreateSubInstance(preference.GetFolderForGenre(TmdbMovie!.GenreIds.FirstOrDefault()));
         }
 
         /// <summary>
@@ -115,6 +145,15 @@ namespace MovManagerr.Core.Data
             {
                 throw new ArgumentException("The entity is not a Movie");
             }
+        }
+
+        public static Movie CreateFromSearchMovie(SearchMovie searchMovie)
+        {
+            return new Movie(searchMovie.OriginalTitle, searchMovie.PosterPath)
+            {
+                TmdbId = searchMovie.Id,
+                TmdbMovie = searchMovie
+            };
         }
     }
 }

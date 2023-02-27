@@ -1,0 +1,199 @@
+﻿@page "/import/movie"
+@using MovManagerr.Core.Helpers.Extractors;
+@using MovManagerr.Core.Tasks;
+@using System.IO;
+@using OpenAI_API;
+@using TMDbLib.Objects.Search;
+
+<RadzenCard>
+    <h4 class="mb-4">Importer un nouveau film sur Plex</h4>
+    <RadzenButton ButtonStyle="ButtonStyle.Dark" Icon="upload" Variant="Variant.Outlined" Click=@(args => BrowseMovieFile()) Text="Ouvrir l'emplacement du fichier" />
+
+    @if (!string.IsNullOrWhiteSpace(fullPath))
+    {
+        <RadzenCard class="my-4">
+            <div class="row">
+                <div class="col-8">
+                    <h4 class="mb-4">Informations du film</h4>
+                    <p>
+                        Chemin complet : @fullPath
+                    </p>
+                </div>
+                <div class="col-4 align-content-end align-items-end">
+                    <div class="float-right">
+                        <RadzenTextBox @bind-Value=movieName />
+                        <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="search" Click=@(args => GetMatchs()) Text="Faire une recherche" />
+                    </div>
+                </div>
+                <hr />
+            </div>
+
+            @if (Matchs != null && Matchs.Any())
+            {
+                <RadzenDataList WrapItems="true" AllowPaging="false" Data="@Matchs" TItem="SearchMovie">
+                    <Template Context="movie">
+
+                        @{
+                            string imagePath = string.IsNullOrWhiteSpace(movie.PosterPath) ? "https://static.displate.com/857x1200/displate/2022-04-15/7422bfe15b3ea7b5933dffd896e9c7f9_46003a1b7353dc7b5a02949bd074432a.jpg" : $"https://image.tmdb.org/t/p/w200/{movie.PosterPath}";
+                            string cardCss = SelectedMovieId == movie.Id ? "selected" : "";
+                        }
+                        <RadzenCard Style="width:200px; max-width: 200px" @onclick="(args => SelectMovie(movie.Id))" class=@($"selection-card {cardCss}")>
+
+                            <img class="img-fluid" style="min-width : 100%" src="@imagePath">
+                            <div class="row">
+                                <div class="col-md-8 text-truncate">
+                                    <b>
+                                        @(movie.OriginalTitle)
+                                    </b>
+                                </div>
+                                <div style="color: dimgray">
+                                    (@(movie.ReleaseDate.GetValueOrDefault().Year))
+                                </div>
+                            </div>
+                        </RadzenCard>
+                    </Template>
+                </RadzenDataList>
+            }
+        </RadzenCard>
+
+        @if (SelectedMovieId != 0 && !string.IsNullOrWhiteSpace(fullPath))
+        {
+            <div class="row mx-2">
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" class="w-100" Icon="done" Shade=Shade.Lighter Variant="Variant.Filled" Click=@(args => Submit()) Text="Ajouter le film à Plex" />
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(fullPath))
+        {
+            <div class="row mx-2 my-2">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" class="w-100" Icon="cancel" Shade=Shade.Lighter Variant="Variant.Filled" Click=@(args => ProcessPendingMovies()) Text="Annuler l'ajout" />
+            </div>
+        }
+    }
+</RadzenCard>
+
+@code {
+    string fullPath;
+    string movieName;
+
+    IEnumerable<SearchMovie?> Matchs;
+
+    int SelectedMovieId { get; set; }
+
+    [Inject] ContentAddService AddMovieService { get; set; }
+
+    private IMovieExtractor MovieExtractor { get; set; }
+
+    private Queue<string> PendingMovies { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        MovieExtractor = (new ExtractorInstance()).GetMovieInstratorInstance();
+
+        PendingMovies = new Queue<string>();
+    }
+
+    void SelectMovie(int id)
+    {
+        SelectedMovieId = id;
+    }
+
+    void ClearContext()
+    {
+        Matchs = new List<SearchMovie>();
+        SelectedMovieId = 0;
+        fullPath = string.Empty;
+        movieName = string.Empty;
+    }
+
+    void Submit()
+    {
+        int movieId = SelectedMovieId;
+        string path = fullPath;
+        SearchMovie movie = Matchs.FirstOrDefault(x => x.Id == movieId);
+
+        ClearContext();
+
+        string destination = AddMovieService.ImportMovie(path, movie);
+
+        Task.Run(() =>
+        {
+            File.Move(path, destination);
+        });
+
+        var options = new NotificationOptions("Upload terminé", $"Le film {movie.OriginalTitle} a bien été ajouté!")
+            {
+                OnClick = async () => await Electron.Shell.ShowItemInFolderAsync(Path.GetDirectoryName(destination))
+            };
+
+        Electron.Notification.Show(options);
+
+        ProcessPendingMovies();
+    }
+
+    async Task BrowseMovieFile()
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+
+            var options = new OpenDialogOptions
+                {
+                    Properties = new OpenDialogProperty[] {
+                        OpenDialogProperty.openFile,
+                        OpenDialogProperty.multiSelections
+                    }
+                };
+
+            string[] files = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+
+            if (!files.Any())
+            {
+                var notOptions = new NotificationOptions("Avertissement", $"Aucun fichier a été selectionnée");
+                Electron.Notification.Show(notOptions);
+                return;
+            }
+
+            foreach (var file in files)
+            {
+                PendingMovies.Enqueue(file);
+            }
+
+            ProcessPendingMovies();
+
+            StateHasChanged();
+        }
+    }
+
+    void ProcessPendingMovies()
+    {
+        ClearContext();
+
+        if (PendingMovies.Any())
+        {
+            fullPath = PendingMovies.Dequeue();
+
+            var movieInfo = MovieExtractor.ExtractFromFileName(fullPath);
+
+            movieName = movieInfo.MovieName;
+
+            GetMatchs();
+
+            foreach (var match in Matchs)
+            {
+                if (match.ReleaseDate.GetValueOrDefault().Year == movieInfo.Year)
+                {
+                    SelectMovie(match.Id);
+                    return;
+                }
+            }
+        }
+    }
+
+    void GetMatchs()
+    {
+        Matchs = AddMovieService.GetMatchForFileName(movieName);
+    }
+}

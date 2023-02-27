@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿ using Microsoft.Extensions.Hosting;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System.Diagnostics;
 

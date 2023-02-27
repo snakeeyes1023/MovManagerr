@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Downloader" Version="3.0.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.2.0" />
+    <PackageReference Include="OpenAI" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>

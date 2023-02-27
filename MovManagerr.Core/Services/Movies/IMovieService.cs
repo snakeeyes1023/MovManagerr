@@ -11,5 +11,7 @@ namespace MovManagerr.Core.Services.Movies
         EventedBackgroundService GetSearchAllMovieOnTmdbService();
         EventedBackgroundService GetSyncM3UFilesInDbService();
         Movie? GetMovieById(ObjectId _id);
+        void ScanFolder(string path);
+        void ReorganiseFolder();
     }
 }

@@ -26,6 +26,5 @@
         }
 
         protected abstract void Download(IServiceProvider serviceProvider, Content content);
-
     }
 }

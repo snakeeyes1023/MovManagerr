@@ -14,10 +14,12 @@
         </RadzenHeader>
         <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
             <RadzenPanelMenu>
-                <RadzenPanelMenuItem Text="Général" Icon="home" Path="/search/movie" />
+                <RadzenPanelMenuItem Text="Rechercher un film" Icon="home" Path="/search/movie" />
+                <RadzenPanelMenuItem Text="Importer un film" Icon="downloading" Path="/import/movie" />
                 <RadzenPanelMenuItem Text="Gestion des téléchargements" Icon="downloading" Path="/content/downloads" />
-                <RadzenPanelMenuItem Text="Dernière activité" Icon="list" />
                 <RadzenPanelMenuItem Text="Mes listes" Icon="list" Path="/mylists" />
+                <RadzenPanelMenuItem Text="Scanner un dossier de film" Icon="list" Path="/scan/movie" />
+                <RadzenPanelMenuItem Text="Paramètre" Icon="settings" Path="/config/general" />
             </RadzenPanelMenu>
         </RadzenSidebar>
         <RadzenBody>

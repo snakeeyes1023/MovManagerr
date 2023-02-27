@@ -84,7 +84,7 @@ namespace MovManagerr.Core.Data
             return episode.Name == Name && episode.EpisodeNumber == EpisodeNumber && episode.SaisonNumber == SaisonNumber;
         }
 
-        public override string GetDirectoryPath()
+        public override string GetPath(bool createdDirectory = true)
         {
             return $@"{Name}\Saison {SaisonNumber}\";
         }
@@ -96,7 +96,7 @@ namespace MovManagerr.Core.Data
 
         public override DirectoryManager GetDirectoryManager()
         {
-            return Preferences.Instance.SerieManager;
+            return Preferences.Instance.Settings.GetContentPreference<Episode>().GetDirectoryManager();
         }
     }
 }
