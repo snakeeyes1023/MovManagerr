@@ -62,6 +62,12 @@ namespace MovManagerr.Tmdb
             return task.Result;
         }
 
+        public SearchMovie? GetMovieByNameAndYear(string name, int year)
+        {
+            Task<SearchMovie?> task = Task.Run<SearchMovie?>(async () => await GetMovieByNameAndYearAsync(name, year));
+            return task.Result;
+        }
+
         public IEnumerable<SearchMovie?>? GetRelatedMovies(string name)
         {
             Task<SearchContainer<SearchMovie>?> task = Task.Run<SearchContainer<SearchMovie>?>(async () => await _client.SearchMovieAsync(name, 0, true));

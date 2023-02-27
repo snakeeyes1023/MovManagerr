@@ -19,8 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Blazor", "MovMa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core", "MovManagerr.Core\MovManagerr.Core.csproj", "{1CBD48F0-8BAF-4085-83F0-EC100EC73A6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.App", "MovManagerr.App\MovManagerr.App.csproj", "{DC7F5C55-333B-4886-8BFA-622C79B3B991}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core.Tests", "MovManagerr.Core.Tests\MovManagerr.Core.Tests.csproj", "{81B3D69A-49F5-4C74-BD54-51E0C897A339}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions", "Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj", "{F210C189-2C45-4926-A29A-5BC80026E6F3}"
@@ -45,10 +43,6 @@ Global
 		{1CBD48F0-8BAF-4085-83F0-EC100EC73A6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CBD48F0-8BAF-4085-83F0-EC100EC73A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CBD48F0-8BAF-4085-83F0-EC100EC73A6C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC7F5C55-333B-4886-8BFA-622C79B3B991}.Release|Any CPU.Build.0 = Release|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Release|Any CPU.ActiveCfg = Release|Any CPU

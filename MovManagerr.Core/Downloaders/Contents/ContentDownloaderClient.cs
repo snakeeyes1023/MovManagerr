@@ -47,14 +47,7 @@ namespace MovManagerr.Core.Downloaders.Contents
             {
                 link.IsDownloading = true;
 
-                var path = content.GetDirectoryPath();
-
-                content
-                    .GetDirectoryManager()
-                    .CreateDirectory(path);
-
-                string fullPath = Path.Combine(content.GetDirectoryManager()._BasePath, path, link.GetFilename());
-
+                var fullPath = content.GetFullPath(link.GetFilename());
 
                 var downloadTask = new DownloadContentTask()
                 {
@@ -212,7 +205,7 @@ namespace MovManagerr.Core.Downloaders.Contents
 
         private void WaitWhileNotInOperationHour()
         {
-            while (!Preferences.Instance.DownloadHours.CanDownload())
+            while (!Preferences.Instance.Settings.DownloadHours.CanDownload())
             {
                 Thread.Sleep(5 * 60 * 1000);
             }

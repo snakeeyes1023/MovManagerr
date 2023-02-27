@@ -10,6 +10,11 @@ using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
 using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using Radzen;
 using ElectronNET.API;
+using System;
+using MovManagerr.Core.Tasks;
+using ElectronNET.API.Entities;
+using System.Linq;
+using System.Diagnostics;
 
 namespace MovManagerr.Blazor
 {
@@ -29,10 +34,10 @@ namespace MovManagerr.Blazor
             services.AddRazorPages();
             services.AddServerSideBlazor();
 
-            
+
             services.ConfigureSingletonServices<Tmdb.Config.TmdbConfig>(Configuration, "TmdbConfig");
 
-            
+
             services.AddScoped<Tmdb.TmdbClientService>();
             services.AddScoped<Tmdb.Service.FavoriteService>();
 
@@ -54,6 +59,8 @@ namespace MovManagerr.Blazor
             services.AddScoped<NotificationService>();
             services.AddScoped<TooltipService>();
             services.AddScoped<ContextMenuService>();
+            services.AddScoped<ContentAddService>();
+
             services.AddSingleton<IContentDbContext, ContentDbContext>();
         }
 
@@ -83,7 +90,7 @@ namespace MovManagerr.Blazor
             });
 
             if (HybridSupport.IsElectronActive)
-            {
+            {                
                 CreateWindow();
             }
         }
@@ -91,7 +98,104 @@ namespace MovManagerr.Blazor
         private async void CreateWindow()
         {
             var window = await Electron.WindowManager.CreateWindowAsync();
-            window.OnClosed += () => {
+
+            // put in full page
+            var display = await Electron.Screen.GetPrimaryDisplayAsync();
+            var size = display.WorkAreaSize;
+            window.SetBounds(new Rectangle() { X = 0, Y = 0, Width = size.Width, Height = size.Height });
+
+            // set the window title
+            window.SetTitle("MovManagerr");
+
+            // prevent quit app
+            Electron.App.On("window-all-closed", () => { });
+
+            //// initialise the menu
+            //var menu = new MenuItem[]
+            //{
+            //    new MenuItem
+            //    {
+            //        Label = "File",
+            //        Submenu = new MenuItem[]
+            //        {
+            //            new MenuItem
+            //            {
+            //                Label = "Exit",
+            //                Click = () => Electron.App.Quit()
+            //            }
+            //        }
+            //    },
+            //    new MenuItem
+            //    {
+            //        Label = "Edit",
+            //        Submenu = new MenuItem[]
+            //        {
+            //            new MenuItem
+            //            {
+            //                Label = "Undo",
+            //                Role = MenuRole.undo
+            //            },
+            //            new MenuItem
+            //            {
+            //                Label = "Redo",
+            //                Role = MenuRole.redo
+            //            },
+            //            new MenuItem
+            //            {
+            //                Type = MenuType.separator
+            //            },
+            //            new MenuItem
+            //            {
+            //                Label = "Cut",
+            //                Role = MenuRole.cut
+            //            },
+            //            new MenuItem
+            //            {
+            //                Label = "Copy",
+            //                Role = MenuRole.copy
+            //            },
+            //            new MenuItem
+            //            {
+            //                Label = "Paste",
+            //                Role = MenuRole.paste
+            //            },
+            //        }
+            //    },
+            //    new MenuItem
+            //    {
+            //        Label = "Window",
+            //        Submenu = new MenuItem[]
+            //        {
+            //            new MenuItem
+            //            {
+            //                Label = "Minimize",
+            //                Role = MenuRole.minimize
+            //            },
+            //            new MenuItem
+            //            {
+            //                Label = "Close",
+            //                Role = MenuRole.minimize
+            //            }
+            //        }
+            //    },
+            //    new MenuItem
+            //    {
+            //        Label = "Help",
+            //        Submenu = new MenuItem[]
+            //        {
+            //            new MenuItem
+            //            {
+            //                Label = "Learn More",
+            //                Click = async () => await Electron.Shell.OpenExternalAsync("")
+            //                }
+            //            }
+            //        }
+            //    };
+
+            //Electron.Menu.SetApplicationMenu(menu);
+
+            window.OnClosed += () =>
+            {
                 Electron.App.Quit();
             };
         }

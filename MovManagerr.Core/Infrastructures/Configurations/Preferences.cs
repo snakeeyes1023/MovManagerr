@@ -1,4 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
+using MovManagerr.Core.Data.Abstracts;
+using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
+using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Tmdb;
 using System.Net;
 
@@ -28,51 +32,11 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
         public readonly string _AppData;
 
-        private DirectoryManager _movieManager;
-        public DirectoryManager MovieManager
-        {
-            get
-            {
-                if (_movieManager == null)
-                {
-                    _movieManager = GetDirectoryManager("movie");
-                }
-                return _movieManager;
-            }
-        }
-
-
-        private DirectoryManager _serieManager;
-        public DirectoryManager SerieManager
-        {
-            get
-            {
-                if (_serieManager == null)
-                {
-                    _serieManager = GetDirectoryManager("serie");
-                }
-                return _serieManager;
-            }
-        }
-
-        public string[] Langs { get { return Configs["lang"].Split(','); } }
-
-        public string[] Links { get; private set; }
-
         public readonly string _DbPath;
 
-        private Dictionary<string, string> Configs;
-
-        public PreferenceDownload DownloadHours
-        {
-            get
-            {
-                return new PreferenceDownload(Configs["operation_hour"]);
-            }
-        }
+        public CustomSettings Settings { get; private set; }
 
         #endregion
-
 
         private Preferences()
         {
@@ -84,9 +48,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             try
             {
                 InitaliseAppDataFolders();
-
-                ReadConfig();
-                ReadLinks();
+                Settings = GetOrCreateSettings();
             }
             catch (Exception)
             {
@@ -94,17 +56,63 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             }
         }
 
+        private CustomSettings GetOrCreateSettings()
+        {
+            ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
+
+            var results = contentDbContext.Settings.ToList();
+
+            if (results != null && results.Any())
+            {
+                return results.FirstOrDefault()!;
+            }
+            else
+            {
+                CustomSettings setting = new CustomSettings();
+
+                contentDbContext.Settings.Add(setting);
+                contentDbContext.Settings.SaveChanges();
+
+                return setting;
+            }
+        }
+
+        public void ResetFactoryConfiguration()
+        {
+            CustomSettings setting = new CustomSettings();
+            setting._id = GetOrCreateSettings()._id;
+            Settings= setting;
+            SaveSettings();
+
+            SimpleLogger.AddLog("Remise des configurations d'usine", LogType.Warning);
+        }
+
+        public void SaveSettings()
+        {
+            ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
+            contentDbContext.Settings.TrackEntity(Settings);
+            Settings.SetDirty();
+            
+            contentDbContext.Settings.SaveChanges();
+
+            SimpleLogger.AddLog("Les configurations ont été mise à jour", LogType.Info);
+        }
+
+        public void ReloadSettings()
+        {
+            ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
+
+            var results = contentDbContext.Settings.ToList();
+
+            if (results != null && results.Any())
+            {
+                Settings = results.FirstOrDefault()!;
+            }
+        }
         private void InitaliseAppDataFolders()
         {
-            if (!Directory.Exists(_AppData))
-            {
-                Directory.CreateDirectory(_AppData);
-            }
-
-            if (!Directory.Exists(_PreferenceFolder))
-            {
-                Directory.CreateDirectory(_PreferenceFolder);
-            }
+            Directory.CreateDirectory(_AppData);
+            Directory.CreateDirectory(_PreferenceFolder);
         }
 
         public static TmdbClientService GetTmdbInstance()
@@ -121,108 +129,6 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             IOptions<MovManagerr.Tmdb.Config.TmdbConfig> tmdb = Options.Create(tmdbConfig);
 
             return new TmdbClientService(tmdb);
-        }
-
-        public void ReadConfig()
-        {
-            Configs = new Dictionary<string, string>();
-
-            try
-            {
-                var lines = File.ReadAllLines(Path.Combine(_PreferenceFolder, "pref.conf"));
-
-                foreach (var line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        var split = line.Split('=');
-
-                        if (split.Length > 1 && !string.IsNullOrWhiteSpace(split[0]) && !string.IsNullOrWhiteSpace(split[1]))
-                        {
-                            Configs.Add(split[0].ToLower(), split[1]);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //throw new InvalidOperationException("Impossible de lire le fichier de configuration", ex);
-            }
-        }
-
-        public void ReadLinks()
-        {
-            Links = File.ReadAllLines(Path.Combine(_PreferenceFolder, "links.conf"));
-
-            if (Links == null || !Links.Where(x => !string.IsNullOrWhiteSpace(x)).Any())
-            {
-                throw new InvalidOperationException("Aucun lien dans le fichier links.conf");
-            }
-        }
-
-        public void ValidateConfiguration()
-        {
-            if (Configs != null && Configs.Any())
-            {
-                if (!Configs.Any(x => x.Key == "movie_path"))
-                {
-                    throw new InvalidOperationException("Le chemin vers les films n'est pas configuré");
-                }
-
-                if (!Configs.Any(x => x.Key == "serie_path"))
-                {
-                    throw new InvalidOperationException("Le chemin vers les séries n'est pas configuré");
-                }
-
-                if (!Configs.Any(x => x.Key == "lang"))
-                {
-                    throw new InvalidOperationException("La langue n'est pas configurée");
-                }
-                if (!DownloadHours.IsValid)
-                {
-                    throw new InvalidOperationException("Les heures de téléchargement ne sont pas ou mal configuré");
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Les configurations dans le fichier pref.conf sont invalides");
-            }
-        }
-
-        public void VerifyDriveAccessibility()
-        {
-            //check if the drive is accessible (if not, throw an exception) { movieFolder, serieFolder, tempPath }
-            foreach (var path in new DirectoryManager[] { MovieManager, SerieManager })
-            {
-                if (!path.VerifyAccessibilty())
-                {
-                    throw new InvalidOperationException(string.Format("Le chemin {0} n'existe pas ou n'est pas accessible", path._BasePath));
-                }
-            }
-        }
-
-        private DirectoryManager GetDirectoryManager(string searchManager)
-        {
-            string path = Configs.GetValueOrDefault(searchManager + "_path", string.Empty);
-            if (string.IsNullOrEmpty(path))
-            {
-                return new DirectoryManager(_PreferenceFolder);
-            }
-            else
-            {
-                string server = Configs.GetValueOrDefault(searchManager + "_server", string.Empty);
-
-                if (!string.IsNullOrEmpty(server))
-                {
-                    string user = Configs.GetValueOrDefault(searchManager + "_user", string.Empty);
-                    string password = Configs.GetValueOrDefault(searchManager + "_pass", string.Empty);
-
-                    NetworkCredential cred = new NetworkCredential(user, password);
-                    return new DirectoryCredsManager(path, server, cred);
-                }
-
-                return new DirectoryManager(path);
-            }
         }
     }
 }

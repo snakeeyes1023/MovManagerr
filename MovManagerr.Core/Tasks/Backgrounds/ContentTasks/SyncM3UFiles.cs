@@ -29,13 +29,13 @@ namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
 
         protected override void PerformTask(CancellationToken cancellationToken)
         {
-            foreach (var link in _preferences.Links)
+            foreach (var link in _preferences.Settings.Links)
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
                     SimpleLogger.AddLog($"Lecture du lien {link} ...");
 
-                    M3uDownloaderClient downloader = new M3uDownloaderClient(link, _readers);
+                    M3uDownloaderClient downloader = new M3uDownloaderClient(link.Link, _readers);
 
                     var result = Task.Run(async () => await downloader.Start(Path.GetTempPath(), cancellationToken)).Result;
 

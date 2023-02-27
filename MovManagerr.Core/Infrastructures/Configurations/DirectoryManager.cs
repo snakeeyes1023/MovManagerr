@@ -26,6 +26,11 @@
             CreateDirectory(fullPath);
         }
 
+        public DirectoryManager CreateSubInstance(string path)
+        {
+            return new DirectoryManager(Path.Combine(_BasePath, path));
+        }
+
         public bool VerifyAccessibilty()
         {
             try

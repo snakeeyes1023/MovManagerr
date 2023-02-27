@@ -1,0 +1,47 @@
+﻿@page "/scan/movie"
+
+<RadzenButton ButtonStyle="ButtonStyle.Light" Icon="search" Click=@(args => StartScan()) Text="Scanner un dossier" />
+<RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="search" Click=@(args => RedoFolder()) Text="Réorganiser les dossiers" />
+
+@code {
+    [Inject] public IMovieService MovieService { get; set; }
+
+    async Task RedoFolder()
+    {
+        await Task.Run(async () =>
+               {
+                   MovieService.ReorganiseFolder();
+                   await InvokeAsync(StateHasChanged);
+               });
+    }
+
+    async Task StartScan()
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+
+            var options = new OpenDialogOptions
+                {
+                    Properties = new OpenDialogProperty[] {
+                        OpenDialogProperty.openDirectory
+                    }
+                };
+
+            string[] files = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+
+            if (!files.Any())
+            {
+                var notOptions = new NotificationOptions("Avertissement", $"Aucun fichier a été selectionnée");
+                Electron.Notification.Show(notOptions);
+                return;
+            }
+            await Task.Run(async () =>
+                {
+                    MovieService.ScanFolder(files.First());
+                    await InvokeAsync(StateHasChanged);
+                });
+        }
+    }
+}
+

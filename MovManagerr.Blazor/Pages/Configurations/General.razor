@@ -1,0 +1,125 @@
+﻿@page "/config/general"
+
+@using MovManagerr.Core.Infrastructures.Configurations;
+<style>
+    form .row {
+        margin-bottom: 16px;
+    }
+</style>
+
+@if (Settings == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenTemplateForm Data="@Settings" Submit="@((CustomSettings args) => { Submit(args); })">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    @foreach (var preferenceContent in Settings.ContentPreferences)
+                    {
+                        <RadzenFieldset Text="@(preferenceContent.SectionName)">
+                            <div class="row">
+                                <div class="col-md-4 align-items-center d-flex">
+                                    <RadzenLabel Text="Dossier général" />
+                                </div>
+                                <div class="col-md-8">
+                                    <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.BasePath />
+                                </div>
+                            </div>
+                            <RadzenFieldset Text="Dossier par genre">
+                                @foreach (var genre in preferenceContent.GenresPath)
+                                {
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="@(genre.Key.ToString())" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenTextBox style="width: 100%;" Change=@((arg) => { preferenceContent.GenresPath[genre.Key] = arg; }) Value=@genre.Value />
+                                        </div>
+                                    </div>
+                                }
+                            </RadzenFieldset>
+
+                        </RadzenFieldset>
+
+                    }
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <RadzenFieldset Text="Liste de lien M3U's">
+
+                        @foreach (var link in Settings.Links)
+                        {
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <RadzenTextBox style="width: 100%;" @bind-Value=link.Link />
+                                </div>
+                                <div class="col-md-3">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Supprimer" Click="@((arg) =>  Settings.Links.Remove(link))" />
+                                </div>
+                            </div>
+                        }
+                        <div class="row">
+                            <div class="col-md-12">
+                                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="more" style="display: inline-block;" Text="Ajouter un lien M3U" Click="@((arg) => Settings.Links.Add(new M3ULink()))" />
+                            </div>
+                        </div>
+
+                    </RadzenFieldset>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <RadzenFieldset Text="Utilisation d'intelligence artificielle">
+
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="Utiliser Chat-GPT pour trouver les nom de films" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenSwitch style="float: right" @bind-Value=Settings.UseOpenAI />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="Clé API" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.OpenAIApiKey />
+                            </div>
+                        </div>
+                    </RadzenFieldset>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+                    <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer les configurations" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Annuler" Click="@Cancel" />
+                </div>
+            </div>
+        </div>
+    </RadzenTemplateForm>
+}
+
+@code {
+
+    public CustomSettings Settings { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Settings = Preferences.Instance.Settings;
+    }
+
+    void Submit(CustomSettings arg)
+    {
+        Preferences.Instance.SaveSettings();
+    }
+
+    void Cancel()
+    {
+        Preferences.Instance.ReloadSettings();
+    }
+}

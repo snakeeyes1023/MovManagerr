@@ -53,6 +53,8 @@
 
     SearchQuery searchQuery;
 
+    private bool OnlyDownloaded = true;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -62,10 +64,10 @@
         aTimer.AutoReset = false;
 
         searchQuery = new SearchQuery()
-                {
-                    Skip = 0,
-                    Take = 20
-                };
+            {
+                Skip = 0,
+                Take = 20
+            };
     }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
@@ -99,13 +101,13 @@
         {
             if (string.IsNullOrWhiteSpace(searchQuery.EnteredText))
             {
-                movies = movieService.GetAll(searchQuery.Skip, searchQuery.Take);
-                count = movieService.GetCount();
+                movies = movieService.GetAll(searchQuery.Skip, searchQuery.Take, includeNotDownloaded: !OnlyDownloaded);
+                count = movieService.GetCount(includeNotDownloaded: !OnlyDownloaded);
             }
             else
             {
-                movies = movieService.GetCandidates(searchQuery);
-                count = movieService.GetCandidates(new SearchQuery() { EnteredText = searchQuery.EnteredText }).Count();
+                movies = movieService.GetCandidates(searchQuery, includeNotDownloaded: !OnlyDownloaded);
+                count = movieService.GetCandidates(new SearchQuery() { EnteredText = searchQuery.EnteredText }, includeNotDownloaded: !OnlyDownloaded).Count();
             }
 
             StateHasChanged();
