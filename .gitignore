@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 # all .config files are ignored
 *.conf
+/MovManagerr.Blazor/Hangfire-log.db
+/MovManagerr.Blazor/Hangfire.db

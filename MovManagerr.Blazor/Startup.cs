@@ -17,6 +17,7 @@ using System.Linq;
 using System.Diagnostics;
 using Hangfire;
 using Hangfire.LiteDB;
+using Newtonsoft.Json;
 
 namespace MovManagerr.Blazor
 {
@@ -33,6 +34,12 @@ namespace MovManagerr.Blazor
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+
+            GlobalConfiguration.Configuration.UseSerializerSettings(new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto
+            });
+
             // Add Hangfire services.
             services.AddHangfire(configuration => configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -41,7 +48,10 @@ namespace MovManagerr.Blazor
                 .UseLiteDbStorage());
 
             
-            services.AddHangfireServer();
+            services.AddHangfireServer(options =>
+            {
+                options.Queues = new[] { "m3u-download", "direct-download", "default" };
+            });
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
@@ -55,7 +65,7 @@ namespace MovManagerr.Blazor
             #region MyServices
 
             services.AddScoped<IMovieService, MovieService>();
-
+            services.AddScoped<IDownloadedMovieService, DownloadedMovieService>();
             #endregion
 
             #region BackgroundService

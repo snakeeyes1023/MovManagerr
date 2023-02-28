@@ -1,4 +1,5 @@
-﻿using MovManagerr.Core.Downloaders.Contents;
+﻿using Hangfire;
+using MovManagerr.Core.Downloaders.Contents;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
@@ -6,7 +7,7 @@ namespace MovManagerr.Core.Data.Abstracts
     {
         public List<string> Tags { get; set; }
 
-        protected override void Download(IServiceProvider serviceProvider, Content content)
+        public override void Download(IServiceProvider serviceProvider, Content content)
         {
             if (serviceProvider.GetService(typeof(ContentDownloaderClient)) is ContentDownloaderClient contentDownloadClient)
             {

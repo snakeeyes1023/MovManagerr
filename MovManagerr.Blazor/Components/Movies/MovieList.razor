@@ -1,28 +1,44 @@
-﻿@inject IMovieService movieService
-@inject DialogService DialogService
-@implements IDisposable;
-@using System.Timers
+﻿@using System.Timers
 @using MovManagerr.Core.Data.Abstracts
+
+
+@inject IMovieService movieService
+@inject IDownloadedMovieService downloadedMovieService
+@inject DialogService DialogService
 @inject IServiceProvider ServiceProvider
+
+
+@implements IDisposable;
+
 
 <div class="col-12 mt-0 pt-0">
     <RadzenCard>
         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Rechercher un film</RadzenText>
         <RadzenTextBox @oninput=@(args => InputQueryChanged(args.Value.ToString())) Class="w-100" />
+        <div class="row no-gutters my-3">
+            <RadzenSwitch class="mr-2" @bind-Value=OnlyDownloaded />
+            <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.H3">Afficher seulement les contenues téléchargé</RadzenText>
+        </div>
+        <RadzenButton class="my-2" Icon="refresh" Text="Rafraîchir" Click="((args) => OnChange())" />
     </RadzenCard>
 </div>
+
 <div class="col-12 movie-list my-2">
     <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@(searchQuery.Take)" PageNumbersCount="5" PageChanged="@PageChanged" />
     <RadzenDataList WrapItems="true" AllowPaging="false" Data="@movies" TItem="Movie">
         <Template Context="movie">
             <RadzenCard Style="width:300px;">
-                <img class="img-fluid" style="min-width : 100%" src="@(movie.Poster)">
+                <div class="row">
+                    <div class="col-12">
+                        <img class="img-fluid my-auto" style="max-width: 300px; display: block; margin-left: auto; margin-right: auto;" src="@(movie.GetCorrectedPoster())">
+                    </div>
+                </div>
                 <hr style="border: none; background-color: rgba(0,0,0,.08); height: 1px; margin: 1rem 0;" />
                 <div class="row">
-                    <div class="col-md-8 text-truncate">
-                        <b>@(movie.Name)</b>
+                    <div class="col-md-12 text-truncate">
+                        (@(movie.TmdbMovie?.ReleaseDate.GetValueOrDefault().Year)) <b>@(movie.Name)</b>
                     </div>
-                    <div class="col-md-4 text-end float-right">
+                    <div class="col-md-12">
                         @foreach (var badge in movie.GetCombinedTags())
                         {
                             <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@(badge) />
@@ -53,7 +69,7 @@
 
     SearchQuery searchQuery;
 
-    private bool OnlyDownloaded = true;
+    private bool OnlyDownloaded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,15 +115,17 @@
     {
         await InvokeAsync(() =>
         {
+            IBaseContentService<Movie> moviesQuery = !OnlyDownloaded ? downloadedMovieService : movieService;
+
             if (string.IsNullOrWhiteSpace(searchQuery.EnteredText))
             {
-                movies = movieService.GetAll(searchQuery.Skip, searchQuery.Take, includeNotDownloaded: !OnlyDownloaded);
-                count = movieService.GetCount(includeNotDownloaded: !OnlyDownloaded);
+                movies = moviesQuery.GetAll(searchQuery.Skip, searchQuery.Take);
+                count = moviesQuery.GetCount();
             }
             else
             {
-                movies = movieService.GetCandidates(searchQuery, includeNotDownloaded: !OnlyDownloaded);
-                count = movieService.GetCandidates(new SearchQuery() { EnteredText = searchQuery.EnteredText }, includeNotDownloaded: !OnlyDownloaded).Count();
+                movies = moviesQuery.GetCandidates(searchQuery);
+                count = moviesQuery.GetCandidates(new SearchQuery() { EnteredText = searchQuery.EnteredText }).Count();
             }
 
             StateHasChanged();
