@@ -20,11 +20,6 @@
 
         public abstract bool Equals(DownloadableContent? other);
 
-        public void StartDownload(IServiceProvider serviceProvider, Content content)
-        {
-            Download(serviceProvider, content);
-        }
-
-        protected abstract void Download(IServiceProvider serviceProvider, Content content);
+        public abstract void Download(IServiceProvider serviceProvider, Content content);
     }
 }

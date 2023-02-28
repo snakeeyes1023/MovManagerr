@@ -29,16 +29,10 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// Gets all.
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerable<T> GetAll(int offset, int limit, bool includeNotDownloaded)
+        public virtual IEnumerable<T> GetAll(int offset, int limit)
         {
-            SimpleLogger.AddLog("Liste de films recherché");
-
             var entities = _currentCollection.UseQuery(x =>
              {
-                 if (!includeNotDownloaded)
-                 {
-                     x.Where(x => x.IsDownloaded);
-                 }
                  x.Skip(offset);
                  x.Limit(limit);
                  BaseOrderQuery(x);
@@ -52,21 +46,14 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// </summary>
         /// <param name="searchQuery">The search query.</param>
         /// <returns></returns>
-        public virtual IEnumerable<T> GetCandidates(SearchQuery searchQuery, bool includeNotDownloaded = true)
+        public virtual IEnumerable<T> GetCandidates(SearchQuery searchQuery)
         {
             var entities = _currentCollection.UseQuery(x =>
             {
-
                 x.Where(x => x.Name.Contains(searchQuery.EnteredText));
-                if (!includeNotDownloaded)
-                {
-                    x.Where(x => x.IsDownloaded);
-                }
                 x.Skip(searchQuery.Skip);
                 x.Limit(searchQuery.Take);
             });
-
-            SimpleLogger.AddLog("Liste de films recherché");
 
             return entities.ToList();
         }
@@ -85,14 +72,10 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// Gets the count.
         /// </summary>
         /// <returns></returns>
-        public int GetCount(bool includeNotDownloaded = true)
+        public virtual int GetCount()
         {
-            if (includeNotDownloaded)
-            {
-                return _currentCollection.Count();
-            }
             return _currentCollection.ToList().Where(x => x.IsDownloaded).Count();
-        }
+        }       
 
         public LiteDbSet<T> GetCurrentCollection()
         {

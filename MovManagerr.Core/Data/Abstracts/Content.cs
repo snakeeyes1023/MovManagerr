@@ -2,6 +2,7 @@
 using MovManagerr.Core.Infrastructures.Loggers;
 using Snake.LiteDb.Extensions.Models;
 using System.Net;
+using TMDbLib.Objects.Movies;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
@@ -24,6 +25,16 @@ namespace MovManagerr.Core.Data.Abstracts
         public string Name { get; set; }
 
         public string Poster { get; set; }
+
+        public string GetCorrectedPoster()
+        {
+            if (Poster != null && !Poster.StartsWith("http"))
+            {
+                return "https://image.tmdb.org/t/p/w200/" + Poster;
+
+            }
+            return Poster ?? string.Empty;
+        }
 
         public List<DownloadedContent> DownloadedContents { get; protected set; }
 
@@ -48,7 +59,7 @@ namespace MovManagerr.Core.Data.Abstracts
         public virtual string GetPath(bool createDirectory = true)
         {
             var path = GetDirectoryManager()._BasePath;
-            
+
             if (createDirectory)
             {
                 Directory.CreateDirectory(path);
@@ -103,7 +114,7 @@ namespace MovManagerr.Core.Data.Abstracts
                 }
             }
 
-            downloadLink.StartDownload(serviceProvider, this);
+            downloadLink.Download(serviceProvider, this);
         }
 
         public void AddCustomData(string key, object data)
