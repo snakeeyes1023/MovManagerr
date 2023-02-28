@@ -4,14 +4,14 @@
     "imageFile": ""
   },
   "name": "MovManagerr.Blazor",
-  "author": "",
+  "author": "Jonathan Cote",
   "singleInstance": false,
   "environment": "Production",
   "build": {
     "appId": "com.MovManagerr.Blazor.app",
-    "productName": "MovManagerr.Blazor",
-    "copyright": "Copyright © 2020",
-    "buildVersion": "1.0.0",
+    "productName": "MovManagerr",
+    "copyright": "Copyright © 2023",
+    "buildVersion": "0.1.0",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop"
