@@ -5,5 +5,6 @@ namespace MovManagerr.Core.Services.Movies
 {
     public interface IDownloadedMovieService : IBaseContentService<Movie>
     {
+        void DeleteUnfoundedDownload();
     }
 }

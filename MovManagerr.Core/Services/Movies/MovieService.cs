@@ -1,4 +1,5 @@
-﻿using LiteDB;
+﻿using Hangfire;
+using LiteDB;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Dbs;
@@ -77,6 +78,12 @@ namespace MovManagerr.Core.Services.Movies
             return movie;
         }
 
+        public void Schedule_ScanFolder(string path)
+        {
+            BackgroundJob.Enqueue(() => ScanFolder(path));
+        }
+
+        [Queue("sync-task")]
         public void ScanFolder(string path)
         {
             var alreadyMapMovies = _currentCollection.ToList();
@@ -125,7 +132,12 @@ namespace MovManagerr.Core.Services.Movies
             _currentCollection.SaveChanges();
         }
 
+        public void Schedule_ReorganiseFolder()
+        {
+            BackgroundJob.Enqueue(() => ReorganiseFolder());
+        }
 
+        [Queue("sync-task")]
         public void ReorganiseFolder()
         {
             var downloadedMovies = _currentCollection.ToList().Where(x => x.DownloadedContents.Any()).ToList();

@@ -1,0 +1,207 @@
+﻿@page "/imported/movie"
+@page "/"
+
+@using System.Timers
+@using MovManagerr.Core.Data.Abstracts
+@using System.IO;
+
+@inject IDownloadedMovieService downloadedMovieService
+@inject DialogService DialogService
+@inject IServiceProvider ServiceProvider
+@inject NavigationManager NavigationManager
+
+<div class="row">
+    <div class="col-12">
+        <RadzenCard>
+            <RadzenButton IsBusy=CurrentlyScanAll ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => ScanAll())" Text="Tous scanner les fichiers"></RadzenButton>
+            <RadzenButton IsBusy=IsDeletingUnfounded ButtonStyle="ButtonStyle.Danger" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => DeleteUnfoundedDownload())" Text="Syncroniser base de donnée avec élément restant"></RadzenButton>
+        </RadzenCard>
+    </div>
+</div>
+
+<RadzenDataGrid Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnResize="true" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=50 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat" ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="Movie" Property="TmdbMovie.OriginalTitle" Title="Nom du film">
+            <Template Context="detail">
+                <div class="row">
+                    <div class="col-12 d-flex" style="gap: 10px; align-items: center">
+                        <div>
+                            <RadzenImage Path="@detail.GetCorrectedPoster()" class="rz-gravatar" Style="border-radius: 0px !important" />
+                        </div>
+                        @if (detail.TmdbMovie != null)
+                        {
+                            <p>
+                                <b>@detail.TmdbMovie.OriginalTitle</b> (<small>@detail.TmdbMovie?.ReleaseDate.GetValueOrDefault().Year</small>)
+                            </p>
+                        }
+                    </div>
+                </div>
+
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="Movie" Title="Bitrate maximal" Property="MaxBitrate">
+            <Template Context="detail">
+                @{
+                    bool isScanned = detail.HasAnyScannedFile();
+                }
+
+                <div class="row">
+                    <div class="col-12 d-flex" style="gap: 30px; align-items: center">
+                        <div>
+                            <div>
+                                <small>Bitrate maximal</small>
+                            </div>
+                            <div>
+                                <b>@(isScanned ? $"{detail.GetMaxBitrate().ToString("0.00")} mb/s" : "Non scanné")</b>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <small>Qualité</small>
+                            </div>
+                            <div>
+                                <b>@(isScanned ? $"{detail.GetBestQuality()}" : "Non scanné")</b>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <small>Taille</small>
+                            </div>
+                            <div>
+                                <b>
+                                    (
+                                    @(string.Join(", ", detail.DownloadedContents.Select(x => x.FileSize)))
+                                    )
+                                </b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Movie" Property="_id.CreationTime" Title="Date de création"/>
+        <RadzenDataGridColumn TItem="Movie" Property="NbFiles" Title="Nombre fichiers">
+            <Template Context="detail">
+                <div class="row ">
+                    <div class="col-4  text-left">
+                        <div>
+                            <small>Nombre fichié</small>
+                        </div>
+                        <div>
+                            @detail?.NbFiles
+                        </div>
+                    </div>
+                    <div class="col-8 text-right">
+                        <RadzenButton ButtonStyle="ButtonStyle.Primary" Variant=Variant.Outlined Shade=Shade.Lighter Click="((args) => OpenMovieFolder(detail))" Text="Ouvrir le dossier du film"></RadzenButton>
+                        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Scan(detail))" Text="Scanner"></RadzenButton>
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+
+    IEnumerable<Movie> movies;
+
+
+
+    bool CurrentlyScanAll = false;
+
+    string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
+
+    int count;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        movies = downloadedMovieService.GetAll();
+        count = movies.Count();
+
+        if (!Preferences.Instance.IsValid())
+        {
+            NavigationManager.NavigateTo("/config/general");
+        }
+    }
+
+    protected void Scan(Movie movie)
+    {
+        LoadMediaInfo(movie);
+        StateHasChanged();
+    }
+
+
+    private void LoadMediaInfo(Movie movie)
+    {
+        foreach (var download in movie.DownloadedContents)
+        {
+            try
+            {
+                download.LoadMediaInfo();
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.AddLog("Impossible de lire les informations du fichier");
+            }
+        }
+
+        var instance = downloadedMovieService.GetCurrentCollection();
+        instance.TrackEntity(movie);
+        movie.SetDirty();
+        instance.SaveChanges();
+    }
+
+    protected async Task OpenMovieFolder(Movie movie)
+    {
+        string path;
+
+        if (movie.DownloadedContents.Any())
+        {
+            path = movie.DownloadedContents.FirstOrDefault().FullPath;
+        }
+        else
+        {
+            path = movie.GetPath();
+        }
+
+        await Electron.Shell.ShowItemInFolderAsync(path);
+    }
+
+
+    protected void ScanAll()
+    {
+        Task.Run(() =>
+        {
+            CurrentlyScanAll = true;
+
+            foreach (var movie in movies)
+            {
+                LoadMediaInfo(movie);
+                InvokeAsync(StateHasChanged);
+            }
+
+            CurrentlyScanAll = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    protected void DeleteUnfoundedDownload()
+    {
+        Task.Run(() =>
+        {
+            IsDeletingUnfounded = true;
+            InvokeAsync(StateHasChanged);
+
+            downloadedMovieService.DeleteUnfoundedDownload();
+            movies = downloadedMovieService.GetAll();
+
+            IsDeletingUnfounded = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public bool IsDeletingUnfounded { get; set; }
+}

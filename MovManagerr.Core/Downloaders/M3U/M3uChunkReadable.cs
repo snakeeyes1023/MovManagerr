@@ -41,6 +41,12 @@ namespace MovManagerr.Core.Downloaders.M3U
             Proceeded(source);
         }
 
+        public void Add(string value, string source)
+        {
+            _pendingChunk.Append(value);
+            Proceeded(source);
+        }
+
         /// <summary>
         /// Proceededs this instance.
         /// </summary>

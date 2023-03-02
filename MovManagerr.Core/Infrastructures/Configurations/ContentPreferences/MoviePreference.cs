@@ -22,6 +22,6 @@ namespace MovManagerr.Core.Infrastructures.Configurations.ContentPreferences
                 { 27, "Horreur" },
             };
         }
-        public override string BasePath { get; set; } = "c://movies";
+        public override string BasePath { get; set; } = "";
     }
 }

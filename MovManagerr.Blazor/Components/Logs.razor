@@ -1,4 +1,6 @@
 ﻿@using MovManagerr.Core.Infrastructures.Loggers
+@using MovManagerr.Core.Tasks
+@using System.IO;
 @inject IJSRuntime JS
 
 ­<div>
@@ -53,11 +55,23 @@
         base.OnInitialized();
 
         SimpleLogger.OnLogged += OnMyChangeHandler;
+        ContentAddService.ContentTransfered += ContentTransfered;
     }
 
     public void Dispose()
     {
         SimpleLogger.OnLogged -= OnMyChangeHandler;
+        ContentAddService.ContentTransfered -= ContentTransfered;
+    }
+
+    public void ContentTransfered(object sender, ContentTransfert transfert)
+    {
+        var options = new NotificationOptions("Transfert terminé", $"Le transfert de {transfert.ContentName} est terminé")
+        {
+            OnClick = async () => await Electron.Shell.ShowItemInFolderAsync(Path.GetDirectoryName(transfert.Destination))
+        };
+
+        Electron.Notification.Show(options);
     }
 
 

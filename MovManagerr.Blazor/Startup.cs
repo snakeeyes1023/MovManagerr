@@ -18,6 +18,17 @@ using System.Diagnostics;
 using Hangfire;
 using Hangfire.LiteDB;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
+using Plex.Api.Factories;
+using Plex.Library.Factories;
+using Plex.ServerApi.Api;
+using Plex.ServerApi.Clients.Interfaces;
+using Plex.ServerApi.Clients;
+using Plex.ServerApi;
+using Plex.ServerApi.PlexModels.Media;
+using MovManagerr.Core.Infrastructures.Configurations;
+using Microsoft.Extensions.Logging;
+using MovManagerr.Core.Infrastructures.Loggers;
 
 namespace MovManagerr.Blazor
 {
@@ -45,12 +56,13 @@ namespace MovManagerr.Blazor
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseLiteDbStorage());
+                .UseLiteDbStorage(Preferences.Instance._HangFireDbPath));
 
-            
+            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 3 });
+
             services.AddHangfireServer(options =>
             {
-                options.Queues = new[] { "m3u-download", "direct-download", "default" };
+                options.Queues = new[] { "m3u-download", "direct-download", "file-transfert", "reencoding", "sync-task", "default" };
             });
 
             services.AddRazorPages();
@@ -66,6 +78,27 @@ namespace MovManagerr.Blazor
 
             services.AddScoped<IMovieService, MovieService>();
             services.AddScoped<IDownloadedMovieService, DownloadedMovieService>();
+            #endregion
+
+            #region PLEX Api
+            
+            var apiOptions = new ClientOptions
+            {
+                Product = "API_UnitTests",
+                DeviceName = "API_UnitTests",
+                ClientId = "MyClientId",
+                Platform = "Web",
+                Version = "v1"
+            };
+
+            services.AddSingleton(apiOptions);
+            services.AddTransient<IPlexServerClient, PlexServerClient>();
+            services.AddTransient<IPlexAccountClient, PlexAccountClient>();
+            services.AddTransient<IPlexLibraryClient, PlexLibraryClient>();
+            services.AddTransient<IApiService, ApiService>();
+            services.AddTransient<IPlexFactory, PlexFactory>();
+            services.AddTransient<IPlexRequestsHttpClient, PlexRequestsHttpClient>();
+
             #endregion
 
             #region BackgroundService
@@ -88,6 +121,8 @@ namespace MovManagerr.Blazor
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            AddMediaInfoToEnvVariable();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -112,114 +147,67 @@ namespace MovManagerr.Blazor
             });
 
             if (HybridSupport.IsElectronActive)
-            {                
-                CreateWindow();
+            {
+                Task.Run(async () =>
+                {
+                    var mainWindow = await Electron.WindowManager.CreateWindowAsync(new BrowserWindowOptions
+                    {
+                        Width = 1152,
+                        Height = 940,
+                        DarkTheme = true,
+                        Show = false
+                    });
+
+                    mainWindow.SetTitle("MovManagerr");
+
+                    await mainWindow.WebContents.Session.ClearCacheAsync();
+
+                    mainWindow.OnReadyToShow += () => mainWindow.Show();
+
+                    Electron.IpcMain.On("hideToSystemTray", (e) =>
+                    {
+                        mainWindow.Hide();
+
+                        if (Electron.Tray.MenuItems.Count == 0)
+                        {
+                            var menu = new MenuItem[]
+                            {
+                                new MenuItem
+                                {
+                                    Label = "Ouvrir la fenêtre",
+                                    Click = () => mainWindow.Show()
+                                },
+                                new MenuItem
+                                {
+                                    Label = "Quitter",
+                                    Click = () => Electron.App.Exit()
+                                }
+                            };
+
+                            Electron.Tray.Show(@"/resources/bin/wwwroot/assets/icons/icon.png", menu);
+                            Electron.Tray.SetToolTip("Movmanager - Gestion de contenu multimédia.");
+                        }
+                    });
+                });
             }
         }
 
-        private async void CreateWindow()
+        private static void AddMediaInfoToEnvVariable()
         {
-            var window = await Electron.WindowManager.CreateWindowAsync();
-
-            // put in full page
-            var display = await Electron.Screen.GetPrimaryDisplayAsync();
-            var size = display.WorkAreaSize;
-            window.SetBounds(new Rectangle() { X = 0, Y = 0, Width = size.Width, Height = size.Height });
-
-            // set the window title
-            window.SetTitle("MovManagerr");
-
-            // prevent quit app
-            Electron.App.On("window-all-closed", () => { });
-
-            //// initialise the menu
-            //var menu = new MenuItem[]
-            //{
-            //    new MenuItem
-            //    {
-            //        Label = "File",
-            //        Submenu = new MenuItem[]
-            //        {
-            //            new MenuItem
-            //            {
-            //                Label = "Exit",
-            //                Click = () => Electron.App.Quit()
-            //            }
-            //        }
-            //    },
-            //    new MenuItem
-            //    {
-            //        Label = "Edit",
-            //        Submenu = new MenuItem[]
-            //        {
-            //            new MenuItem
-            //            {
-            //                Label = "Undo",
-            //                Role = MenuRole.undo
-            //            },
-            //            new MenuItem
-            //            {
-            //                Label = "Redo",
-            //                Role = MenuRole.redo
-            //            },
-            //            new MenuItem
-            //            {
-            //                Type = MenuType.separator
-            //            },
-            //            new MenuItem
-            //            {
-            //                Label = "Cut",
-            //                Role = MenuRole.cut
-            //            },
-            //            new MenuItem
-            //            {
-            //                Label = "Copy",
-            //                Role = MenuRole.copy
-            //            },
-            //            new MenuItem
-            //            {
-            //                Label = "Paste",
-            //                Role = MenuRole.paste
-            //            },
-            //        }
-            //    },
-            //    new MenuItem
-            //    {
-            //        Label = "Window",
-            //        Submenu = new MenuItem[]
-            //        {
-            //            new MenuItem
-            //            {
-            //                Label = "Minimize",
-            //                Role = MenuRole.minimize
-            //            },
-            //            new MenuItem
-            //            {
-            //                Label = "Close",
-            //                Role = MenuRole.minimize
-            //            }
-            //        }
-            //    },
-            //    new MenuItem
-            //    {
-            //        Label = "Help",
-            //        Submenu = new MenuItem[]
-            //        {
-            //            new MenuItem
-            //            {
-            //                Label = "Learn More",
-            //                Click = async () => await Electron.Shell.OpenExternalAsync("")
-            //                }
-            //            }
-            //        }
-            //    };
-
-            //Electron.Menu.SetApplicationMenu(menu);
-
-            window.OnClosed += () =>
+            try
             {
-                Electron.App.Quit();
-            };
+                string pathVariable = Environment.GetEnvironmentVariable("PATH");
+                if (!pathVariable.Contains("C:\\Program Files\\MediaInfo"))
+                {
+                    // Ajouter le nouveau chemin au début de la variable d'environnement PATH
+                    string newPath = "C:\\Program Files\\MediaInfo" + ";" + pathVariable;
+                    Environment.SetEnvironmentVariable("PATH", newPath);
+                }
+            }
+            catch (Exception)
+            {
+                SimpleLogger.AddLog("Impossible de défénir le PATH the media info", LogType.Error);
+            }
         }
     }
 

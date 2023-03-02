@@ -1,6 +1,8 @@
-﻿using MovManagerr.Core.Data;
+﻿using Hangfire;
+using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Services.Bases.ContentService;
 using Snake.LiteDb.Extensions.Mappers;
 using System;
@@ -23,10 +25,17 @@ namespace MovManagerr.Core.Services.Movies
             {
                 x.Where(x => x.DownloadedContents.Count > 0);
 
-                x.Limit(limit);
-                x.Skip(offset);
+                if (limit > 0)
+                {
+                    x.Limit(limit);
+                }
+                if (offset > 0)
+                {
+                    x.Skip(offset);
+                }
+
                 BaseOrderQuery(x);
-            }).ToList();
+            }).ToList().Where(x => x.IsDownloaded);
         }
 
         public override int GetCount()
@@ -46,6 +55,44 @@ namespace MovManagerr.Core.Services.Movies
             });
 
             return entities.ToList();
+        }
+
+        public void Schedule_DeleteUnfoundedDownload()
+        {
+            BackgroundJob.Enqueue(() => DeleteUnfoundedDownload());
+        }
+
+        public void DeleteUnfoundedDownload()
+        {
+            var movies = GetAll(0, 0);
+
+            foreach (var movie in movies)
+            {
+                if (movie != null)
+                {
+                    List<DownloadedContent> toDelete = new List<DownloadedContent>();
+                    foreach (var download in movie.DownloadedContents)
+                    {
+                        if (download != null && !File.Exists(download.FullPath))
+                        {
+                            SimpleLogger.AddLog($"Le fichier {download.FullPath} est introuvable! Suppression imminente.");
+                            toDelete.Add(download);
+                        }
+                    }
+
+                    if (toDelete.Any())
+                    {
+                        foreach (var download in toDelete)
+                        {
+                            movie.DownloadedContents.Remove(download);
+                        }
+
+                        movie.SetDirty();
+                        _currentCollection.TrackEntity(movie);
+                        _currentCollection.SaveChanges();
+                    }
+                }
+            }
         }
     }
 }

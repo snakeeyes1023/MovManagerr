@@ -9,6 +9,7 @@ namespace MovManagerr.Core.Downloaders.M3U
         protected readonly string _destinationPath;
         protected readonly DownloadConfiguration _config;
         protected readonly string _url;
+        protected bool IsChunkProceeded;
 
         public M3uChunkReadable Chunks { get; }
 
@@ -58,20 +59,33 @@ namespace MovManagerr.Core.Downloaders.M3U
         /// Downloads as chunk.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> Start(string destinationPath, CancellationToken cancellationToken = default)
+        public async Task<bool> Start(CancellationToken cancellationToken = default)
         {
-            DirectoryInfo path = new DirectoryInfo(destinationPath);
+            var tempFilePath = Path.GetTempFileName();
 
             try
             {
                 var downloadService = GetDownloadeService();
 
-                await downloadService.DownloadFileTaskAsync(_url, path, cancellationToken);
+                await downloadService.DownloadFileTaskAsync(_url, tempFilePath, cancellationToken);
+
+                if (!IsChunkProceeded)
+                {
+                    foreach (var line in File.ReadLines(tempFilePath))
+                    {
+                        Chunks.Add(line, _url);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 SimpleLogger.AddLog("Impossible de lire certains éléments.", LogType.Error);
                 return false;
+            }
+            finally
+            {
+                //delete the temp file
+
             }
 
             return true;
@@ -85,6 +99,7 @@ namespace MovManagerr.Core.Downloaders.M3U
         private void OnChunkDownloadProgressChanged(byte[] bytes)
         {
             Chunks.Add(bytes, _url);
+            IsChunkProceeded = true;
         }
 
         private DownloadService GetDownloadeService()

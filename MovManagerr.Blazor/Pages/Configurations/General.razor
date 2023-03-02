@@ -28,7 +28,16 @@ else
                                     <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.BasePath />
                                 </div>
                             </div>
+
                             <RadzenFieldset Text="Dossier par genre">
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            Mettre les champs vides pour ne pas utiliser de dossier
+                                        </div>
+                                    </div>
+                                </div>
                                 @foreach (var genre in preferenceContent.GenresPath)
                                 {
                                     <div class="row">
@@ -40,10 +49,18 @@ else
                                         </div>
                                     </div>
                                 }
+
+                                <div class="row">
+                                    <div class="col-md-4 align-items-center d-flex">
+                                        <RadzenLabel Text="Dossier pour genre non trouvées" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.UnfoudedGenreFolder />
+                                    </div>
+                                </div>
                             </RadzenFieldset>
 
                         </RadzenFieldset>
-
                     }
                 </div>
             </div>
@@ -74,7 +91,13 @@ else
             <div class="row">
                 <div class="col-md-12">
                     <RadzenFieldset Text="Utilisation d'intelligence artificielle">
-
+                        <div class="row">
+                            <div class="col-12">
+                                <p>Accélère +++ les importations de films manuellement</p>
+                                <RadzenLink Style="color: darkred" Path="https://elephas.app/blog/how-to-create-openai-api-keys-cl5c4f21d281431po7k8fgyol0" Text="Où trouver ma clé api ?" target="_blank" />
+                            </div>
+                        </div>
+                        <hr />
                         <div class="row">
                             <div class="col-md-4 align-items-center d-flex">
                                 <RadzenLabel Text="Utiliser Chat-GPT pour trouver les nom de films" />
@@ -91,6 +114,46 @@ else
                                 <RadzenTextBox style="width: 100%;" @bind-Value=Settings.OpenAIApiKey />
                             </div>
                         </div>
+                    </RadzenFieldset>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <RadzenFieldset Text="Configuration Plex">
+                        <div class="row">
+                            <div class="col-12">
+                                <RadzenLink Style="color: darkred" Path="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" Text="Où trouver mon x-plex-token ?" target="_blank" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="X-Token" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.PlexConfiguration.ApiKey />
+                            </div>
+                        </div>
+                        <hr />
+                        @foreach (var equivalent in Settings.PlexConfiguration.PathEquivalent)
+                        {
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <RadzenTextBox style="width: 100%;" Placeholder="Chemin sur plex (ex: /media/nas/film)" @bind-Value=equivalent.OnPlex />
+                                </div>
+                                <div class="col-md-5">
+                                    <RadzenTextBox style="width: 100%;" Placeholder="Équivalent sur cette machine (ex: /192.168.0.11/movie)" @bind-Value=equivalent.OnDisk />
+                                </div>
+                                <div class="col-md-2">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Supprimer" Click="@((arg) =>  Settings.PlexConfiguration.PathEquivalent.Remove(equivalent))" />
+                                </div>
+                            </div>
+                        }
+                        <div class="row">
+                            <div class="col-md-12">
+                                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="more" style="display: inline-block;" Text="Ajouter un équivalent" Click="@((arg) => Settings.PlexConfiguration.PathEquivalent.Add(new PathEquivalent()))" />
+                            </div>
+                        </div>
+
                     </RadzenFieldset>
                 </div>
             </div>

@@ -13,11 +13,18 @@
     <PackageReference Include="Hangfire.LiteDB" Version="0.4.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="OpenAI" Version="1.5.0" />
+    <PackageReference Include="Plex.Api" Version="4.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
     <ProjectReference Include="..\Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Libraries\MediaInfo.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

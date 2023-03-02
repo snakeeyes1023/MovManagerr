@@ -94,9 +94,18 @@ namespace MovManagerr.Core.Data
         {
             var preference = Preferences.Instance.Settings.GetContentPreference<Movie>();
 
-            return preference
-                      .GetDirectoryManager()
-                      .CreateSubInstance(preference.GetFolderForGenre(TmdbMovie!.GenreIds.FirstOrDefault()));
+            var directoryManager = preference.GetDirectoryManager();
+
+            string folderForGenre = preference.GetFolderForGenre(TmdbMovie!.GenreIds.FirstOrDefault());
+
+            if (string.IsNullOrWhiteSpace(folderForGenre))
+            {
+                return directoryManager;
+            }
+            else
+            {
+                return directoryManager.CreateSubInstance(folderForGenre);
+            }
         }
 
         /// <summary>

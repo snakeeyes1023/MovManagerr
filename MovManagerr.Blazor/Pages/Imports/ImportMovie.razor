@@ -116,21 +116,11 @@
 
         ClearContext();
 
-        string destination = AddMovieService.ImportMovie(path, movie);
-
-        Task.Run(() =>
-        {
-            File.Move(path, destination);
-        });
-
-        var options = new NotificationOptions("Upload terminé", $"Le film {movie.OriginalTitle} a bien été ajouté!")
-            {
-                OnClick = async () => await Electron.Shell.ShowItemInFolderAsync(Path.GetDirectoryName(destination))
-            };
-
-        Electron.Notification.Show(options);
+        AddMovieService.ImportMovie(path, movie);
 
         ProcessPendingMovies();
+
+        StateHasChanged();
     }
 
     async Task BrowseMovieFile()
