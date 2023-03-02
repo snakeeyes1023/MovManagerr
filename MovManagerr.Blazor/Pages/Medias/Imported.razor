@@ -8,16 +8,18 @@
 @inject IDownloadedMovieService downloadedMovieService
 @inject DialogService DialogService
 @inject IServiceProvider ServiceProvider
+@inject NavigationManager NavigationManager
 
 <div class="row">
     <div class="col-12">
         <RadzenCard>
             <RadzenButton IsBusy=CurrentlyScanAll ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => ScanAll())" Text="Tous scanner les fichiers"></RadzenButton>
+            <RadzenButton IsBusy=IsDeletingUnfounded ButtonStyle="ButtonStyle.Danger" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => DeleteUnfoundedDownload())" Text="Syncroniser base de donnée avec élément restant"></RadzenButton>
         </RadzenCard>
     </div>
 </div>
 
-<RadzenDataGrid Data="@movies" TItem="Movie" PageSize=50 PagerPosition="@PagerPosition.Bottom" AllowPaging="true" AllowSorting="true">
+<RadzenDataGrid Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnResize="true" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=50 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat" ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
     <Columns>
         <RadzenDataGridColumn TItem="Movie" Property="TmdbMovie.OriginalTitle" Title="Nom du film">
             <Template Context="detail">
@@ -78,6 +80,7 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Movie" Property="_id.CreationTime" Title="Date de création"/>
         <RadzenDataGridColumn TItem="Movie" Property="NbFiles" Title="Nombre fichiers">
             <Template Context="detail">
                 <div class="row ">
@@ -103,6 +106,8 @@
 
     IEnumerable<Movie> movies;
 
+
+
     bool CurrentlyScanAll = false;
 
     string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
@@ -113,8 +118,13 @@
     {
         await base.OnInitializedAsync();
 
-        movies = downloadedMovieService.GetAll().Where(x => x.IsDownloaded);
+        movies = downloadedMovieService.GetAll();
         count = movies.Count();
+
+        if (!Preferences.Instance.IsValid())
+        {
+            NavigationManager.NavigateTo("/config/general");
+        }
     }
 
     protected void Scan(Movie movie)
@@ -122,6 +132,7 @@
         LoadMediaInfo(movie);
         StateHasChanged();
     }
+
 
     private void LoadMediaInfo(Movie movie)
     {
@@ -176,4 +187,21 @@
             InvokeAsync(StateHasChanged);
         });
     }
+
+    protected void DeleteUnfoundedDownload()
+    {
+        Task.Run(() =>
+        {
+            IsDeletingUnfounded = true;
+            InvokeAsync(StateHasChanged);
+
+            downloadedMovieService.DeleteUnfoundedDownload();
+            movies = downloadedMovieService.GetAll();
+
+            IsDeletingUnfounded = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public bool IsDeletingUnfounded { get; set; }
 }

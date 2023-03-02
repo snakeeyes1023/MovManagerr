@@ -19,6 +19,16 @@ using Hangfire;
 using Hangfire.LiteDB;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using Plex.Api.Factories;
+using Plex.Library.Factories;
+using Plex.ServerApi.Api;
+using Plex.ServerApi.Clients.Interfaces;
+using Plex.ServerApi.Clients;
+using Plex.ServerApi;
+using Plex.ServerApi.PlexModels.Media;
+using MovManagerr.Core.Infrastructures.Configurations;
+using Microsoft.Extensions.Logging;
+using MovManagerr.Core.Infrastructures.Loggers;
 
 namespace MovManagerr.Blazor
 {
@@ -46,12 +56,13 @@ namespace MovManagerr.Blazor
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseLiteDbStorage());
+                .UseLiteDbStorage(Preferences.Instance._HangFireDbPath));
 
+            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 3 });
 
             services.AddHangfireServer(options =>
             {
-                options.Queues = new[] { "m3u-download", "direct-download", "default" };
+                options.Queues = new[] { "m3u-download", "direct-download", "file-transfert", "reencoding", "sync-task", "default" };
             });
 
             services.AddRazorPages();
@@ -67,6 +78,27 @@ namespace MovManagerr.Blazor
 
             services.AddScoped<IMovieService, MovieService>();
             services.AddScoped<IDownloadedMovieService, DownloadedMovieService>();
+            #endregion
+
+            #region PLEX Api
+            
+            var apiOptions = new ClientOptions
+            {
+                Product = "API_UnitTests",
+                DeviceName = "API_UnitTests",
+                ClientId = "MyClientId",
+                Platform = "Web",
+                Version = "v1"
+            };
+
+            services.AddSingleton(apiOptions);
+            services.AddTransient<IPlexServerClient, PlexServerClient>();
+            services.AddTransient<IPlexAccountClient, PlexAccountClient>();
+            services.AddTransient<IPlexLibraryClient, PlexLibraryClient>();
+            services.AddTransient<IApiService, ApiService>();
+            services.AddTransient<IPlexFactory, PlexFactory>();
+            services.AddTransient<IPlexRequestsHttpClient, PlexRequestsHttpClient>();
+
             #endregion
 
             #region BackgroundService
@@ -89,6 +121,8 @@ namespace MovManagerr.Blazor
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            AddMediaInfoToEnvVariable();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -155,6 +189,24 @@ namespace MovManagerr.Blazor
                         }
                     });
                 });
+            }
+        }
+
+        private static void AddMediaInfoToEnvVariable()
+        {
+            try
+            {
+                string pathVariable = Environment.GetEnvironmentVariable("PATH");
+                if (!pathVariable.Contains("C:\\Program Files\\MediaInfo"))
+                {
+                    // Ajouter le nouveau chemin au début de la variable d'environnement PATH
+                    string newPath = "C:\\Program Files\\MediaInfo" + ";" + pathVariable;
+                    Environment.SetEnvironmentVariable("PATH", newPath);
+                }
+            }
+            catch (Exception)
+            {
+                SimpleLogger.AddLog("Impossible de défénir le PATH the media info", LogType.Error);
             }
         }
     }

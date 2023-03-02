@@ -19,6 +19,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             {
                 new MoviePreference()
             };
+
+            PlexConfiguration = new PlexConfiguration();
         }
 
         public List<IContentPreference> ContentPreferences { get; set; }
@@ -45,6 +47,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
         public PreferenceDownload DownloadHours { get; private set; }
 
+        public PlexConfiguration PlexConfiguration { get; private set; }
+
         public void VerifyDriveAccessibility()
         {
             //check if the drive is accessible (if not, throw an exception) { movieFolder, serieFolder, tempPath }
@@ -55,6 +59,11 @@ namespace MovManagerr.Core.Infrastructures.Configurations
                     throw new InvalidOperationException(string.Format("Le chemin {0} n'existe pas ou n'est pas accessible", path._BasePath));
                 }
             }
+        }
+
+        public bool IsPlexConfigure()
+        {
+            return PlexConfiguration != null && !string.IsNullOrWhiteSpace(PlexConfiguration.ApiKey);
         }
     }
 

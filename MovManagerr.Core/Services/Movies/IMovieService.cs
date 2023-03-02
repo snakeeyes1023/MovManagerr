@@ -13,5 +13,6 @@ namespace MovManagerr.Core.Services.Movies
         Movie? GetMovieById(ObjectId _id);
         void ScanFolder(string path);
         void ReorganiseFolder();
+        void Schedule_ReorganiseFolder();
     }
 }

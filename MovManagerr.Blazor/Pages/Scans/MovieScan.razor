@@ -1,18 +1,80 @@
 ﻿@page "/scan/movie"
 
-<RadzenButton ButtonStyle="ButtonStyle.Light" Icon="search" Click=@(args => StartScan()) Text="Scanner un dossier" />
-<RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="search" Click=@(args => RedoFolder()) Text="Réorganiser les dossiers" />
+<div class="alert alert-warning">
+    Ne quitter pas cette page avant que la tâche ne soit terminée (voir logs en bas)
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <RadzenCard>
+            <h3>
+                Reconstruction de la base de donnée  <small>(Beta)</small>
+            </h3>
+            <p>
+                Permet en changement d'ordinateur de refaire la base de donnée
+            </p>
+            <RadzenButton class="mt-2" Disabled=true ButtonStyle="ButtonStyle.Light" Icon="search" Click=@(args => StartScan()) Text="Scanner un dossier" />
+        </RadzenCard>
+    </div>
+</div>
+
+<div class="row my-4">
+    <div class="col-12">
+        <RadzenCard>
+            <h3>
+                Importer les données de Plex (Beta)
+            </h3>
+            <p>
+                Scan tous les médias de Plex et les ajouts automatiquements (Aucun transfert n'est effectué)
+            </p>
+
+            @if (!Settings.IsPlexConfigure())
+            {
+                <p class="error">Vous devez d'abord entré votre jeton Plex dans les configurations</p>
+            }
+
+            <RadzenButton class="mt-2" Disabled=!Settings.IsPlexConfigure() ButtonStyle="ButtonStyle.Warning" Icon="search" Click=@(args => ImportFromPlex()) Text="Importer de plex" />
+        </RadzenCard>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <RadzenCard>
+            <h3>
+                Réorganiser les fichiers <small>(Beta) (Pas encore adapté au grosse librarie)</small>
+            </h3>
+            <p>
+                Detecte tous les fichiers qui ne sont pas dans le bon dossier et les déplaces au bon endroit
+            </p>
+            <RadzenButton class="mt-2" Disabled=true Icon="search" Click=@(args => RedoFolder()) Text="Réorganiser les dossiers" />
+        </RadzenCard>
+    </div>
+</div>
 
 @code {
     [Inject] public IMovieService MovieService { get; set; }
+    [Inject] public ContentAddService ContentAddService { get; set; }
 
-    async Task RedoFolder()
+    protected MovManagerr.Core.Infrastructures.Configurations.CustomSettings Settings { get; set; }
+
+
+    protected override Task OnInitializedAsync()
     {
-        await Task.Run(async () =>
-               {
-                   MovieService.ReorganiseFolder();
-                   await InvokeAsync(StateHasChanged);
-               });
+        Settings = MovManagerr.Core.Infrastructures.Configurations.Preferences.Instance.Settings;
+        return base.OnInitializedAsync();
+    }
+
+    void RedoFolder()
+    {
+        MovieService.Schedule_ReorganiseFolder();
+        SimpleLogger.AddLog("La réorganisation des dossiers à été mis dans la file d'attente");
+    }
+
+    void ImportFromPlex()
+    {
+        ContentAddService.Schedule_ImportFromPlex();
+        SimpleLogger.AddLog("L'importation des films à été mis dans la liste d'attente");
     }
 
     async Task StartScan()

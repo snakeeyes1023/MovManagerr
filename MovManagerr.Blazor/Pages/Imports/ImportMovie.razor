@@ -119,6 +119,8 @@
         AddMovieService.ImportMovie(path, movie);
 
         ProcessPendingMovies();
+
+        StateHasChanged();
     }
 
     async Task BrowseMovieFile()

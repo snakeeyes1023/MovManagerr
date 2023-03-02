@@ -13,6 +13,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations.ContentPreferences
         public abstract string BasePath { get; set; }
 
         public Dictionary<int, string> GenresPath { get; protected set; }
+        public string UnfoudedGenreFolder { get; set; } = "Autres";
+
         public string SectionName { get; set; }
 
         public ContentPreference()
@@ -30,7 +32,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations.ContentPreferences
             }
             catch (Exception)
             {
-                return "Autres";
+                return UnfoudedGenreFolder;
             }
         }
 

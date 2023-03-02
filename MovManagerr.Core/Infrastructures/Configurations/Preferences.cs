@@ -33,7 +33,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
         public readonly string _AppData;
 
         public readonly string _DbPath;
-
+        public readonly string _HangFireDbPath;
         public CustomSettings Settings { get; private set; }
 
         #endregion
@@ -44,7 +44,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             _AppData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Movmanagerr");
             _PreferenceFolder = Path.Combine(_AppData, "preferences");
             _DbPath = "Filename=" + Path.Combine(_AppData, "movmanagerr.db") + ";Connection=shared";
-
+            _HangFireDbPath = Path.Combine(_AppData, "hangfire.db");
             try
             {
                 InitaliseAppDataFolders();
@@ -129,6 +129,19 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             IOptions<MovManagerr.Tmdb.Config.TmdbConfig> tmdb = Options.Create(tmdbConfig);
 
             return new TmdbClientService(tmdb);
+        }
+
+        public bool IsValid()
+        {
+            foreach (var item in Settings.ContentPreferences)
+            {
+                if (item is MoviePreference moviePreference && !string.IsNullOrWhiteSpace(moviePreference.BasePath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
