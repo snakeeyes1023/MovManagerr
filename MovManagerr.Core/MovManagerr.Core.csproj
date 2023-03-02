@@ -20,4 +20,10 @@
     <ProjectReference Include="..\Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Libraries\MediaInfo.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

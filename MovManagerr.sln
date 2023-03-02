@@ -25,6 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions.Tests", "Snake.LiteDb.Extensions.Tests\Snake.LiteDb.Extensions.Tests.csproj", "{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{5384BAE6-426C-42C1-BDC1-35343E7D5E57}"
+	ProjectSection(SolutionItems) = preProject
+		Externals\MediaInfo.dll = Externals\MediaInfo.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

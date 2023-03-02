@@ -38,6 +38,14 @@
             element.scrollTop = element.scrollHeight;
         }
     </script>
+    <script>
+        const { ipcRenderer } = require("electron");
+
+        window.onbeforeunload = (e) => {
+            e.returnValue = true;
+            ipcRenderer.send("hideToSystemTray");
+        };
+    </script>
 </body>
 
 </html>

@@ -37,7 +37,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
 
                     M3uDownloaderClient downloader = new M3uDownloaderClient(link.Link, _readers);
 
-                    var result = Task.Run(async () => await downloader.Start(Path.GetTempPath(), cancellationToken)).Result;
+                    var result = Task.Run(async () => await downloader.Start(cancellationToken)).Result;
 
                     SimpleLogger.AddLog($"Fin de la lecture du lien {link}");
                 }

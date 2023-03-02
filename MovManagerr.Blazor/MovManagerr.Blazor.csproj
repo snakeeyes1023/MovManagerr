@@ -6,6 +6,25 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Assets\icon.ico" />
+	  <None Remove="Assets\icon.png" />
+	  <None Remove="Assets\logo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Assets\icon.ico">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Assets\icon.png">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <PackageReference Include="ElectronNET.API" Version="13.5.1" />
 	  <PackageReference Include="OpenAI" Version="1.5.0" />
 	  <PackageReference Include="Radzen.Blazor" Version="4.5.0" />

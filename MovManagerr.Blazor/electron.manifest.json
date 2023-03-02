@@ -14,7 +14,11 @@
     "buildVersion": "0.1.0",
     "compression": "maximum",
     "directories": {
-      "output": "../../../bin/Desktop"
+      "output": "../../../bin/Desktop",
+      "buildResources": "Assets"
+    },
+    "win": {
+      "icon": "bin/Assets/icon.ico"
     },
     "extraResources": [
       {

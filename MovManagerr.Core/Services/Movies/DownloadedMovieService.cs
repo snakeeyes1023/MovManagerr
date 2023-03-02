@@ -23,8 +23,15 @@ namespace MovManagerr.Core.Services.Movies
             {
                 x.Where(x => x.DownloadedContents.Count > 0);
 
-                x.Limit(limit);
-                x.Skip(offset);
+                if (limit > 0)
+                {
+                    x.Limit(limit);
+                }
+                if (offset > 0)
+                {
+                    x.Skip(offset);
+                }
+
                 BaseOrderQuery(x);
             }).ToList();
         }

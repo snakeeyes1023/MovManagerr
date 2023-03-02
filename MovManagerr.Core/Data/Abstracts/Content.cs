@@ -26,6 +26,8 @@ namespace MovManagerr.Core.Data.Abstracts
 
         public string Poster { get; set; }
 
+
+
         public string GetCorrectedPoster()
         {
             if (Poster != null && !Poster.StartsWith("http"))
@@ -47,6 +49,22 @@ namespace MovManagerr.Core.Data.Abstracts
             get
             {
                 return DownloadedContents.Count > 0;
+            }
+        }
+
+        public decimal MaxBitrate
+        {
+            get
+            {
+                return this.GetMaxBitrate();
+            }
+        }
+
+        public int NbFiles
+        {
+            get
+            {
+                return this.DownloadedContents.Count;
             }
         }
 
@@ -181,20 +199,5 @@ namespace MovManagerr.Core.Data.Abstracts
             }
         }
         #endregion
-    }
-
-    public class DownloadedContent
-    {
-        public DownloadedContent() { }
-        public DownloadedContent(string fullPath, DownloadableContent? method = null)
-        {
-            FullPath = fullPath;
-            Method = method;
-            CreationDate = DateTime.Now;
-        }
-
-        public string FullPath { get; set; }
-        public DownloadableContent? Method { get; protected set; }
-        public DateTime CreationDate { get; protected set; }
     }
 }
