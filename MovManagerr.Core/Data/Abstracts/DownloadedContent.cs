@@ -18,6 +18,8 @@ namespace MovManagerr.Core.Data.Abstracts
         public VideoInfo VideoInfo { get; set; }
         public AudioInfo AudioInfo { get; set; }
         public string FileSize { get; set; }
+
+        public decimal FileSizeAsGb { get; set; }
         public DownloadableContent? Method { get; protected set; }
         public DateTime CreationDate { get; protected set; }
 
@@ -38,7 +40,10 @@ namespace MovManagerr.Core.Data.Abstracts
             mi.Open(fullPath);
             VideoInfo = new VideoInfo(mi);
             AudioInfo = new AudioInfo(mi);
+
             FileSize = mi.Get(StreamKind.General, 0, "FileSize/String2");
+            long.TryParse(mi.Get(0, 0, "FileSize"), out long fileSizeLong);
+            FileSizeAsGb = Decimal.Divide(fileSizeLong, 1000000000);
 
             mi.Close();
         }

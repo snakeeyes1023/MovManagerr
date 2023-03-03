@@ -16,6 +16,8 @@ using System.Security.Cryptography.Xml;
 using System.Threading;
 using TMDbLib.Objects.Authentication;
 using TMDbLib.Objects.Search;
+using Xabe.FFmpeg;
+using Xabe.FFmpeg.Downloader;
 
 namespace MovManagerr.Core.Tasks
 {
@@ -76,9 +78,9 @@ namespace MovManagerr.Core.Tasks
 
         private void TransfertAndReencodeIfRequired(ContentTransfert transfertInfo, DownloadedContent downloadedContent)
         {
-            if (MustBeReencode(downloadedContent))
+            if (_preference.Settings.TranscodeConfiguration.IsTranscodeRequired(downloadedContent))
             {
-                BackgroundJob.Enqueue(() => ReencodeAndTransfert(transfertInfo));
+                BackgroundJob.Enqueue(() => ReencodeAndTransfert(transfertInfo, CancellationToken.None));
             }
             else
             {
@@ -217,18 +219,27 @@ namespace MovManagerr.Core.Tasks
 
         private bool MustBeReencode(DownloadedContent content)
         {
-            return false;
+            return true;
         }
-
+        
         [Queue("reencoding")]
-        [DisableConcurrentExecution(400 * 60)]
-        public void ReencodeAndTransfert(ContentTransfert transfertInfo)
+        [DisableConcurrentExecution(800 * 60)]
+        public async Task ReencodeAndTransfert(ContentTransfert transfertInfo, CancellationToken cancellationToken)
         {
-            SimpleLogger.AddLog($"Ré-encodage du film en cours");
-            SimpleLogger.AddLog($"Ré-encodage terminé", LogType.Info);
+            string transcodeDestination = Path.Combine(Path.GetDirectoryName(transfertInfo.Origin), Path.GetFileNameWithoutExtension(transfertInfo.Origin) + " [Transcode]" + Path.GetExtension(transfertInfo.Origin));
+
+            SimpleLogger.AddLog($"Ré-encodage du film en cours vers {transcodeDestination} ...");
+
+            string ffmpegString = _preference.Settings.TranscodeConfiguration.GetTranscodeFFmpegString(transfertInfo.Origin, transcodeDestination);
+
+            IConversionResult conversionResult = await FFmpeg.Conversions.New().Start(ffmpegString, cancellationToken);
+
+            SimpleLogger.AddLog($"Ré-encodage terminé après {conversionResult.Duration.ToString("h'h 'm'm 's's'")}", LogType.Info);
+
+            transfertInfo.Origin = transcodeDestination;
 
             SimpleLogger.AddLog($"Transfert en file d'attente");
-            BackgroundJob.Enqueue(() => Transfert(transfertInfo));
+            //BackgroundJob.Enqueue(() => Transfert(transfertInfo));
         }
 
         [Queue("file-transfert")]
@@ -238,7 +249,7 @@ namespace MovManagerr.Core.Tasks
 
             File.Move(transfertInfo.Origin, transfertInfo.Destination);
 
-            SimpleLogger.AddLog($"Déplacement du fichier {transfertInfo.Origin} vers {transfertInfo.Destination} terminée");
+            SimpleLogger.AddLog($"Déplacement du fichier {transfertInfo.Origin} vers {transfertInfo.Destination} terminée", LogType.Info);
 
             ContentTransfered?.Invoke(this, transfertInfo);
         }

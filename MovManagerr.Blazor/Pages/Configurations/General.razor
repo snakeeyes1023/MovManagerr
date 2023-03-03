@@ -157,6 +157,36 @@ else
                     </RadzenFieldset>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <RadzenFieldset Text="Transcodage">
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="FFmpeg config" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.FFmpegString />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="Bitrate maximal (Si le fichier est plus gros à l'importation il sera transcodé)" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenNumeric style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.MaximalBitrate />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="Taille maximal du fichié (Si le fichier est plus gros à l'importation il sera transcodé)" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenNumeric style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.MaximalGb />
+                            </div>
+                        </div>
+                    </RadzenFieldset>
+                </div>
+            </div>
             <div class="row justify-content-center">
                 <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
                     <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer les configurations" />
