@@ -2,6 +2,7 @@
 using LiteDB;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
+using MovManagerr.Core.Helpers.NewFolder;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
@@ -21,6 +22,16 @@ using Xabe.FFmpeg.Downloader;
 
 namespace MovManagerr.Core.Tasks
 {
+
+    [Flags]
+    public enum ImportMode
+    {
+        None = 1,
+        Move = 2,
+        TranscodeAndMove = 4,
+    }
+
+    
     public class ContentAddService
     {
         public static event EventHandler<ContentTransfert>? ContentTransfered;
@@ -37,53 +48,36 @@ namespace MovManagerr.Core.Tasks
             _preference = MovManagerr.Core.Infrastructures.Configurations.Preferences.Instance;
         }
 
-        public void ImportMovie(string fullPath, SearchMovie info)
-        {
-            Movie? movie = GetMovieFromSearchMovie(info);
 
+        public void ImportMovie(Movie movie, string originPath, ImportMode importMode)
+        {
             ContentTransfert transfertInfo = new ContentTransfert()
             {
                 DeleteOrigin = false,
-                Destination = movie.GetFullPath(Path.GetFileName(fullPath)),
-                Origin = fullPath,
+                Destination = movie.GetFullPath(Path.GetFileName(originPath)),
+                Origin = originPath,
                 _id = movie._id
-            };
+            };            
 
             if (movie.DownloadedContents.FirstOrDefault(x => x.FullPath == transfertInfo.Destination) is DownloadedContent alreadyExist)
             {
-                SimpleLogger.AddLog("Le fichier existe déjà dans la base de donnée", LogType.Warning);
+                // un fichier du même nom existe déjà
+                transfertInfo.Destination = movie.GetFullPath(Path.GetFileNameWithoutExtension(originPath) + "_1" + Path.GetExtension(originPath));
+            }
 
-                if (!File.Exists(transfertInfo.Destination))
-                {
-                    TransfertAndReencodeIfRequired(transfertInfo, alreadyExist);
+            DownloadedContent downloadedContent = CreateDownloadedContent(movie, transfertInfo);
 
-                    //todo rescanner le fichier
-                }
+            // if need importmode need to transcode
+            if (importMode == ImportMode.TranscodeAndMove)
+            {
+                TranscodeHelper.New()
+                    .From(transfertInfo.Origin)
+                    .To(transfertInfo.Destination)
+                    .EnqueueRun();
             }
             else
             {
-                DownloadedContent downloadedContent = CreateDownloadedContent(movie, transfertInfo);
-
-                if (File.Exists(transfertInfo.Destination))
-                {
-                    SimpleLogger.AddLog("Impossible de transférer puisqu'un fichier du même nom est déjà dans le répertoire (renommer ou supprimer l'élément déjà dans le répertoire)", LogType.Warning);
-                }
-                else
-                {
-                    TransfertAndReencodeIfRequired(transfertInfo, downloadedContent);
-                }
-            }
-        }
-
-
-        private void TransfertAndReencodeIfRequired(ContentTransfert transfertInfo, DownloadedContent downloadedContent)
-        {
-            if (_preference.Settings.TranscodeConfiguration.IsTranscodeRequired(downloadedContent))
-            {
-                BackgroundJob.Enqueue(() => ReencodeAndTransfert(transfertInfo, CancellationToken.None));
-            }
-            else
-            {
+                SimpleLogger.AddLog("Ajout du fichier dans la file d'attente de transfert", LogType.Info);
                 BackgroundJob.Enqueue(() => Transfert(transfertInfo));
             }
         }
@@ -199,7 +193,7 @@ namespace MovManagerr.Core.Tasks
 
 
         
-        private Movie GetMovieFromSearchMovie(SearchMovie info)
+        public Movie GetMovieFromSearchMovie(SearchMovie info)
         {
             var movie = _contentDbContext.Movies.UseQuery(x =>
             {
@@ -217,35 +211,37 @@ namespace MovManagerr.Core.Tasks
             return movie;
         }
 
-        private bool MustBeReencode(DownloadedContent content)
+        public bool IsTranscodeRequired(string moviePath)
         {
-            return true;
+            var movieFile = new DownloadedContent(moviePath);
+            movieFile.LoadMediaInfo();
+            return _preference.Settings.TranscodeConfiguration.IsTranscodeRequired(movieFile);
         }
-        
-        [Queue("reencoding")]
-        [DisableConcurrentExecution(800 * 60)]
-        public async Task ReencodeAndTransfert(ContentTransfert transfertInfo, CancellationToken cancellationToken)
+
+        public void TranscodeMovie(DownloadedContent content)
         {
-            string transcodeDestination = Path.Combine(Path.GetDirectoryName(transfertInfo.Origin), Path.GetFileNameWithoutExtension(transfertInfo.Origin) + " [Transcode]" + Path.GetExtension(transfertInfo.Origin));
-
-            SimpleLogger.AddLog($"Ré-encodage du film en cours vers {transcodeDestination} ...");
-
-            string ffmpegString = _preference.Settings.TranscodeConfiguration.GetTranscodeFFmpegString(transfertInfo.Origin, transcodeDestination);
-
-            IConversionResult conversionResult = await FFmpeg.Conversions.New().Start(ffmpegString, cancellationToken);
-
-            SimpleLogger.AddLog($"Ré-encodage terminé après {conversionResult.Duration.ToString("h'h 'm'm 's's'")}", LogType.Info);
-
-            transfertInfo.Origin = transcodeDestination;
-
-            SimpleLogger.AddLog($"Transfert en file d'attente");
-            //BackgroundJob.Enqueue(() => Transfert(transfertInfo));
+            TranscodeHelper.New()
+                .From(content.FullPath)
+                .To(content.FullPath)
+                .ReplaceDestination(true)
+                .EnqueueRun();
         }
 
         [Queue("file-transfert")]
         public void Transfert(ContentTransfert transfertInfo)
         {
             SimpleLogger.AddLog($"Déplacement du fichier {transfertInfo.Origin} vers {transfertInfo.Destination} en cours...");
+
+            if (File.Exists(transfertInfo.Destination))
+            {
+                SimpleLogger.AddLog($"Déplacement du fichier annulée : {transfertInfo.Origin} vers {transfertInfo.Destination} (Le fichier existe déjà)", LogType.Error);
+                return;
+            }
+            if (!File.Exists(transfertInfo.Origin))
+            {
+                SimpleLogger.AddLog($"Déplacement du fichier annulée : {transfertInfo.Origin} vers {transfertInfo.Destination} (Le fichier d'origine n'existe pas)", LogType.Error);
+                return;
+            }
 
             File.Move(transfertInfo.Origin, transfertInfo.Destination);
 

@@ -160,6 +160,39 @@ else
             <div class="row">
                 <div class="col-md-12">
                     <RadzenFieldset Text="Transcodage">
+
+                        <div class="row">
+                            <div class="col-12">
+                                <RadzenButton Click="(() => VerifyFFmpegInstallation())" Text="Vérifier l'installation de FFmpeg"></RadzenButton>
+                            </div>
+                        </div>
+
+                        @if (!FFmpegInstalled)
+                        {
+                            <div class="alert alert-warning">
+                                FFmpeg n'a pas été trouver aucun transcodage ne sera effectué (un redémarrage est parfois nécéssaire)
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success">
+                                FFmpeg est bien installé
+                            </div>
+                        }
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    Laisser vide pour ne pas utiliser de dossier spécifique
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 align-items-center d-flex">
+                                <RadzenLabel Text="Dossier de transcodage" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.DirectoryPath />
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-4 align-items-center d-flex">
                                 <RadzenLabel Text="FFmpeg config" />
@@ -200,10 +233,12 @@ else
 @code {
 
     public CustomSettings Settings { get; set; }
+    public bool FFmpegInstalled { get; set; }
 
     protected override void OnInitialized()
     {
         Settings = Preferences.Instance.Settings;
+        VerifyFFmpegInstallation();
     }
 
     void Submit(CustomSettings arg)
@@ -214,5 +249,11 @@ else
     void Cancel()
     {
         Preferences.Instance.ReloadSettings();
+    }
+
+    void VerifyFFmpegInstallation()
+    {
+        FFmpegInstalled = Preferences.Instance.Settings.TranscodeConfiguration.VerifyFFmpegInstallation();
+        StateHasChanged();
     }
 }

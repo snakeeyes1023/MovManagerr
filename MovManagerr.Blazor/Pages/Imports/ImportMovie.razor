@@ -81,6 +81,8 @@
 
     [Inject] ContentAddService AddMovieService { get; set; }
 
+    [Inject] DialogService DialogService { get; set; }
+
     private IMovieExtractor MovieExtractor { get; set; }
 
     private Queue<string> PendingMovies { get; set; }
@@ -108,7 +110,7 @@
         movieName = string.Empty;
     }
 
-    void Submit()
+    async Task Submit()
     {
         int movieId = SelectedMovieId;
         string path = fullPath;
@@ -116,11 +118,62 @@
 
         ClearContext();
 
-        AddMovieService.ImportMovie(path, movie);
+        ImportMode mode = ImportMode.Move;
+
+        Movie dbMovie = AddMovieService.GetMovieFromSearchMovie(movie);
+
+        if (dbMovie.IsDownloaded)
+        {
+            await DialogService.OpenAsync("Fichié déjà existant", ds =>
+    @<div>
+        <p class="mb-4">Le fichier semble déjà exister dans un de vos répertoires ?</p>
+        <div class="row">
+            <div class="col">
+                <RadzenButton Text="Ajouter" Click="() => { mode = ImportMode.Move; ds.Close(false); }" class="me-1" Style="width: 80px;" />
+                <RadzenButton Text="Annuler" Click="(() => {  mode = ImportMode.None; ds.Close(false); })" ButtonStyle="ButtonStyle.Light" class="me-1 float-end" />
+            </div>
+        </div>
+        </div>
+    );
+        }
+
+
+        if (mode != ImportMode.None)
+        {
+            if (await VerifyTranscoding(path))
+            {
+                mode = ImportMode.TranscodeAndMove;
+            }
+
+            AddMovieService.ImportMovie(dbMovie, path, mode);
+        }
 
         ProcessPendingMovies();
-
         StateHasChanged();
+    }
+
+
+    async Task<bool> VerifyTranscoding(string path)
+    {
+        bool useTranscoding = false;
+
+        if (AddMovieService.IsTranscodeRequired(path))
+        {
+            await DialogService.OpenAsync("Transcodage requis", ds =>
+    @<div>
+        <p class="mb-4">Le fichier ne respecte pas vos critères de media. Voulez-vous le transcoder ?</p>
+        <div class="row">
+            <div class="col">
+                <RadzenButton Text="Oui" Click="() => { useTranscoding = true; ds.Close(false); }" class="me-1" Style="width: 80px;" />
+                <RadzenButton Text="Non" Click="() => { ds.Close(false); }" ButtonStyle="ButtonStyle.Light" class="me-1" />
+            </div>
+        </div>
+    </div>
+    );
+        }
+
+        return useTranscoding;
+
     }
 
     async Task BrowseMovieFile()

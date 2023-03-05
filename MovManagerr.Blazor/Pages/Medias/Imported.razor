@@ -9,6 +9,7 @@
 @inject DialogService DialogService
 @inject IServiceProvider ServiceProvider
 @inject NavigationManager NavigationManager
+@inject ContentAddService ContentAddService 
 
 <div class="row">
     <div class="col-12">
@@ -19,7 +20,7 @@
     </div>
 </div>
 
-<RadzenDataGrid Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnResize="true" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=50 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat" ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
+<RadzenDataGrid ColumnWidth="300px" Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnResize="true" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=50 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat" ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
     <Columns>
         <RadzenDataGridColumn TItem="Movie" Property="TmdbMovie.OriginalTitle" Title="Nom du film">
             <Template Context="detail">
@@ -95,6 +96,7 @@
                     <div class="col-8 text-right">
                         <RadzenButton ButtonStyle="ButtonStyle.Primary" Variant=Variant.Outlined Shade=Shade.Lighter Click="((args) => OpenMovieFolder(detail))" Text="Ouvrir le dossier du film"></RadzenButton>
                         <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Scan(detail))" Text="Scanner"></RadzenButton>
+                        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Transcode(detail))" Text="Transcoder"></RadzenButton>
                     </div>
                 </div>
             </Template>
@@ -131,6 +133,14 @@
     {
         LoadMediaInfo(movie);
         StateHasChanged();
+    }
+
+    protected void Transcode(Movie movie)
+    {
+        if(movie.DownloadedContents.Count == 1)
+        {
+            ContentAddService.TranscodeMovie(movie.DownloadedContents.FirstOrDefault());
+        }
     }
 
 

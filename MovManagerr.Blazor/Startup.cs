@@ -58,11 +58,42 @@ namespace MovManagerr.Blazor
                 .UseRecommendedSerializerSettings()
                 .UseLiteDbStorage(Preferences.Instance._HangFireDbPath));
 
-            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 3 });
+            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 2 });
 
             services.AddHangfireServer(options =>
             {
-                options.Queues = new[] { "m3u-download", "direct-download", "file-transfert", "reencoding", "sync-task", "default" };
+                options.ServerName = String.Format("{0}:filemanagement", Environment.MachineName);
+                options.Queues = new[] { "file-transfert" };
+                options.WorkerCount= 4;
+            });
+
+
+            services.AddHangfireServer(options =>
+            {
+                options.ServerName = String.Format("{0}:transcoder", Environment.MachineName);
+                options.Queues = new[] { "transcode" };
+                options.WorkerCount = 1;
+            });
+
+            services.AddHangfireServer(options =>
+            {
+                options.ServerName = String.Format("{0}:normal", Environment.MachineName);
+                options.Queues = new[] { "default" };
+                options.WorkerCount = 4;
+            });
+
+            services.AddHangfireServer(options =>
+            {
+                options.ServerName = String.Format("{0}:downloader", Environment.MachineName);
+                options.Queues = new[] { "m3u-download", "direct-download" };
+                options.WorkerCount = 1;
+            });
+
+            services.AddHangfireServer(options =>
+            {
+                options.ServerName = String.Format("{0}:cronjob", Environment.MachineName);
+                options.Queues = new[] { "sync-task"};
+                options.WorkerCount = 1;
             });
 
             services.AddRazorPages();
