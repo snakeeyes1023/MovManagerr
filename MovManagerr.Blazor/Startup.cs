@@ -29,6 +29,7 @@ using Plex.ServerApi.PlexModels.Media;
 using MovManagerr.Core.Infrastructures.Configurations;
 using Microsoft.Extensions.Logging;
 using MovManagerr.Core.Infrastructures.Loggers;
+using MovManagerr.Core.Importers;
 
 namespace MovManagerr.Blazor
 {
@@ -144,7 +145,8 @@ namespace MovManagerr.Blazor
             services.AddScoped<NotificationService>();
             services.AddScoped<TooltipService>();
             services.AddScoped<ContextMenuService>();
-            services.AddScoped<ContentAddService>();
+            services.AddScoped<ImportContentService>();
+            services.AddScoped<PlexImporter>();
 
             services.AddSingleton<IContentDbContext, ContentDbContext>();
         }

@@ -26,8 +26,6 @@ namespace MovManagerr.Core.Data.Abstracts
 
         public string Poster { get; set; }
 
-
-
         public string GetCorrectedPoster()
         {
             if (Poster != null && !Poster.StartsWith("http"))
@@ -57,6 +55,14 @@ namespace MovManagerr.Core.Data.Abstracts
             get
             {
                 return this.GetMaxBitrate();
+            }
+        }
+
+        public decimal FileSize
+        {
+            get
+            {
+                return this.DownloadedContents.Sum(x => x.FileSizeAsGb);
             }
         }
 

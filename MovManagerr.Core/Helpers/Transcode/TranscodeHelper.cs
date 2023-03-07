@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using MovManagerr.Core.Helpers.Transferts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System;
@@ -76,9 +77,9 @@ namespace MovManagerr.Core.Helpers.NewFolder
 
             string transcodeDestination = GetTranscodeFilePath(_actualPath);
 
-            SimpleLogger.AddLog($"Ré-encodage du film en cours vers {transcodeDestination} ...");
+            SimpleLogger.AddLog($"Transcodage du film en cours vers {transcodeDestination} ...");
             IConversionResult conversionResult = await Transcode(_actualPath, transcodeDestination, cancellationToken);
-            SimpleLogger.AddLog($"Ré-encodage terminé après {conversionResult.Duration.ToString("h'h 'm'm 's's'")}", LogType.Info);
+            SimpleLogger.AddLog($"Transcodage terminé après {conversionResult.Duration.ToString("h'h 'm'm 's's'")}");
 
             MoveTo(_destinationPath, _replaceDestination);
         }
@@ -93,6 +94,9 @@ namespace MovManagerr.Core.Helpers.NewFolder
             if (conversionResult != null)
             {
                 _actualPath = transcodeDestination;
+
+                SimpleLogger.AddLog(new NotificationLog("Transcodage terminé", "Le film a été transcodé avec succès !"), LogType.Info);
+
                 return conversionResult;
             }
             else
@@ -110,15 +114,26 @@ namespace MovManagerr.Core.Helpers.NewFolder
                 beforeTranscodePath = GetUnifyFilePath(beforeTranscodePath);
             }
 
-            MoveTo(beforeTranscodePath);
+            if (_actualPath != beforeTranscodePath)
+            {
+                SimpleLogger.AddLog("Copie du fichier dans le dossier de transcodage...");
+                File.Copy(_actualPath, beforeTranscodePath);
+                _actualPath = beforeTranscodePath;
+                SimpleLogger.AddLog("Copie du fichier terminé...");
+            }
         }
 
         private void MoveTo(string destination, bool replace = false)
         {
             if (_actualPath != destination)
             {
-                SimpleLogger.AddLog($"Transfert du media {_actualPath} vers {destination}");
-                File.Move(_actualPath, destination, replace);
+                var transfert = TransfertHelper.New()
+                    .From(_actualPath)
+                    .To(destination)
+                    .Replace(replace);
+
+                transfert.Run();
+                
                 _actualPath = destination;
             }
         }

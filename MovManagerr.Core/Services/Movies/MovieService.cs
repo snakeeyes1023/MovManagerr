@@ -1,6 +1,7 @@
 ﻿using Hangfire;
 using LiteDB;
 using MovManagerr.Core.Data;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
@@ -13,6 +14,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services.Movies
 {
@@ -227,6 +229,35 @@ namespace MovManagerr.Core.Services.Movies
             }
 
             return false;
+        }
+
+
+        public Movie GetMovieFromSearchMovie(SearchMovie info)
+        {
+            var movie = _currentCollection.UseQuery(x =>
+            {
+                x.Where(movie => movie.TmdbId == info.Id);
+            }).ToList().FirstOrDefault();
+
+            // Add the movie if not exists
+            if (movie == null)
+            {
+                movie = Movie.CreateFromSearchMovie(info);
+                _currentCollection.Add(movie);
+                _currentCollection.SaveChanges();
+            }
+
+            return movie;
+        }
+
+        public IEnumerable<SearchMovie?> GetMatchForFileName(string filename)
+        {
+            if (!string.IsNullOrWhiteSpace(filename) && Preferences.GetTmdbInstance() is TmdbClientService client)
+            {
+                return client.GetRelatedMovies(filename) ?? new List<SearchMovie>();
+            }
+
+            return new List<SearchMovie>();
         }
     }
 }

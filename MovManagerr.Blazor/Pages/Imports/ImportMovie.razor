@@ -79,7 +79,9 @@
 
     int SelectedMovieId { get; set; }
 
-    [Inject] ContentAddService AddMovieService { get; set; }
+    [Inject] ImportContentService ImportContentService { get; set; }
+    
+    [Inject] IMovieService MovieService { get; set; }
 
     [Inject] DialogService DialogService { get; set; }
 
@@ -120,7 +122,7 @@
 
         ImportMode mode = ImportMode.Move;
 
-        Movie dbMovie = AddMovieService.GetMovieFromSearchMovie(movie);
+        Movie dbMovie = MovieService.GetMovieFromSearchMovie(movie);
 
         if (dbMovie.IsDownloaded)
         {
@@ -145,7 +147,7 @@
                 mode = ImportMode.TranscodeAndMove;
             }
 
-            AddMovieService.ImportMovie(dbMovie, path, mode);
+            ImportContentService.ImportMovie(dbMovie, path, mode);
         }
 
         ProcessPendingMovies();
@@ -157,7 +159,9 @@
     {
         bool useTranscoding = false;
 
-        if (AddMovieService.IsTranscodeRequired(path))
+        var transcodeService = new TranscodeService();
+
+        if (transcodeService.IsTranscodeRequired(path))
         {
             await DialogService.OpenAsync("Transcodage requis", ds =>
     @<div>
@@ -237,6 +241,6 @@
 
     void GetMatchs()
     {
-        Matchs = AddMovieService.GetMatchForFileName(movieName);
+        Matchs = MovieService.GetMatchForFileName(movieName);
     }
 }
