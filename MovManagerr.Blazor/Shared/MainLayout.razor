@@ -92,7 +92,13 @@
     {
         if (HybridSupport.IsElectronActive)
         {
-            await updateManager.CheckForUpdates();
+            try {
+                await updateManager.CheckForUpdates();
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.AddLog(ex.Message, LogType.Error);
+            }
         }
         LastSync = DateTime.Now;
         StateHasChanged();
