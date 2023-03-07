@@ -1,0 +1,78 @@
+﻿@implements IDisposable;
+
+@code {
+
+    public void Dispose()
+    {
+        ElectronNET.API.Electron.AutoUpdater.OnUpdateNotAvailable -= async e => await OnUpdateNotAvailable(e);
+        ElectronNET.API.Electron.AutoUpdater.OnUpdateAvailable -= async e => await OnUpdateAvailable(e);
+        ElectronNET.API.Electron.AutoUpdater.OnError -= async e => await OnInstallUpdateFailed(e);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            ElectronNET.API.Electron.AutoUpdater.OnUpdateNotAvailable += async e => await OnUpdateNotAvailable(e);
+            ElectronNET.API.Electron.AutoUpdater.OnUpdateAvailable += async e => await OnUpdateAvailable(e);
+            ElectronNET.API.Electron.AutoUpdater.OnError += async e => await OnInstallUpdateFailed(e);
+        }
+    }
+
+    public async Task CheckForUpdates()
+    {
+        ElectronNET.API.Electron.AutoUpdater.AutoDownload = false;
+        await ElectronNET.API.Electron.AutoUpdater.CheckForUpdatesAndNotifyAsync();
+    }
+
+    private async Task OnUpdateAvailable(UpdateInfo updateInfo)
+    {
+        var message = $"Une nouvelle mise à jour de disponnible. ({updateInfo.Version}).";
+        var result = await Electron.Dialog.ShowMessageBoxAsync(new MessageBoxOptions(message)
+            {
+                Title = "Mise à jour",
+                Type = MessageBoxType.info,
+                NoLink = true,
+                Buttons = new[]
+                    {
+            "Installer et redémarrer application",
+            "Télécharger et installer lorsque je quitte",
+            "Plus tard"
+        }
+            });
+
+        if (result.Response == 0)
+        {
+            await ElectronNET.API.Electron.AutoUpdater.DownloadUpdateAsync();
+            ElectronNET.API.Electron.AutoUpdater.QuitAndInstall();
+        }
+
+        if (result.Response == 1)
+        {
+            ElectronNET.API.Electron.AutoUpdater.AutoInstallOnAppQuit = true;
+            await ElectronNET.API.Electron.AutoUpdater.DownloadUpdateAsync();
+        }
+    }
+
+    private async Task OnUpdateNotAvailable(UpdateInfo updateInfo)
+    {
+        var message = "Il n'y a aucune mise à jour de disponnible.";
+        await Electron.Dialog.ShowMessageBoxAsync(new MessageBoxOptions(message)
+            {
+                Title = "Mise à jour",
+                Type = MessageBoxType.info,
+                NoLink = true
+            });
+    }
+
+    private async Task OnInstallUpdateFailed(string error)
+    {
+        var message = $"Une erreur empêche la mise à jour de l'application. {error}";
+        await Electron.Dialog.ShowMessageBoxAsync(new MessageBoxOptions(message)
+            {
+                Title = "Mise à jour",
+                Type = MessageBoxType.error,
+                NoLink = true
+            });
+    }
+}
