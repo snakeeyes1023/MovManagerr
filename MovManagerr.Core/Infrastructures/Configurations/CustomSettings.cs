@@ -1,4 +1,5 @@
-﻿using MovManagerr.Core.Data.Abstracts;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
 using Snake.LiteDb.Extensions.Models;
 using System;
@@ -13,7 +14,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
     [Table("Settings")]
     public class CustomSettings : Entity
     {
-        public CustomSettings() 
+        public CustomSettings()
         {
             ContentPreferences = new List<IContentPreference>
             {
@@ -21,6 +22,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             };
 
             PlexConfiguration = new PlexConfiguration();
+            TranscodeConfiguration = new TranscodeConfiguration();
         }
 
         public List<IContentPreference> ContentPreferences { get; set; }
@@ -48,6 +50,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations
         public PreferenceDownload DownloadHours { get; private set; }
 
         public PlexConfiguration PlexConfiguration { get; private set; }
+
+        public TranscodeConfiguration TranscodeConfiguration { get; private set; }
 
         public void VerifyDriveAccessibility()
         {

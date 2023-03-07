@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Infrastructures.Configurations;
@@ -80,6 +81,30 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         public LiteDbSet<T> GetCurrentCollection()
         {
             return _currentCollection;
+        }
+
+
+        public DownloadedContent CreateDownloadedContent(T content, string loadInfoFrom, string path)
+        {
+            var downloadedContent = new DownloadedContent(path);
+
+            try
+            {
+                downloadedContent.LoadMediaInfo(loadInfoFrom);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.AddLog("Impossible de charger les informations de la vidéo" + loadInfoFrom + " : " + ex.Message, LogType.Warning);
+            }
+
+            content.DownloadedContents.Add(downloadedContent);
+
+            // save the movie in the database
+            _currentCollection.TrackEntity(content);
+            content.SetDirty();
+            _currentCollection.SaveChanges();
+
+            return downloadedContent;
         }
     }
 }

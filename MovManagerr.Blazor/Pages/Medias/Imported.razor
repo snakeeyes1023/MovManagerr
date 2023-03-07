@@ -19,9 +19,11 @@
     </div>
 </div>
 
-<RadzenDataGrid Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowColumnResize="true" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=50 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat" ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
+
+<RadzenDataGrid ColumnWidth="100px" AllowColumnReorder=true AllowColumnResize=true Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=10 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat"
+                ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
     <Columns>
-        <RadzenDataGridColumn TItem="Movie" Property="TmdbMovie.OriginalTitle" Title="Nom du film">
+        <RadzenDataGridColumn TItem="Movie" Width="350px" Property="TmdbMovie.OriginalTitle" Title="Nom du film">
             <Template Context="detail">
                 <div class="row">
                     <div class="col-12 d-flex" style="gap: 10px; align-items: center">
@@ -56,6 +58,18 @@
                                 <b>@(isScanned ? $"{detail.GetMaxBitrate().ToString("0.00")} mb/s" : "Non scanné")</b>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Movie" Sortable=false Title="Qualité" Property="MaxBitrate">
+            <Template Context="detail">
+                @{
+                    bool isScanned = detail.HasAnyScannedFile();
+                }
+
+                <div class="row">
+                    <div class="col-12 d-flex" style="gap: 30px; align-items: center">
                         <div>
                             <div>
                                 <small>Qualité</small>
@@ -64,6 +78,18 @@
                                 <b>@(isScanned ? $"{detail.GetBestQuality()}" : "Non scanné")</b>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Movie" Title="Espace totale" Property="FileSize">
+            <Template Context="detail">
+                @{
+                    bool isScanned = detail.HasAnyScannedFile();
+                }
+
+                <div class="row">
+                    <div class="col-12 d-flex" style="gap: 30px; align-items: center">
                         <div>
                             <div>
                                 <small>Taille</small>
@@ -80,8 +106,8 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Movie" Property="_id.CreationTime" Title="Date de création"/>
-        <RadzenDataGridColumn TItem="Movie" Property="NbFiles" Title="Nombre fichiers">
+        <RadzenDataGridColumn TItem="Movie" Width="180px" Property="_id.CreationTime" Title="Date de création" />
+        <RadzenDataGridColumn TItem="Movie" Width="180px" Property="NbFiles" Title="Nombre fichiers">
             <Template Context="detail">
                 <div class="row ">
                     <div class="col-4  text-left">
@@ -93,12 +119,18 @@
                         </div>
                     </div>
                     <div class="col-8 text-right">
-                        <RadzenButton ButtonStyle="ButtonStyle.Primary" Variant=Variant.Outlined Shade=Shade.Lighter Click="((args) => OpenMovieFolder(detail))" Text="Ouvrir le dossier du film"></RadzenButton>
-                        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Scan(detail))" Text="Scanner"></RadzenButton>
                     </div>
                 </div>
             </Template>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Movie" Width="400px" Sortable=false Title="Action">
+            <Template Context="detail">
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Variant=Variant.Outlined Shade=Shade.Lighter Click="((args) => OpenMovieFolder(detail))" Text="Ouvrir le dossier du film"></RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Scan(detail))" Text="Scanner"></RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Warning" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Transcode(detail))" Text="Transcoder"></RadzenButton>
+            </Template>
+        </RadzenDataGridColumn>
+
     </Columns>
 </RadzenDataGrid>
 
@@ -131,6 +163,15 @@
     {
         LoadMediaInfo(movie);
         StateHasChanged();
+    }
+
+    protected void Transcode(Movie movie)
+    {
+        if (movie.DownloadedContents.Count == 1)
+        {
+            TranscodeService transcodeService = new TranscodeService();
+            transcodeService.TranscodeContent(movie.DownloadedContents.FirstOrDefault());
+        }
     }
 
 
