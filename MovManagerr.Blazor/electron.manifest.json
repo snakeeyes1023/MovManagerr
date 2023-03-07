@@ -20,6 +20,11 @@
     "win": {
       "icon": "bin/Assets/icon.ico"
     },
+    "publish": {
+      "provider": "generic",
+      "url": "http://192.168.0.238:3685",
+      "channel": "latest"
+    },
     "extraResources": [
       {
         "from": "./bin",

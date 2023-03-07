@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Threading;
+@inherits LayoutComponentBase
 
 <div class="page">
 
@@ -29,11 +30,11 @@
         </RadzenSidebar>
         <RadzenBody>
 
-            <RadzenSplitter Orientation="Orientation.Vertical" style="height: 90vh;">
+            <RadzenSplitter Orientation="Orientation.Vertical" style="height: 85vh;">
                 <RadzenSplitterPane Size="90%">
                     <RadzenSplitter>
                         <RadzenSplitterPane>
-
+                            <MovManagerr.Blazor.Components.Updates.UpdateManager />
                             <div style="overflow-y: scroll; overflow-x: hidden; height: 100%">
                                 <div class="p-2">
                                     @Body
@@ -55,10 +56,45 @@
             </RadzenSplitter>
 
         </RadzenBody>
+        <RadzenFooter Style="max-height: 45px">
+            Version actuelle : <a href="@actualVersion">@actualVersion</a>. Dernière syncronisation : @(LastSync.ToShortDateString()) à @(LastSync.ToShortTimeString()). <a href="" @onclick="(() => Syncronize())">Vérifier les mises à jour</a>
 
+
+            <MovManagerr.Blazor.Components.Updates.UpdateManager @ref=updateManager />
+        </RadzenFooter>
     </RadzenLayout>
 </div>
 
 @code {
     bool sidebar1Expanded = true;
+
+    MovManagerr.Blazor.Components.Updates.UpdateManager updateManager;
+
+    public static DateTime LastSync;
+
+    public string actualVersion { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        actualVersion = "Inconnue";
+
+        if (HybridSupport.IsElectronActive)
+        {
+            CancellationTokenSource cts = new CancellationTokenSource();
+            CancellationToken token = cts.Token;
+            cts.CancelAfter(1000);
+            actualVersion = await Electron.App.GetVersionAsync(token);
+        }
+    }
+
+    protected async Task Syncronize()
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            await updateManager.CheckForUpdates();
+        }
+        LastSync = DateTime.Now;
+        StateHasChanged();
+    }
 }
