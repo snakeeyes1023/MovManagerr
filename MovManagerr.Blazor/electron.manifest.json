@@ -11,7 +11,7 @@
     "appId": "com.MovManagerr.Blazor.app",
     "productName": "MovManagerr",
     "copyright": "Copyright © 2023",
-    "buildVersion": "0.1.0",
+    "buildVersion": "0.3.0",
     "compression": "maximum",
     "directories": {
       "output": "../../../bin/Desktop",
@@ -22,7 +22,7 @@
     },
     "publish": {
       "provider": "generic",
-      "url": "http://192.168.0.238:3685",
+      "url": "https://plex.minientrepotplessis.com",
       "channel": "latest"
     },
     "extraResources": [
