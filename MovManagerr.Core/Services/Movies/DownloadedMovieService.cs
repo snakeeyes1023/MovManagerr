@@ -88,7 +88,7 @@ namespace MovManagerr.Core.Services.Movies
                         }
 
                         movie.SetDirty();
-                        _currentCollection.TrackEntity(movie);
+                        _currentCollection.UpdateEntity(movie);
                         _currentCollection.SaveChanges();
                     }
                 }

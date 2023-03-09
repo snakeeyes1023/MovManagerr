@@ -88,7 +88,7 @@ namespace MovManagerr.Core.Downloaders.Contents
 
             if (task.Content is Data.Movie movie)
             {
-                ContentDbContext.Movies.TrackEntity(movie);
+                ContentDbContext.Movies.UpdateEntity(movie);
                 movie.SetDirty();
             }
 
@@ -113,7 +113,7 @@ namespace MovManagerr.Core.Downloaders.Contents
 
             if (task.Content is Movie movie)
             {
-                ContentDbContext.Movies.TrackEntity(movie);
+                ContentDbContext.Movies.UpdateEntity(movie);
                 movie.SetDirty();
             }
 

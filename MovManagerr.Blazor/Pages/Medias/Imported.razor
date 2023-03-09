@@ -190,7 +190,7 @@
         }
 
         var instance = downloadedMovieService.GetCurrentCollection();
-        instance.TrackEntity(movie);
+        instance.UpdateEntity(movie);
         movie.SetDirty();
         instance.SaveChanges();
     }

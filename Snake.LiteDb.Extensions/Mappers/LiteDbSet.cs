@@ -1,7 +1,10 @@
-﻿using LiteDB;
+﻿using ChangeTracking;
+using LiteDB;
 using Snake.LiteDb.Extensions.Models;
+using System;
 using System.Collections;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Snake.LiteDb.Extensions.Mappers
 {
@@ -11,53 +14,39 @@ namespace Snake.LiteDb.Extensions.Mappers
     /// </summary>
     /// <typeparam name="T">Une entité quelquonque</typeparam>
     /// <seealso cref="IEnumerable&lt;T&gt;" />
-    public class LiteDbSet<T> : IEnumerable<T>, ILiteDbSet where T : Entity
+    public partial class LiteDbSet<T> : ILiteDbSet where T : Entity
     {
         public string ConnectionStrings { get; set; }
 
+        private IList<T> TrackedEntities;
 
-        private bool needRefresh = true;
-
-        /// <summary>
-        /// The entities (only entity with _id != null)
-        /// </summary>
-        private readonly List<T> _entities;
-
-        /// <summary>
-        /// The entities to delete (only entity with _id != null)
-        /// </summary>
-        private readonly List<T> _entitiesToDelete;
-
-        /// <summary>
-        /// The entities to insert (only entity with _id == null)
-        /// </summary>
-        private readonly List<T> _entitiesToInsert;
-
-        /// <summary>
-        /// The custom query
-        /// </summary>
-        private List<Action<ILiteQueryable<T>>> CustomQuery;
-
-        public LiteDbSet()
+        private IChangeTrackableCollection<T>? ChangeTracker
         {
-            _entities = new List<T>();
-            _entitiesToDelete = new List<T>();
-            _entitiesToInsert = new List<T>();
+            get
+            {
+                if (TrackedEntities is IChangeTrackableCollection<T> changeTrackableCollection)
+                {
+                    return changeTrackableCollection;
+                }
+
+                return null;
+            }
         }
 
-        #region ADD Entity without ID
         /// <summary>
         /// Adds the specified entity. And track it
         /// </summary>
         /// <param name="entity">The entity.</param>
         public void Add(T entity)
         {
-            if (IsAlreadyInDb(entity))
+            if (entity._id == null)
             {
-                throw new ArgumentException("Entity already in database");
+                TrackedEntities.Add(entity);
             }
-
-            _entitiesToInsert.Add(entity);
+            else
+            {
+                throw new Exception("Entity already exists");
+            }
         }
 
         /// <summary>
@@ -71,34 +60,20 @@ namespace Snake.LiteDb.Extensions.Mappers
                 Add(entity);
             }
         }
-        #endregion
 
         /// <summary>
         /// Tracks the entity.
         /// </summary>
         /// <param name="entity">The entity.</param>
         /// <returns></returns>
-        public void TrackEntity(T entity)
+        public void UpdateEntity(T entity)
         {
-            if (!IsAlreadyInDb(entity))
+            if (entity._id == null)
             {
                 throw new ArgumentException("Entity must have an id");
             }
 
-            _entities.Add(entity);
-        }
-
-        /// <summary>
-        /// Uses the query. (Directly bind to entity)
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns></returns>
-        public LiteDbSet<T> UseQuery(Action<ILiteQueryable<T>> query)
-        {
-            CustomQuery ??= new List<Action<ILiteQueryable<T>>>();
-            CustomQuery.Add(query);
-
-            return this;
+            TrackedEntities.Add(entity);
         }
 
         /// <summary>
@@ -107,274 +82,53 @@ namespace Snake.LiteDb.Extensions.Mappers
         /// <param name="entity">The entity.</param>
         public void Remove(T entity)
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException("Remove", "Entity to delete is null");
-            }
-
-            if (entity._id == null)
-            {
-                RemovePendingInsertEntity(entity);
-            }
-            else
-            {
-                RemoveAlreadyInDbEntity(entity);
-            }
+            TrackedEntities.Remove(entity);
         }
 
-        /// <summary>
-        /// Removes the already in database entity.
-        /// </summary>
-        /// <param name="entity">The entity.</param>
-        private void RemoveAlreadyInDbEntity(T entity)
-        {
-            _entitiesToDelete.Add(entity);
-            _entities.Remove(entity);
-        }
-
-        /// <summary>
-        /// Removes the pending insert entity.
-        /// </summary>
-        /// <param name="entity">The entity.</param>
-        private void RemovePendingInsertEntity(T entity)
-        {
-            _entitiesToInsert.Remove(entity);
-        }
 
         #region DATABASE STEP
-
-        /// <summary>
-        /// Saves the changes. (ONLY UPDATE IF THE ENTITY HAS AN ID AND ISDIRTY)
-        /// </summary>
-        public void SaveChanges()
-        {
-            using (var db = new LiteDatabase(ConnectionStrings))
-            {
-                var col = GetCollection<T>(db);
-
-                if (_entitiesToDelete.Any())
-                {
-                    DeleteEntitiesToDelete(col);
-                }
-
-                if (_entitiesToInsert.Any())
-                {
-                    InsertEntitiesInDb(col);
-                }
-
-                UpdateDirtyTrackedEntities(col);
-            }
-
-            needRefresh = true;
-        }
-
-        private void DeleteEntitiesToDelete(ILiteCollection<T> col)
-        {
-            foreach (var entity in _entitiesToDelete)
-            {
-                col.Delete(entity._id);
-            }
-
-            _entitiesToDelete.Clear();
-        }
-
-        private void UpdateDirtyTrackedEntities(ILiteCollection<T> col)
-        {
-            foreach (var item in _entities)
-            {
-                if (item.IsDirty)
-                {
-                    col.Update(item);
-
-                    item.SetDirty(false);
-                }
-            }
-        }
-
-        private void InsertEntitiesInDb(ILiteCollection<T> col)
-        {
-            col.InsertBulk(_entitiesToInsert);
-
-            AddMissingEntities(_entitiesToInsert);
-
-            _entitiesToInsert.Clear();
-        }
 
         /// <summary>
         /// Forces the refresh. (ALL UNSAVED CHANGE WILL BE CANCEL)
         /// </summary>
         public void ClearContext()
         {
-            _entities.Clear();
-            _entitiesToDelete.Clear();
-            _entitiesToInsert.Clear();
-
-            if (CustomQuery != null)
-            {
-                CustomQuery.Clear();
-            }
-
-            needRefresh = true;
-        }
-
-        /// <summary>
-        /// Populates the entites from database.
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<T> RefreshCache()
-        {
-            using (var db = new LiteDatabase(ConnectionStrings))
-            {
-                var col = GetCollection<T>(db);
-
-                _entities.Clear();
-
-                if (CustomQuery != null && CustomQuery.Any())
-                {
-                    var query = col.Query();
-
-                    foreach (var item in CustomQuery)
-                    {
-                        item(query);
-                    }
-
-                    AddMissingEntities(query.ToEnumerable());
-
-                    CustomQuery.Clear();
-                }
-                else
-                {
-                    AddMissingEntities(col.FindAll());
-                }
-            }
-
-            needRefresh = false;
-
-            return _entities;
+            TrackedEntities.Clear();
         }
 
         #endregion
 
-        /// <summary>
-        /// Adds the missing entities.
-        /// </summary>
-        /// <param name="entitiesToInsert">The entities to insert.</param>
-        private void AddMissingEntities(IEnumerable<T> entitiesToInsert)
+        public void SaveChanges()
         {
-            //add entities if is in database and not in _entities
-            foreach (var item in entitiesToInsert)
+            var changes = ChangeTracker;
+
+            if (changes?.ChangedItems is IEnumerable<IChangeTrackable<T>> trackedChanges && trackedChanges.Any())
             {
-                if (IsAlreadyInDb(item) && !IsAlreadyTrack(item))
+                using (var db = new LiteDatabase(ConnectionStrings))
                 {
-                    _entities.Add(item);
-                }
-            }
-        }
+                    var col = db.GetCollection<T>();
 
-        /// <summary>
-        /// Determines whether [is already track] [the specified item].
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <returns>
-        ///   <c>true</c> if [is already track] [the specified item]; otherwise, <c>false</c>.
-        /// </returns>
-        private bool IsAlreadyTrack(T item)
-        {
-            return _entities.Any(x => x._id == item._id);
-        }
-
-
-        /// <summary>
-        /// Gets the combined datasource. if need to refresh its search on Database
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<T> GetCombinedDatasource()
-        {
-            if (needRefresh)
-            {
-                RefreshCache();
-            }
-
-            return _entities.Concat(_entitiesToInsert);
-        }
-
-        /// <summary>
-        /// Determines whether [is already in database] [the specified entity].
-        /// </summary>
-        /// <param name="entity">The entity.</param>
-        /// <returns>
-        ///   <c>true</c> if [is already in database] [the specified entity]; otherwise, <c>false</c>.
-        /// </returns>
-        private static bool IsAlreadyInDb(T entity)
-        {
-            return entity._id != null;
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>
-        /// An enumerator that can be used to iterate through the collection.
-        /// </returns>
-        public IEnumerator<T> GetEnumerator()
-        {
-            var results = GetCombinedDatasource().GetEnumerator();
-
-            needRefresh = true;
-
-            return results;
-        }
-
-        /// <summary>
-        /// Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            var results = ((IEnumerable)GetCombinedDatasource()).GetEnumerator();
-
-            needRefresh = true;
-
-            return results;
-        }
-
-        public int Count()
-        {
-            using (var db = new LiteDatabase(ConnectionStrings))
-            {
-                var col = GetCollection<T>(db);
-
-                if (CustomQuery != null && CustomQuery.Any())
-                {
-                    var query = col.Query();
-
-                    foreach (var item in CustomQuery)
+                    foreach (IChangeTrackable<T> item in trackedChanges)
                     {
-                        item(query);
+                        switch (item.ChangeTrackingStatus)
+                        {
+                            case ChangeStatus.Added:
+                                col.Upsert((item as T)!);
+                                break;
+                            case ChangeStatus.Deleted:
+                                col.Delete((item as T)!._id);
+                                break;
+                            case ChangeStatus.Changed:
+                                col.Upsert((item as T)!);
+                                break;
+                            default:
+                                break;
+                        }
                     }
-
-                    CustomQuery.Clear();
                 }
-
-                return col.Count();
-            }
-        }
-
-        public static ILiteCollection<T> GetCollection<T>(LiteDatabase liteDatabase) where T : Entity
-        {
-            //get attribute Table
-            var table = (typeof(T)
-                .GetCustomAttributes(typeof(TableAttribute), true)
-                .FirstOrDefault() as TableAttribute)?.Name;
-
-            if (string.IsNullOrEmpty(table))
-            {
-                throw new Exception("Table attribute is missing");
             }
 
-            return liteDatabase.GetCollection<T>(table);
+            ChangeTracker?.AcceptChanges();
         }
     }
 }
