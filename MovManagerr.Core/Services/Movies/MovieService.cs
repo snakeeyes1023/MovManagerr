@@ -29,11 +29,7 @@ namespace MovManagerr.Core.Services.Movies
 
         public IEnumerable<Movie> GetRecent(int limit)
         {
-            return _currentCollection.UseQuery(x =>
-            {
-                x.Limit(limit);
-                BaseOrderQuery(x);
-            }).ToList();
+            return _currentCollection.UseQuery(query => BaseOrderQuery(query).Limit(limit).ToList());
         }
 
         public EventedBackgroundService GetSearchAllMovieOnTmdbService()
@@ -62,17 +58,11 @@ namespace MovManagerr.Core.Services.Movies
 
         public Movie? GetMovieById(ObjectId _id)
         {
-            Movie? movie = _currentCollection.UseQuery(x =>
-            {
-                x.Where(x => x._id == _id).FirstOrDefault();
-
-            }).FirstOrDefault();
+            Movie? movie = _currentCollection.FirstOrDefault(x => x._id == _id);
 
             if (movie != null && !movie.IsSearchedOnTmdb())
             {
                 movie.SearchMovieOnTmdb();
-
-                movie.SetDirty(true);
 
                 _currentCollection.SaveChanges();
             }
@@ -112,7 +102,6 @@ namespace MovManagerr.Core.Services.Movies
                                 if (!movie.DownloadedContents.Any(x => x.FullPath == files[0]))
                                 {
                                     movie.DownloadedContents.Add(new Data.Abstracts.DownloadedContent(files[0]));
-                                    movie.SetDirty();
                                 }
                             }
                             else
@@ -173,7 +162,6 @@ namespace MovManagerr.Core.Services.Movies
                                     Directory.Delete(parentFolder);
 
                                     download.FullPath = newPath;
-                                    movie.SetDirty();
                                 }
                                 else
                                 {
@@ -234,10 +222,7 @@ namespace MovManagerr.Core.Services.Movies
 
         public Movie GetMovieFromSearchMovie(SearchMovie info)
         {
-            var movie = _currentCollection.UseQuery(x =>
-            {
-                x.Where(movie => movie.TmdbId == info.Id);
-            }).ToList().FirstOrDefault();
+            var movie = _currentCollection.FirstOrDefault(movie => movie.TmdbId == info.Id);
 
             // Add the movie if not exists
             if (movie == null)

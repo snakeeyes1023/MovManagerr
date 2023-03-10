@@ -90,8 +90,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations
         public void SaveSettings()
         {
             ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
+            
             contentDbContext.Settings.UpdateEntity(Settings);
-            Settings.SetDirty();
             
             contentDbContext.Settings.SaveChanges();
 

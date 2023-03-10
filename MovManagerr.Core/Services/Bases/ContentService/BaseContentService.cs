@@ -32,14 +32,7 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// <returns></returns>
         public virtual IEnumerable<T> GetAll(int offset, int limit)
         {
-            var entities = _currentCollection.UseQuery(x =>
-             {
-                 x.Skip(offset);
-                 x.Limit(limit);
-                 BaseOrderQuery(x);
-             });
-
-            return entities.ToList();
+            return _currentCollection.UseQuery(query => query.Skip(offset).Limit(limit).ToList());
         }
 
         /// <summary>
@@ -49,12 +42,8 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// <returns></returns>
         public virtual IEnumerable<T> GetCandidates(SearchQuery searchQuery)
         {
-            var entities = _currentCollection.UseQuery(x =>
-            {
-                x.Where(x => x.Name.Contains(searchQuery.EnteredText));
-                x.Skip(searchQuery.Skip);
-                x.Limit(searchQuery.Take);
-            });
+            var entities = _currentCollection
+                .UseQuery(query => query.Where(x => x.Name.Contains(searchQuery.EnteredText)).Skip(searchQuery.Skip).Limit(searchQuery.Take).ToList());
 
             return entities.ToList();
         }
@@ -64,9 +53,9 @@ namespace MovManagerr.Core.Services.Bases.ContentService
         /// </summary>
         /// <param name="results">The results.</param>
         /// <returns></returns>
-        protected virtual void BaseOrderQuery(ILiteQueryable<T> queryable)
+        protected virtual ILiteQueryable<T> BaseOrderQuery(ILiteQueryable<T> queryable)
         {
-            queryable.OrderByDescending(x => x._id);
+            return queryable.OrderByDescending(x => x._id);
         }
 
         /// <summary>
@@ -100,8 +89,7 @@ namespace MovManagerr.Core.Services.Bases.ContentService
             content.DownloadedContents.Add(downloadedContent);
 
             // save the movie in the database
-            _currentCollection.TrackEntity(content);
-            content.SetDirty();
+            _currentCollection.UpdateEntity(content);
             _currentCollection.SaveChanges();
 
             return downloadedContent;

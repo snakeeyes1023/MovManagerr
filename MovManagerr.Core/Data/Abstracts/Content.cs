@@ -22,11 +22,11 @@ namespace MovManagerr.Core.Data.Abstracts
             DownloadedContents = new List<DownloadedContent>();
         }
 
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
 
-        public string Poster { get; set; }
+        public virtual string Poster { get; set; }
 
-        public string GetCorrectedPoster()
+        public virtual string GetCorrectedPoster()
         {
             if (Poster != null && !Poster.StartsWith("http"))
             {
@@ -36,11 +36,11 @@ namespace MovManagerr.Core.Data.Abstracts
             return Poster ?? string.Empty;
         }
 
-        public List<DownloadedContent> DownloadedContents { get; protected set; }
+        public virtual IList<DownloadedContent> DownloadedContents { get; protected set; }
 
-        public List<DownloadableContent> DownloadableContents { get; protected set; }
+        public virtual IList<DownloadableContent> DownloadableContents { get; protected set; }
 
-        public Dictionary<string, object> CustomData { get; protected set; }
+        public virtual Dictionary<string, object> CustomData { get; protected set; }
 
         public bool IsDownloaded
         {

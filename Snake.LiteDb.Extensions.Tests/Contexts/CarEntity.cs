@@ -11,10 +11,10 @@ namespace Snake.LiteDb.Extensions.Tests.Contexts
     [Table("CarEntities")]
     public class CarEntity : Entity
     {
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
 
-        public string Model { get; set; }
+        public virtual string Model { get; set; }
 
-        public string Color { get; set; }
+        public virtual string Color { get; set; }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using ChangeTracking;
 using LiteDB;
+using Newtonsoft.Json;
 using Snake.LiteDb.Extensions.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 namespace Snake.LiteDb.Extensions.Mappers
@@ -41,6 +43,7 @@ namespace Snake.LiteDb.Extensions.Mappers
         {
             if (entity._id == null)
             {
+                entity = entity.AsTrackable(ChangeStatus.Added);
                 TrackedEntities.Add(entity);
             }
             else
@@ -72,8 +75,14 @@ namespace Snake.LiteDb.Extensions.Mappers
             {
                 throw new ArgumentException("Entity must have an id");
             }
-
-            TrackedEntities.Add(entity);
+            if (entity is not IChangeTrackable<T>)
+            {
+                entity = entity.AsTrackable(ChangeStatus.Changed);
+            }
+            if (!TrackedEntities.Any(x => x._id == entity._id))
+            {
+                TrackedEntities.Add(entity);
+            }
         }
 
         /// <summary>
@@ -83,6 +92,15 @@ namespace Snake.LiteDb.Extensions.Mappers
         public void Remove(T entity)
         {
             TrackedEntities.Remove(entity);
+        }
+
+        public void FlushData()
+        {
+            using (var db = new LiteDatabase(ConnectionStrings))
+            {
+                var col = GetCollection(db);
+                col.DeleteAll();
+            }
         }
 
 
@@ -102,33 +120,66 @@ namespace Snake.LiteDb.Extensions.Mappers
         {
             var changes = ChangeTracker;
 
-            if (changes?.ChangedItems is IEnumerable<IChangeTrackable<T>> trackedChanges && trackedChanges.Any())
+            if (changes != null)
             {
                 using (var db = new LiteDatabase(ConnectionStrings))
                 {
-                    var col = db.GetCollection<T>();
+                    var col = GetCollection(db);
 
-                    foreach (IChangeTrackable<T> item in trackedChanges)
+                    foreach (IChangeTrackable<T> item in TrackedEntities)
                     {
-                        switch (item.ChangeTrackingStatus)
-                        {
-                            case ChangeStatus.Added:
-                                col.Upsert((item as T)!);
-                                break;
-                            case ChangeStatus.Deleted:
-                                col.Delete((item as T)!._id);
-                                break;
-                            case ChangeStatus.Changed:
-                                col.Upsert((item as T)!);
-                                break;
-                            default:
-                                break;
-                        }
+                        col.Insert(GetOriginal(item));
                     }
+
+                    foreach (IChangeTrackable<T> item in changes.ChangedItems)
+                    {
+                        col.Update(GetOriginal(item));
+                    }
+
+                    foreach (IChangeTrackable<T> item in changes.DeletedItems)
+                    {
+                        col.Delete(GetOriginal(item)._id);
+                    }
+
                 }
+
             }
 
             ChangeTracker?.AcceptChanges();
+        }
+
+        private static T GetOriginal(IChangeTrackable<T> trackedEntity)
+        {
+            if (trackedEntity is T entity)
+            {
+                JsonSerializerSettings settings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                };
+
+                
+                var json = JsonConvert.SerializeObject((T)entity, settings);
+                T copy = JsonConvert.DeserializeObject<T>(json, settings);
+                copy._id = new ObjectId((trackedEntity as T)!._id);
+                return copy;
+            }
+
+            throw new ArgumentException("");
+        }
+
+        public static ILiteCollection<T> GetCollection(LiteDatabase liteDatabase)
+        {
+            //get attribute Table
+            var table = (typeof(T)
+                .GetCustomAttributes(typeof(TableAttribute), true)
+                .FirstOrDefault() as TableAttribute)?.Name;
+
+            if (string.IsNullOrEmpty(table))
+            {
+                throw new Exception("Table attribute is missing");
+            }
+
+            return liteDatabase.GetCollection<T>(table);
         }
     }
 }

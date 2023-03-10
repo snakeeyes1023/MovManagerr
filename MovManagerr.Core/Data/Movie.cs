@@ -1,5 +1,6 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
 using MovManagerr.Tmdb;
 using Snake.LiteDb.Extensions.Models;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -21,9 +22,9 @@ namespace MovManagerr.Core.Data
         }
 
         #region Tmdb
-        public int TmdbId { get; set; }
-        public TMDbLib.Objects.Search.SearchMovie? TmdbMovie { get; private set; }
-        public DateTime? LastSearchAttempt { get; set; }
+        public virtual int TmdbId { get; set; }
+        public virtual TMDbLib.Objects.Search.SearchMovie? TmdbMovie { get; private set; }
+        public virtual DateTime? LastSearchAttempt { get; set; }
         #endregion
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace MovManagerr.Core.Data
         /// <returns></returns>
         public override DirectoryManager GetDirectoryManager()
         {
-            var preference = Preferences.Instance.Settings.GetContentPreference<Movie>();
+            var preference = Preferences.Instance.Settings.GetContentPreference<MoviePreference>();
 
             var directoryManager = preference.GetDirectoryManager();
 

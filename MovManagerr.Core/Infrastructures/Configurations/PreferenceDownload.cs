@@ -21,9 +21,9 @@
             }
         }
 
-        public bool IsValid { get; set; }
-        public int FromHour { get; set; }
-        public int ToHour { get; set; }
+        public virtual bool IsValid { get; set; }
+        public virtual int FromHour { get; set; }
+        public virtual int ToHour { get; set; }
 
         /// <summary>
         /// Valide si l'heure actuelle est comprise entre les heures de téléchargement

@@ -42,7 +42,7 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
 
                 if (content is not null)
                 {
-                    T? existingContent = _contentDbContext.FirstOrDefault(c => c.Name == content?.Name);
+                    T? existingContent = _contentDbContext.FirstOrDefault(c => c.Name == content.Name);
 
                     if (existingContent == null)
                     {
@@ -51,7 +51,6 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
                     else
                     {
                         existingContent.Merge(content);
-                        existingContent.SetDirty(true);
                     }
                 }
             }

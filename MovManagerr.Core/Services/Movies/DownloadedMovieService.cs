@@ -21,40 +21,23 @@ namespace MovManagerr.Core.Services.Movies
 
         public override IEnumerable<Movie> GetAll(int offset, int limit)
         {
-            return _currentCollection.UseQuery(x =>
-            {
-                x.Where(x => x.DownloadedContents.Count > 0);
-
-                if (limit > 0)
-                {
-                    x.Limit(limit);
-                }
-                if (offset > 0)
-                {
-                    x.Skip(offset);
-                }
-
-                BaseOrderQuery(x);
-            }).ToList().Where(x => x.IsDownloaded);
+            return _currentCollection.UseQuery(query => query.Where(x => x.DownloadedContents.Count > 0).GetRange(offset, limit).ToList());
         }
 
         public override int GetCount()
         {
-            return _currentCollection.UseQuery(x => x.Where(x => x.DownloadedContents.Count > 0)).Count();
+            return _currentCollection.Where(x => x.DownloadedContents.Count > 0).Count();
         }
 
         public override IEnumerable<Movie> GetCandidates(SearchQuery searchQuery)
         {
-            var entities = _currentCollection.UseQuery(x =>
-            {
-                x.Where(x => x.Name.Contains(searchQuery.EnteredText));
-                x.Where(x => x.DownloadedContents.Count > 0);
-
-                x.Skip(searchQuery.Skip);
-                x.Limit(searchQuery.Take);
-            });
-
-            return entities.ToList();
+            return _currentCollection
+                .UseQuery(query => query
+                    .Where(x => x.Name.Contains(searchQuery.EnteredText) && x.DownloadedContents.Count > 0)
+                    .Skip(searchQuery.Skip)
+                    .Limit(searchQuery.Take)
+                    .ToList()
+                );
         }
 
         public void Schedule_DeleteUnfoundedDownload()
@@ -87,12 +70,18 @@ namespace MovManagerr.Core.Services.Movies
                             movie.DownloadedContents.Remove(download);
                         }
 
-                        movie.SetDirty();
                         _currentCollection.UpdateEntity(movie);
                         _currentCollection.SaveChanges();
                     }
                 }
             }
+        }
+    }
+    public static class Tst
+    {
+        public static LiteDB.ILiteQueryableResult<Movie> GetRange(this LiteDB.ILiteQueryable<Movie> query, int offset, int limit)
+        {
+            return query.Skip(offset).Limit(limit);
         }
     }
 }

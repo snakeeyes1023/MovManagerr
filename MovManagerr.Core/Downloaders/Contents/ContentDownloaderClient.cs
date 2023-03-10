@@ -89,7 +89,6 @@ namespace MovManagerr.Core.Downloaders.Contents
             if (task.Content is Data.Movie movie)
             {
                 ContentDbContext.Movies.UpdateEntity(movie);
-                movie.SetDirty();
             }
 
             task.Origin.IsDownloading = false;
@@ -114,7 +113,6 @@ namespace MovManagerr.Core.Downloaders.Contents
             if (task.Content is Movie movie)
             {
                 ContentDbContext.Movies.UpdateEntity(movie);
-                movie.SetDirty();
             }
 
             task.Origin.IsDownloading = false;

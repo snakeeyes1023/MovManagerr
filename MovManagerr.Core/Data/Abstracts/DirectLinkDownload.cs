@@ -2,7 +2,7 @@
 {
     public abstract class DirectLinkDownload : DownloadableContent
     {
-        public string Link { get; set; }
+        public virtual string Link { get; set; }
 
         public override string Size
         {

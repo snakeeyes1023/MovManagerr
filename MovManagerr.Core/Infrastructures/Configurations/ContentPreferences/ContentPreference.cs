@@ -8,20 +8,19 @@ using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Infrastructures.Configurations.ContentPreferences
 {
-    public abstract class ContentPreference<T> : IContentPreference where T : Content
+    public abstract class ContentPreference : IContentPreference
     {
         public abstract string BasePath { get; set; }
 
-        public Dictionary<int, string> GenresPath { get; protected set; }
-        public string UnfoudedGenreFolder { get; set; } = "Autres";
+        public virtual Dictionary<int, string> GenresPath { get; protected set; } = new Dictionary<int, string>();
+        public virtual string UnfoudedGenreFolder { get; set; } = "Autres";
 
-        public string SectionName { get; set; }
+        public virtual string SectionName { get; set; }
 
-        public ContentPreference()
-        {
-            GenresPath = new Dictionary<int, string>();
-            SectionName = $"Configuration : {typeof(T).Name}";
-        }
+        //public ContentPreference()
+        //{
+        //    SectionName = $"Configuration : {GetType().Name}";
+        //}
 
 
         public string GetFolderForGenre(int genreId)

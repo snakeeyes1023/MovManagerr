@@ -3,6 +3,7 @@ using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
 using Snake.LiteDb.Extensions.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
     {
         public CustomSettings()
         {
-            ContentPreferences = new List<IContentPreference>
+            ContentPreferences = new List<ContentPreference>
             {
                 new MoviePreference()
             };
@@ -25,13 +26,27 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             TranscodeConfiguration = new TranscodeConfiguration();
         }
 
-        public List<IContentPreference> ContentPreferences { get; set; }
+        public virtual IList<ContentPreference> ContentPreferences { get; set; }
 
-        public ContentPreference<T> GetContentPreference<T>() where T : Content
+        public virtual IList<string> Langs { get; set; } = new List<string>();
+
+        public virtual IList<M3ULink> Links { get; private set; } = new List<M3ULink>();
+
+        public virtual bool UseOpenAI { get; set; }
+        
+        public virtual string OpenAIApiKey { get; set; }
+
+        public virtual PreferenceDownload DownloadHours { get; private set; }
+
+        public virtual PlexConfiguration PlexConfiguration { get; private set; }
+
+        public virtual TranscodeConfiguration TranscodeConfiguration { get; private set; }
+
+        public T GetContentPreference<T>() where T : ContentPreference
         {
             foreach (var preference in ContentPreferences)
             {
-                if (preference is ContentPreference<T> contentPreference)
+                if (preference is T contentPreference)
                 {
                     return contentPreference;
                 }
@@ -39,19 +54,6 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
             throw new InvalidDataException($"Impossible de trouver une configuration pour le type de contenue : {typeof(T).Name}");
         }
-
-        public List<string> Langs { get; set; } = new List<string>();
-
-        public List<M3ULink> Links { get; private set; } = new List<M3ULink>();
-
-        public bool UseOpenAI { get; set; }
-        public string OpenAIApiKey { get; set; }
-
-        public PreferenceDownload DownloadHours { get; private set; }
-
-        public PlexConfiguration PlexConfiguration { get; private set; }
-
-        public TranscodeConfiguration TranscodeConfiguration { get; private set; }
 
         public void VerifyDriveAccessibility()
         {

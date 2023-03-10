@@ -11,6 +11,12 @@ namespace Snake.LiteDb.Extensions.Mappers
 {
     public partial class LiteDbSet<T> : ILiteDbSet where T : Entity
     {
+        public LiteDbSet()
+        {
+            TrackedEntities = (new List<T>()).AsTrackable();
+        }
+
+
         public UseQueryFunc<T, object> ServerQuery { get; set; }
 
 
@@ -21,46 +27,59 @@ namespace Snake.LiteDb.Extensions.Mappers
         /// </summary>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        public Tout UseQuery<Tout>(UseQueryFunc<T, Tout> query) where Tout : class
+        public Tout UseQuery<Tout>(UseQueryFunc<T, Tout> query) where Tout : struct
         {
             using (var db = new LiteDatabase(ConnectionStrings))
             {
-                var col = db.GetCollection<T>();
+                var col = GetCollection(db);
 
-                Tout result = query(col.Query());
-
-                if (result is IEnumerable<T> entities)
-                {
-                    entities.AsTrackable();
-
-                    
-
-                }
-                else if (result is T entity)
-                {
-                    var trackedEntity = entity.AsTrackable();
-
-                    TrackedEntities.Add(trackedEntity);
-
-                    return (trackedEntity as Tout)!;
-                }
+                return query(col.Query());
             }
         }
 
-        public IEnumerable<T> All()
+        /// <summary>
+        /// Uses the query. (Directly bind to entity)
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        public T UseQuery(UseQueryFunc<T, T> query)
         {
-            UseQuery((query) =>
+            using (var db = new LiteDatabase(ConnectionStrings))
             {
-                return query.FirstOrDefault();
-            });
-            return TrackedEntities;
+                var col = GetCollection(db);
+
+                T result = query(col.Query());
+
+                return AddEntityToTracked(result);
+            }
         }
 
-
-        public IEnumerable<T> ExecuteQuery()
+        public IEnumerable<T> UseQuery(UseQueryFunc<T, IEnumerable<T>> query)
         {
-            TrackedEntities = new List<T>().AsTrackable();
-            return TrackedEntities;
+            using (var db = new LiteDatabase(ConnectionStrings))
+            {
+                var col = GetCollection(db);
+
+                IEnumerable<T> result = query(col.Query());
+
+                var trackedEntities = new List<T>();
+
+                foreach (var entity in result)
+                {
+                    trackedEntities.Add(AddEntityToTracked(entity));
+                }
+
+                return trackedEntities;
+            }
+        }
+
+        public T AddEntityToTracked(T entity)
+        {
+            var trackedEntity = entity.AsTrackable();
+
+            TrackedEntities.Add(trackedEntity);
+
+            return trackedEntity;
         }
     }
 }

@@ -5,7 +5,7 @@ namespace MovManagerr.Core.Data.Abstracts
 {
     public class M3UContentLink : DirectLinkDownload
     {
-        public List<string> Tags { get; set; }
+        public virtual IList<string> Tags { get; set; }
 
         public override void Download(IServiceProvider serviceProvider, Content content)
         {

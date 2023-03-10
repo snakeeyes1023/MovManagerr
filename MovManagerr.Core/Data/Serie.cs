@@ -96,7 +96,8 @@ namespace MovManagerr.Core.Data
 
         public override DirectoryManager GetDirectoryManager()
         {
-            return Preferences.Instance.Settings.GetContentPreference<Episode>().GetDirectoryManager();
+            // return Preferences.Instance.Settings.GetContentPreference<>().GetDirectoryManager();
+            throw new NotImplementedException();
         }
     }
 }

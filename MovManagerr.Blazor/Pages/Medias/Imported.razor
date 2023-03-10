@@ -191,7 +191,6 @@
 
         var instance = downloadedMovieService.GetCurrentCollection();
         instance.UpdateEntity(movie);
-        movie.SetDirty();
         instance.SaveChanges();
     }
 

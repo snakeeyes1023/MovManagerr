@@ -9,9 +9,9 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 {
     public class PlexConfiguration
     {
-        public string ApiKey { get; set; }
+        public virtual string ApiKey { get; set; }
 
-        public List<PathEquivalent> PathEquivalent { get; private set; }
+        public virtual IList<PathEquivalent> PathEquivalent { get; private set; }
 
 
         public PlexConfiguration()
@@ -39,7 +39,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
     public class PathEquivalent
     {
-        public string OnPlex { get; set; } = string.Empty;
-        public string OnDisk { get; set; } = string.Empty;
+        public virtual string OnPlex { get; set; } = string.Empty;
+        public virtual string OnDisk { get; set; } = string.Empty;
     }
 }

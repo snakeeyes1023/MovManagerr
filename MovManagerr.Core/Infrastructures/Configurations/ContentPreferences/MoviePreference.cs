@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Infrastructures.Configurations.ContentPreferences
 {
-    public class MoviePreference : ContentPreference<Movie>
+    public class MoviePreference : ContentPreference
     {
         public MoviePreference()
         {

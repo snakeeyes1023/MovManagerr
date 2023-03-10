@@ -21,10 +21,8 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
 
         protected override void PerformTask(CancellationToken cancellationToken)
         {
-            var getAllMovieToSearch = _contentDbContext.Movies.UseQuery(x =>
-            {
-                x.Where(Movie.GetIsSearchOnTmdbExpressionEnable(false));
-            }).ToList();
+            var getAllMovieToSearch = _contentDbContext.Movies.UseQuery(query => query.Where(Movie.GetIsSearchOnTmdbExpressionEnable(false)).ToList());
+            
             try
 
             {
@@ -42,8 +40,6 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
                         {
                             Interlocked.Increment(ref TotalContentNotFounded);
                         }
-
-                        item.SetDirty();
                     }
                     catch (Exception)
                     {

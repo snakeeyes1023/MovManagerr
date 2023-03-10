@@ -14,14 +14,14 @@ namespace MovManagerr.Core.Data.Abstracts
             Method = method;
             CreationDate = DateTime.Now;
         }
-        public string FullPath { get; set; }
-        public VideoInfo VideoInfo { get; set; }
-        public AudioInfo AudioInfo { get; set; }
-        public string FileSize { get; set; }
+        public virtual string FullPath { get; set; }
+        public virtual VideoInfo VideoInfo { get; set; }
+        public virtual AudioInfo AudioInfo { get; set; }
+        public virtual string FileSize { get; set; }
 
-        public decimal FileSizeAsGb { get; set; }
-        public DownloadableContent? Method { get; protected set; }
-        public DateTime CreationDate { get; protected set; }
+        public virtual decimal FileSizeAsGb { get; set; }
+        public virtual DownloadableContent? Method { get; protected set; }
+        public virtual DateTime CreationDate { get; protected set; }
 
         public void LoadMediaInfo(string fullPath = "")
         {

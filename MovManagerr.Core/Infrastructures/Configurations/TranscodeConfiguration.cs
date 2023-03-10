@@ -5,11 +5,11 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 {
     public class TranscodeConfiguration
     {
-        public decimal MaximalBitrate { get; set; }
-        public decimal MaximalGb { get; set; }
-        public string FFmpegString { get; set; }
+        public virtual decimal MaximalBitrate { get; set; }
+        public virtual decimal MaximalGb { get; set; }
+        public virtual string FFmpegString { get; set; }
 
-        public string DirectoryPath { get; set; }
+        public virtual string DirectoryPath { get; set; }
 
         public TranscodeConfiguration()
         {
