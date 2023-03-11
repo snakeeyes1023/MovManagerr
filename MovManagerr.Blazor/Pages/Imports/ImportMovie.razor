@@ -1,4 +1,5 @@
 ﻿@page "/import/movie"
+@using MovManagerr.Core.Data.Abstracts;
 
 <RadzenCard>
     <h4 class="mb-4">Importer un nouveau film sur Plex</h4>
@@ -74,8 +75,10 @@
 
     int SelectedMovieId { get; set; }
 
+    DownloadedContent DownloadedContent { get; set; }
+
     [Inject] ImportContentService ImportContentService { get; set; }
-    
+
     [Inject] IMovieService MovieService { get; set; }
 
     [Inject] DialogService DialogService { get; set; }
@@ -130,8 +133,8 @@
                 <RadzenButton Text="Annuler" Click="(() => {  mode = ImportMode.None; ds.Close(false); })" ButtonStyle="ButtonStyle.Light" class="me-1 float-end" />
             </div>
         </div>
-        </div>
-    );
+    </div>
+        );
         }
 
 
@@ -156,7 +159,7 @@
 
         var transcodeService = new TranscodeService();
 
-        if (transcodeService.IsTranscodeRequired(path))
+        if (transcodeService.IsTranscodeRequired(DownloadedContent))
         {
             await DialogService.OpenAsync("Transcodage requis", ds =>
     @<div>
@@ -167,7 +170,7 @@
                 <RadzenButton Text="Non" Click="() => { ds.Close(false); }" ButtonStyle="ButtonStyle.Light" class="me-1" />
             </div>
         </div>
-    </div>
+        </div>
     );
         }
 
@@ -222,6 +225,16 @@
             movieName = movieInfo.MovieName;
 
             GetMatchs();
+
+            try
+            {
+                DownloadedContent = new DownloadedContent(fullPath);
+                DownloadedContent.LoadMediaInfo();
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.AddLog("Impossible de charger les informations du fichier", LogType.Error);
+            }
 
             foreach (var match in Matchs)
             {

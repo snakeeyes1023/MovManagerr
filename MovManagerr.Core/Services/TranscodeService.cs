@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services
 {
@@ -13,16 +15,30 @@ namespace MovManagerr.Core.Services
     {
         private readonly TranscodeConfiguration _transcodeConfiguration;
 
-        public TranscodeService() 
+        public TranscodeService()
         {
             _transcodeConfiguration = MovManagerr.Core.Infrastructures.Configurations.Preferences.Instance.Settings.TranscodeConfiguration;
         }
 
-        public bool IsTranscodeRequired(string moviePath)
+        public async Task<bool> IsTranscodeRequired(string moviePath)
         {
             var movieFile = new DownloadedContent(moviePath);
-            movieFile.LoadMediaInfo();
-            return _transcodeConfiguration.IsTranscodeRequired(movieFile);
+
+            try
+            {
+                await Task.Run(() => movieFile.LoadMediaInfo());
+
+                return _transcodeConfiguration.IsTranscodeRequired(movieFile);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public bool IsTranscodeRequired(DownloadedContent content)
+        {
+            return _transcodeConfiguration.IsTranscodeRequired(content);
         }
 
         public void TranscodeContent(DownloadedContent content)

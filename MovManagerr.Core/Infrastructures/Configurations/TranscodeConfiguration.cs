@@ -38,7 +38,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             {
                 return false;
             }
-            return content.FileSizeAsGb > MaximalGb || content.VideoInfo.Bitrate > MaximalBitrate;
+            return content.FileSizeAsGb > MaximalGb || (content.VideoInfo.Bitrate / 1000) > MaximalBitrate;
         }
 
         public bool VerifyFFmpegInstallation()
