@@ -31,7 +31,7 @@ namespace MovManagerr.Tmdb
         /// <returns></returns>
         public async Task<SearchMovie?> GetMovieByNameAndYearAsync(string name, int year)
         {
-            var search = await _client.SearchMovieAsync(name, 0, false, year);
+            var search = await _client.SearchMovieAsync(name, 0, includeAdult : false, year);
             return search.Results.FirstOrDefault();
         }
 
@@ -70,7 +70,7 @@ namespace MovManagerr.Tmdb
 
         public IEnumerable<SearchMovie?>? GetRelatedMovies(string name)
         {
-            Task<SearchContainer<SearchMovie>?> task = Task.Run<SearchContainer<SearchMovie>?>(async () => await _client.SearchMovieAsync(name, 0, true));
+            Task<SearchContainer<SearchMovie>?> task = Task.Run<SearchContainer<SearchMovie>?>(async () => await _client.SearchMovieAsync(name, 0, includeAdult: false));
            return task.Result?.Results;
         }
 
