@@ -16,218 +16,229 @@ else
     <RadzenTemplateForm Data="@Settings" Submit="@((CustomSettings args) => { Submit(args); })">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-12">
-                    @foreach (var preferenceContent in Settings.ContentPreferences)
-                    {
-                        <RadzenFieldset Text="@(preferenceContent.SectionName)">
-                            <div class="row">
-                                <div class="col-md-4 align-items-center d-flex">
-                                    <RadzenLabel Text="Dossier général" />
-                                </div>
-                                <div class="col-md-8">
-                                    <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.BasePath />
-                                </div>
+                <div class="col-9">
+                    <RadzenCard>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @foreach (var preferenceContent in Settings.ContentPreferences)
+                                {
+                                    <RadzenFieldset Text="@(preferenceContent.SectionName)">
+                                        <div class="row">
+                                            <div class="col-md-4 align-items-center d-flex">
+                                                <RadzenLabel Text="Dossier général" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.BasePath />
+                                            </div>
+                                        </div>
+
+                                        <RadzenFieldset Text="Dossier par genre">
+
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="alert alert-info">
+                                                        Mettre les champs vides pour ne pas utiliser de dossier
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @foreach (var genre in preferenceContent.GenresPath)
+                                            {
+                                                <div class="row">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="@(genre.Key.ToString())" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" Change=@((arg) => { preferenceContent.GenresPath[genre.Key] = arg; }) Value=@genre.Value />
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            <div class="row">
+                                                <div class="col-md-4 align-items-center d-flex">
+                                                    <RadzenLabel Text="Dossier pour genre non trouvées" />
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.UnfoudedGenreFolder />
+                                                </div>
+                                            </div>
+                                        </RadzenFieldset>
+
+                                    </RadzenFieldset>
+                                }
                             </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <RadzenFieldset Text="Liste de lien M3U's">
 
-                            <RadzenFieldset Text="Dossier par genre">
-
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="alert alert-info">
-                                            Mettre les champs vides pour ne pas utiliser de dossier
+                                    @foreach (var link in Settings.Links)
+                                    {
+                                        <div class="row">
+                                            <div class="col-md-9">
+                                                <RadzenTextBox style="width: 100%;" @bind-Value=link.Link />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Supprimer" Click="@((arg) =>  Settings.Links.Remove(link))" />
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="more" style="display: inline-block;" Text="Ajouter un lien M3U" Click="@((arg) => Settings.Links.Add(new M3ULink()))" />
                                         </div>
                                     </div>
-                                </div>
-                                @foreach (var genre in preferenceContent.GenresPath)
-                                {
+
+                                </RadzenFieldset>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <RadzenFieldset Text="Utilisation d'intelligence artificielle">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <p>Accélère +++ les importations de films manuellement</p>
+                                            <RadzenLink Style="color: darkred" Path="https://elephas.app/blog/how-to-create-openai-api-keys-cl5c4f21d281431po7k8fgyol0" Text="Où trouver ma clé api ?" target="_blank" />
+                                        </div>
+                                    </div>
+                                    <hr />
                                     <div class="row">
                                         <div class="col-md-4 align-items-center d-flex">
-                                            <RadzenLabel Text="@(genre.Key.ToString())" />
+                                            <RadzenLabel Text="Utiliser Chat-GPT pour trouver les nom de films" />
                                         </div>
                                         <div class="col-md-8">
-                                            <RadzenTextBox style="width: 100%;" Change=@((arg) => { preferenceContent.GenresPath[genre.Key] = arg; }) Value=@genre.Value />
+                                            <RadzenSwitch style="float: right" @bind-Value=Settings.UseOpenAI />
                                         </div>
                                     </div>
-                                }
-
-                                <div class="row">
-                                    <div class="col-md-4 align-items-center d-flex">
-                                        <RadzenLabel Text="Dossier pour genre non trouvées" />
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="Clé API" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenTextBox style="width: 100%;" @bind-Value=Settings.OpenAIApiKey />
+                                        </div>
                                     </div>
-                                    <div class="col-md-8">
-                                        <RadzenTextBox style="width: 100%;" @bind-Value=preferenceContent.UnfoudedGenreFolder />
-                                    </div>
-                                </div>
-                            </RadzenFieldset>
-
-                        </RadzenFieldset>
-                    }
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <RadzenFieldset Text="Liste de lien M3U's">
-
-                        @foreach (var link in Settings.Links)
-                        {
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <RadzenTextBox style="width: 100%;" @bind-Value=link.Link />
-                                </div>
-                                <div class="col-md-3">
-                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Supprimer" Click="@((arg) =>  Settings.Links.Remove(link))" />
-                                </div>
+                                </RadzenFieldset>
                             </div>
-                        }
+                        </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="more" style="display: inline-block;" Text="Ajouter un lien M3U" Click="@((arg) => Settings.Links.Add(new M3ULink()))" />
-                            </div>
-                        </div>
+                                <RadzenFieldset Text="Configuration Plex">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <RadzenLink Style="color: darkred" Path="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" Text="Où trouver mon x-plex-token ?" target="_blank" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="X-Token" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenTextBox style="width: 100%;" @bind-Value=Settings.PlexConfiguration.ApiKey />
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    @foreach (var equivalent in Settings.PlexConfiguration.PathEquivalent)
+                                    {
+                                        <div class="row">
+                                            <div class="col-md-5">
+                                                <RadzenTextBox style="width: 100%;" Placeholder="Chemin sur plex (ex: /media/nas/film)" @bind-Value=equivalent.OnPlex />
+                                            </div>
+                                            <div class="col-md-5">
+                                                <RadzenTextBox style="width: 100%;" Placeholder="Équivalent sur cette machine (ex: /192.168.0.11/movie)" @bind-Value=equivalent.OnDisk />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Supprimer" Click="@((arg) =>  Settings.PlexConfiguration.PathEquivalent.Remove(equivalent))" />
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="more" style="display: inline-block;" Text="Ajouter un équivalent" Click="@((arg) => Settings.PlexConfiguration.PathEquivalent.Add(new PathEquivalent()))" />
+                                        </div>
+                                    </div>
 
-                    </RadzenFieldset>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <RadzenFieldset Text="Utilisation d'intelligence artificielle">
-                        <div class="row">
-                            <div class="col-12">
-                                <p>Accélère +++ les importations de films manuellement</p>
-                                <RadzenLink Style="color: darkred" Path="https://elephas.app/blog/how-to-create-openai-api-keys-cl5c4f21d281431po7k8fgyol0" Text="Où trouver ma clé api ?" target="_blank" />
+                                </RadzenFieldset>
                             </div>
                         </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="Utiliser Chat-GPT pour trouver les nom de films" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenSwitch style="float: right" @bind-Value=Settings.UseOpenAI />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="Clé API" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.OpenAIApiKey />
-                            </div>
-                        </div>
-                    </RadzenFieldset>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <RadzenFieldset Text="Configuration Plex">
-                        <div class="row">
-                            <div class="col-12">
-                                <RadzenLink Style="color: darkred" Path="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" Text="Où trouver mon x-plex-token ?" target="_blank" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="X-Token" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.PlexConfiguration.ApiKey />
-                            </div>
-                        </div>
-                        <hr />
-                        @foreach (var equivalent in Settings.PlexConfiguration.PathEquivalent)
-                        {
-                            <div class="row">
-                                <div class="col-md-5">
-                                    <RadzenTextBox style="width: 100%;" Placeholder="Chemin sur plex (ex: /media/nas/film)" @bind-Value=equivalent.OnPlex />
-                                </div>
-                                <div class="col-md-5">
-                                    <RadzenTextBox style="width: 100%;" Placeholder="Équivalent sur cette machine (ex: /192.168.0.11/movie)" @bind-Value=equivalent.OnDisk />
-                                </div>
-                                <div class="col-md-2">
-                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Supprimer" Click="@((arg) =>  Settings.PlexConfiguration.PathEquivalent.Remove(equivalent))" />
-                                </div>
-                            </div>
-                        }
                         <div class="row">
                             <div class="col-md-12">
-                                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="more" style="display: inline-block;" Text="Ajouter un équivalent" Click="@((arg) => Settings.PlexConfiguration.PathEquivalent.Add(new PathEquivalent()))" />
+                                <RadzenFieldset Text="Transcodage">
+
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <RadzenButton Click="(() => VerifyFFmpegInstallation())" Text="Vérifier l'installation de FFmpeg"></RadzenButton>
+                                        </div>
+                                    </div>
+
+                                    @if (!FFmpegInstalled)
+                                    {
+                                        <div class="alert alert-warning">
+                                            FFmpeg n'a pas été trouver aucun transcodage ne sera effectué (un redémarrage est parfois nécéssaire)
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-success">
+                                            FFmpeg est bien installé
+                                        </div>
+                                    }
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="alert alert-warning">
+                                                Laisser vide pour ne pas utiliser de dossier spécifique
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="Dossier de transcodage" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenTextBox style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.DirectoryPath />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="FFmpeg config" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenTextBox style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.FFmpegString />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="Bitrate maximal (Si le fichier est plus gros à l'importation il sera transcodé)" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenNumeric style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.MaximalBitrate />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="Taille maximal du fichié (Si le fichier est plus gros à l'importation il sera transcodé)" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenNumeric style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.MaximalGb />
+                                        </div>
+                                    </div>
+                                </RadzenFieldset>
                             </div>
                         </div>
-
-                    </RadzenFieldset>
+                    </RadzenCard>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <RadzenFieldset Text="Transcodage">
-
-                        <div class="row">
-                            <div class="col-12">
-                                <RadzenButton Click="(() => VerifyFFmpegInstallation())" Text="Vérifier l'installation de FFmpeg"></RadzenButton>
+                <div class="col-3">
+                    <RadzenCard class=" position-fixed">
+                        <div class="row justify-content-center my-0">
+                            <div class="col-md-12 d-flex align-items-end justify-content-center">
+                                <RadzenButton class="mr-1" ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" Text="Annuler" Click="@Cancel" />
                             </div>
                         </div>
-
-                        @if (!FFmpegInstalled)
-                        {
-                            <div class="alert alert-warning">
-                                FFmpeg n'a pas été trouver aucun transcodage ne sera effectué (un redémarrage est parfois nécéssaire)
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-success">
-                                FFmpeg est bien installé
-                            </div>
-                        }
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="alert alert-warning">
-                                    Laisser vide pour ne pas utiliser de dossier spécifique
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="Dossier de transcodage" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.DirectoryPath />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="FFmpeg config" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenTextBox style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.FFmpegString />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="Bitrate maximal (Si le fichier est plus gros à l'importation il sera transcodé)" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenNumeric style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.MaximalBitrate />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 align-items-center d-flex">
-                                <RadzenLabel Text="Taille maximal du fichié (Si le fichier est plus gros à l'importation il sera transcodé)" />
-                            </div>
-                            <div class="col-md-8">
-                                <RadzenNumeric style="width: 100%;" @bind-Value=Settings.TranscodeConfiguration.MaximalGb />
-                            </div>
-                        </div>
-                    </RadzenFieldset>
-                </div>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-                    <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer les configurations" />
-                    <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Annuler" Click="@Cancel" />
+                    </RadzenCard>
                 </div>
             </div>
         </div>
     </RadzenTemplateForm>
+
 }
 
 @code {

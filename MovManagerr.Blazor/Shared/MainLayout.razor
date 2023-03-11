@@ -14,23 +14,26 @@
             </div>
         </RadzenHeader>
         <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+            @{
+                bool isValid = Preferences.Instance.IsValid();
+            }
             <RadzenPanelMenu>
-                @{
-                    bool isValid = Preferences.Instance.IsValid();
-                }
-                <RadzenPanelMenuItem Visible=false Text="Rechercher un film (beta)" Icon="home" Path="/search/movie" />
-                <RadzenPanelMenuItem Visible=isValid Text="Voir mes films" Icon="list" Path="/imported/movie" />
-                <RadzenPanelMenuItem Visible=isValid Text="Transferer des films" Icon="downloading" Path="/import/movie" />
-                <RadzenPanelMenuItem Visible=false Text="Gestion des téléchargements" Icon="downloading" Path="/content/downloads" />
-                <RadzenPanelMenuItem Visible=false Text="Mes listes" Icon="list" Path="/mylists" />
-                <RadzenPanelMenuItem Visible=isValid Text="Importation en batch" Icon="list" Path="/scan/movie" />
+                <RadzenPanelMenuItem Text="Films">
+                    <RadzenPanelMenuItem Visible=isValid Text="Voir mes films" Icon="list" Path="/imported/movie" />
+                    <RadzenPanelMenuItem Visible=isValid Text="Transferer des films" Icon="downloading" Path="/import/movie" />
+                    <RadzenPanelMenuItem Visible=isValid Text="Importation en batch" Icon="list" Path="/scan/movie" />
+                </RadzenPanelMenuItem>
+
                 <RadzenPanelMenuItem Visible=isValid Text="Afficher les tâches en cours" Icon="list" Path="/HangfireContainer" />
-                <RadzenPanelMenuItem Text="Paramètre" Icon="settings" Path="/config/general" />
+
+                <RadzenPanelMenuItem Text="Paramètre">
+                    <RadzenPanelMenuItem Text="Général" Icon="settings" Path="/config/general" />
+                </RadzenPanelMenuItem>
             </RadzenPanelMenu>
         </RadzenSidebar>
         <RadzenBody>
 
-            <RadzenSplitter Orientation="Orientation.Vertical" style="height: 85vh;">
+            <RadzenSplitter Orientation="Orientation.Vertical" style="height: 90vh;">
                 <RadzenSplitterPane Size="90%">
                     <RadzenSplitter>
                         <RadzenSplitterPane>
@@ -92,7 +95,8 @@
     {
         if (HybridSupport.IsElectronActive)
         {
-            try {
+            try
+            {
                 await updateManager.CheckForUpdates();
             }
             catch (Exception ex)
