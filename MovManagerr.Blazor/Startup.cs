@@ -196,31 +196,6 @@ namespace MovManagerr.Blazor
                     await mainWindow.WebContents.Session.ClearCacheAsync();
 
                     mainWindow.OnReadyToShow += () => mainWindow.Show();
-
-                    Electron.IpcMain.On("hideToSystemTray", (e) =>
-                    {
-                        mainWindow.Hide();
-
-                        if (Electron.Tray.MenuItems.Count == 0)
-                        {
-                            var menu = new MenuItem[]
-                            {
-                                new MenuItem
-                                {
-                                    Label = "Ouvrir la fenêtre",
-                                    Click = () => mainWindow.Show()
-                                },
-                                new MenuItem
-                                {
-                                    Label = "Quitter",
-                                    Click = () => Electron.App.Exit()
-                                }
-                            };
-
-                            Electron.Tray.Show(@"/resources/bin/wwwroot/assets/icons/icon.png", menu);
-                            Electron.Tray.SetToolTip("Movmanager - Gestion de contenu multimédia.");
-                        }
-                    });
                 });
             }
         }
