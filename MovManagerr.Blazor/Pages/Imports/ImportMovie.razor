@@ -1,9 +1,4 @@
 ﻿@page "/import/movie"
-@using MovManagerr.Core.Helpers.Extractors;
-@using MovManagerr.Core.Tasks;
-@using System.IO;
-@using OpenAI_API;
-@using TMDbLib.Objects.Search;
 
 <RadzenCard>
     <h4 class="mb-4">Importer un nouveau film sur Plex</h4>
@@ -43,7 +38,7 @@
                             <div class="row">
                                 <div class="col-md-8 text-truncate">
                                     <b>
-                                        @(movie.OriginalTitle)
+                                        @(movie.GetValidName())
                                     </b>
                                 </div>
                                 <div style="color: dimgray">
