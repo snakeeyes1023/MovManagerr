@@ -1,4 +1,5 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
+using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Tmdb;
 using Snake.LiteDb.Extensions.Models;
@@ -32,14 +33,14 @@ namespace MovManagerr.Core.Data
         /// <returns></returns>
         public override string GetPath(bool createDirectory = true)
         {
-            var title = string.IsNullOrEmpty(TmdbMovie?.OriginalTitle) ? Name : TmdbMovie.OriginalTitle;
+            var title = TmdbMovie?.GetValidName() ?? Name;
+
             var year = TmdbMovie != null && TmdbMovie.ReleaseDate.HasValue ? TmdbMovie.ReleaseDate.Value.Year.ToString() : "0000";
 
             char[] invalidChars = Path.GetInvalidPathChars();
             var path = string.Join("_", title.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
 
             // replace  by nothing in Regex.Replace(path, @"[ ]{2,}", " ");
-
             path = Regex.Replace(path, @"[ ]{2,}", " ").Replace(":", string.Empty);
             path = $"{path} ({year})";
 
@@ -158,7 +159,7 @@ namespace MovManagerr.Core.Data
 
         public static Movie CreateFromSearchMovie(SearchMovie searchMovie)
         {
-            return new Movie(searchMovie.OriginalTitle, searchMovie.PosterPath)
+            return new Movie(searchMovie.GetValidName(), searchMovie.PosterPath)
             {
                 TmdbId = searchMovie.Id,
                 TmdbMovie = searchMovie
