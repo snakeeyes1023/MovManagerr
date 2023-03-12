@@ -1,5 +1,7 @@
 ﻿using Hangfire;
 using MovManagerr.Core.Data;
+using MovManagerr.Core.Data.Abstracts;
+using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
@@ -8,6 +10,8 @@ using MovManagerr.Tmdb;
 using Plex.Api.Factories;
 using Plex.Library.ApiModels.Accounts;
 using Plex.Library.ApiModels.Libraries;
+using Plex.Library.ApiModels.Servers;
+using Plex.ServerApi.PlexModels.Account;
 using Plex.ServerApi.PlexModels.Media;
 using System;
 using System.Collections.Generic;
@@ -15,6 +19,8 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
+using TMDbLib.Client;
+using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Importers
@@ -27,81 +33,146 @@ namespace MovManagerr.Core.Importers
 
         private readonly IMovieService _movieService;
 
-        public PlexImporter(IPlexFactory plexFactory, IContentDbContext contentDbContext, IMovieService movieService) : base(contentDbContext)
+        private readonly IDownloadedMovieService _downloadedMovieService;
+
+        public PlexImporter(
+            IPlexFactory plexFactory,
+            IContentDbContext contentDbContext,
+            IMovieService movieService,
+            IDownloadedMovieService downloadedMovieService) : base(contentDbContext)
         {
             _plexFactory = plexFactory;
             _plexConfiguration = Preferences.Instance.Settings.PlexConfiguration;
             _movieService = movieService;
+            _downloadedMovieService = downloadedMovieService;
         }
 
         public override async Task Import(CancellationToken cancellationToken)
         {
             SimpleLogger.AddLog("Importation des medias Plex en cours...", LogType.Info);
-            TmdbClientService tmdbClient = Preferences.GetTmdbInstance();
 
             // or use and Plex Auth token
-            PlexAccount account = _plexFactory
+            Plex.Library.ApiModels.Accounts.PlexAccount account = _plexFactory
                 .GetPlexAccount(_plexConfiguration.ApiKey);
 
             // Get my server
             var servers = await account.Servers();
-            var myServer = servers.Where(c => c.Owned == 1).FirstOrDefault();
+            var myServers = servers?.Where(c => c.Owned == 1);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (myServer != null)
+            if (IsValidServer(myServers))
             {
-                List<LibraryBase> libraries = await myServer.Libraries();
+                List<DownloadedContent> contentDownloadeds = _downloadedMovieService.GetAll()?.SelectMany(x => x.DownloadedContents)?.ToList() ?? new List<DownloadedContent>();
 
-                foreach (LibraryBase library in libraries)
+                Server server = myServers!.FirstOrDefault()!;
+                
+                foreach (LibraryBase library in await server.Libraries())
                 {
                     if (library is MovieLibrary movieLibrary)
                     {
-                        var mediasContainer = await movieLibrary.AllMovies("addedAt:desc", count: 40000);
-
-                        foreach (Metadata metadata in mediasContainer.Media)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            string originalTitle = metadata.OriginalTitle ?? metadata.Title;
-                            int year = metadata.Year;
-
-                            SearchMovie? searchMovie = await tmdbClient.GetMovieByNameAndYearAsync(originalTitle, year);
-
-                            if (searchMovie != null)
-                            {
-                                Movie movie = _movieService.GetMovieFromSearchMovie(searchMovie);
-
-                                string fullPath = string.Empty;
-
-                                foreach (var media in metadata.Media)
-                                {
-                                    foreach (var part in media.Part)
-                                    {
-                                        fullPath = _plexConfiguration.GetEquivalentPath(part.File);
-
-                                        if (!movie.DownloadedContents.Any(x => x.FullPath == fullPath))
-                                        {
-                                            _movieService.CreateDownloadedContent(movie, fullPath, fullPath);
-                                            SimpleLogger.AddLog($"Le film {originalTitle} a bien été importé!");
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                SimpleLogger.AddLog($"Impossible de trouver le film {originalTitle} ({year}) dans la base de donnée de TMDb", LogType.Warning);
-                            }
-                        }
+                        await ProceededMovieLibrary(contentDownloadeds, movieLibrary, cancellationToken);
                     }
                 }
             }
+            
+            SimpleLogger.AddLog(new NotificationLog("Tâche terminé", "Les films de plex ont été importé dans la base de donnée."), LogType.Info);
+        }
+
+        private async Task ProceededMovieLibrary(List<DownloadedContent> contentDownloadeds, MovieLibrary movieLibrary, CancellationToken cancellationToken)
+        {
+            var tmdbService = Preferences.GetTmdbInstance();
+            int batchSize = 50;
+            int startIndex = 0;
+            int totalCount = 1; // nombre total de films dans la bibliothèque est directement récupéré dans la première requête
+            int processedCount = 0;
+
+            while (processedCount < totalCount)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var mediasContainer = await movieLibrary.AllMovies("addedAt:desc", startIndex, batchSize);
+                var mediaList = mediasContainer.Media.ToList();                
+                totalCount = mediasContainer.TotalSize;
+                
+                int batchCount = mediaList.Count;
+
+                if (batchCount == 0) break; // fin de la liste de films
+
+                for (int i = 0; i < batchCount; i++)
+                {
+                    var metadata = mediaList[i];
+                    await ProceedMovieMetaData(tmdbService, metadata, contentDownloadeds);
+                    processedCount++;
+                }
+
+                startIndex += batchCount;
+            }
+        }
+
+        private bool IsValidServer(IEnumerable<Server>? myServers)
+        {
+            if (myServers == null || myServers.Count() <= 0)
+            {
+                SimpleLogger.AddLog("Aucun serveur Plex trouvé. Vous devez en être le propriétaire pour lancer l'importation");
+                return false;
+            }
+            if (myServers.Count() > 1)
+            {
+                SimpleLogger.AddLog("Plusieurs serveurs Plex ont été trouvé. Seul le premier sera utilisé pour l'importation");
+                return true;
+            }
+            
+            return true;
+        }
+
+        private async Task ProceedMovieMetaData(TmdbClientService tmdbClient, Metadata metadata, List<DownloadedContent> contentDownloadeds)
+        {
+            foreach (var fullpath in GetContentPaths(metadata))
+            {
+                if (!contentDownloadeds.Any(x => x.FullPath == fullpath))
+                {
+                    (string title, int year) = GetTitleAndYearFromMetadata(metadata);
+
+                    if (await tmdbClient.GetMovieByNameAndYearAsync(title, year) is SearchMovie searchMovie)
+                    {
+                        Data.Movie movie = _movieService.GetMovieFromSearchMovie(searchMovie);
+                        _movieService.CreateDownloadedContent(movie, fullpath, fullpath);
+                        SimpleLogger.AddLog($"Le film {title} a bien été importé!");
+                    }
+                    else
+                    {
+                        SimpleLogger.AddLog($"Impossible de trouver le film {title} ({year}) dans la base de donnée de TMDb", LogType.Warning);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<string> GetContentPaths(Metadata metadata)
+        {
+            foreach (var media in metadata.Media)
+            {
+                foreach (var part in media.Part)
+                {
+                    yield return _plexConfiguration.GetEquivalentPath(part.File);
+                }
+            }
+        }
+
+        private static (string, int) GetTitleAndYearFromMetadata(Metadata metadata)
+        {
+            string title;
+
+            if (!string.IsNullOrWhiteSpace(metadata.OriginalTitle) && MovieTmdbExtensions.IsValidFolder(metadata.OriginalTitle))
+            {
+                title = metadata.OriginalTitle;
+            }
             else
             {
-                throw new InvalidOperationException("Aucun server trouvé sur le compte Plex. Vous devez en être le propriétaire");
+                title = metadata.Title;
             }
 
-            SimpleLogger.AddLog(new NotificationLog("Tâche terminé", "Les films de plex ont été importé dans la base de donnée."), LogType.Info);
+            return (title, metadata.Year);
         }
     }
 }
