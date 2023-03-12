@@ -136,6 +136,14 @@ else
                                             <RadzenTextBox style="width: 100%;" @bind-Value=Settings.PlexConfiguration.ApiKey />
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-md-4 align-items-center d-flex">
+                                            <RadzenLabel Text="Déclencher l'analyse des médias lors de déplacement de fichiés" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <RadzenSwitch style="float: right" @bind-Value=Settings.PlexConfiguration.TriggerScanOnMoved />
+                                        </div>
+                                    </div>
                                     <hr />
                                     @foreach (var equivalent in Settings.PlexConfiguration.PathEquivalent)
                                     {

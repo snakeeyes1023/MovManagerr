@@ -30,6 +30,7 @@ using MovManagerr.Core.Infrastructures.Configurations;
 using Microsoft.Extensions.Logging;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Importers;
+using MovManagerr.Core.Helpers.PlexScan;
 
 namespace MovManagerr.Blazor
 {
@@ -147,6 +148,7 @@ namespace MovManagerr.Blazor
             services.AddScoped<ContextMenuService>();
             services.AddScoped<ImportContentService>();
             services.AddScoped<PlexImporter>();
+            services.AddScoped<PlexScanHelper>();
 
             services.AddSingleton<IContentDbContext, ContentDbContext>();
         }

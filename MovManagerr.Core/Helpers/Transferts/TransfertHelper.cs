@@ -1,4 +1,6 @@
 ﻿using Hangfire;
+using MovManagerr.Core.Helpers.PlexScan;
+using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Tasks;
 using System;
@@ -14,10 +16,14 @@ namespace MovManagerr.Core.Helpers.Transferts
         public string _Destination { get; set; }
         public string _Origin { get; set; }
         public bool _Replace { get; set; }
+        public bool _TriggerPlexScan { get; set; }
 
         public static TransfertHelper New()
         {
-            return new TransfertHelper();
+            return new TransfertHelper()
+            {
+                _TriggerPlexScan = true
+            };
         }
 
         public TransfertHelper To(string destinationPath)
@@ -34,6 +40,12 @@ namespace MovManagerr.Core.Helpers.Transferts
         public TransfertHelper Replace(bool replace)
         {
             _Replace = replace;
+            return this;
+        }
+
+        public TransfertHelper TriggerPlexScan(bool enable)
+        {
+            _TriggerPlexScan = enable;
             return this;
         }
 
@@ -56,6 +68,7 @@ namespace MovManagerr.Core.Helpers.Transferts
                 _Destination = helper._Destination;
                 _Origin = helper._Origin;
                 _Replace = helper._Replace;
+                _TriggerPlexScan = helper._TriggerPlexScan;
             }
 
             SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} en cours...");
@@ -72,6 +85,16 @@ namespace MovManagerr.Core.Helpers.Transferts
             }
 
             File.Move(_Origin, _Destination, _Replace);
+
+            var plexConfiguration = Preferences.Instance.Settings.PlexConfiguration;
+            
+            if (_TriggerPlexScan
+                && plexConfiguration.IsConfigured
+                && plexConfiguration.TriggerScanOnMoved)
+            {
+                BackgroundJob.Enqueue<PlexScanHelper>(x => x.Scan());
+            }
+
 
             SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} terminée", LogType.Info);
         }
