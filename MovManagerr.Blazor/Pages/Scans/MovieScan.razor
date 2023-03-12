@@ -1,4 +1,6 @@
 ﻿@page "/scan/movie"
+@using Hangfire;
+@using MovManagerr.Core.Helpers.PlexScan;
 @using MovManagerr.Core.Importers;
 
 <div class="alert alert-warning">
@@ -39,6 +41,26 @@
     </div>
 </div>
 
+<div class="row my-4">
+    <div class="col-12">
+        <RadzenCard>
+            <h3>
+                Déclencher la recherche des nouvelles importations sur Plex (Beta)
+            </h3>
+            <p>
+                Déclenche l'anlyse des nouveaux médias sur Plex sur tous les serveurs et bibliothèques
+            </p>
+
+            @if (!Settings.IsPlexConfigure())
+            {
+                    <p class="error">Vous devez d'abord entré votre jeton Plex dans les configurations</p>
+            }
+
+            <RadzenButton class="mt-2" Disabled=!Settings.IsPlexConfigure() ButtonStyle="ButtonStyle.Warning" Icon="search" Click=@(args => ScanPlexLibraries()) Text="Analyser les bibliothèques" />
+        </RadzenCard>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         <RadzenCard>
@@ -56,6 +78,7 @@
 @code {
     [Inject] public IMovieService MovieService { get; set; }
     [Inject] public PlexImporter PlexImporter { get; set; }
+    [Inject] public PlexScanHelper PlexScanHelper { get; set; }
 
     protected MovManagerr.Core.Infrastructures.Configurations.CustomSettings Settings { get; set; }
 
@@ -76,6 +99,12 @@
     {
         PlexImporter.Schedule_Import();
         SimpleLogger.AddLog("L'importation des films à été mis dans la liste d'attente");
+    }
+
+    void ScanPlexLibraries()
+    {
+        BackgroundJob.Enqueue<PlexScanHelper>(x => x.Scan());
+        SimpleLogger.AddLog("L'analise des bibliothèques Plex à été mis dans la liste d'attente");
     }
 
     async Task StartScan()

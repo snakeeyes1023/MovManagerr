@@ -13,6 +13,16 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
         public List<PathEquivalent> PathEquivalent { get; private set; }
 
+        public bool TriggerScanOnMoved { get; set; }
+
+        public bool IsConfigured
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(ApiKey);
+            }
+        }
+
 
         public PlexConfiguration()
         {
