@@ -15,11 +15,15 @@ namespace MovManagerr.Core.Data.Abstracts
             CreationDate = DateTime.Now;
         }
         public string FullPath { get; set; }
+
         public VideoInfo VideoInfo { get; set; }
         public AudioInfo AudioInfo { get; set; }
-        public string FileSize { get; set; }
+        public OverallInfo OverallInfo { get; set; }
 
+
+        public string FileSize { get; set; }
         public decimal FileSizeAsGb { get; set; }
+
         public DownloadableContent? Method { get; protected set; }
         public DateTime CreationDate { get; protected set; }
 
@@ -38,9 +42,11 @@ namespace MovManagerr.Core.Data.Abstracts
             var mi = new MediaInfo();
 
             mi.Open(fullPath);
+            
             VideoInfo = new VideoInfo(mi);
             AudioInfo = new AudioInfo(mi);
-
+            OverallInfo = new OverallInfo(mi);
+            
             FileSize = mi.Get(StreamKind.General, 0, "FileSize/String2");
             long.TryParse(mi.Get(0, 0, "FileSize"), out long fileSizeLong);
             FileSizeAsGb = Decimal.Divide(fileSizeLong, 1000000000);
@@ -71,20 +77,22 @@ namespace MovManagerr.Core.Data.Abstracts
     {
         public static decimal GetMaxBitrate(this Content content)
         {
-            var maxBitrate = 0;
+            decimal maxBitrate = 0;
 
             if (content.DownloadedContents != null)
             {
                 foreach (var downloaded in content.DownloadedContents)
                 {
-                    if (maxBitrate < (downloaded.VideoInfo?.Bitrate ?? 0))
+                    var bitrate = downloaded.OverallInfo?.BitrateInMbs;
+
+                    if (bitrate != null && bitrate.Value > maxBitrate)
                     {
-                        maxBitrate = downloaded.VideoInfo?.Bitrate ?? 0;
+                        maxBitrate = bitrate.Value;
                     }
                 }
             }
 
-            return decimal.Divide(maxBitrate, 1000000);
+            return maxBitrate;
         }
 
         /// <summary>

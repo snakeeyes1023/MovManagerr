@@ -13,9 +13,9 @@ namespace MovManagerr.Core.Infrastructures.Configurations
 
         public TranscodeConfiguration()
         {
-            MaximalBitrate = 10000;
+            MaximalBitrate = 8000;
             MaximalGb = 8;
-            FFmpegString = "-i \"{INTPUTFILE}\" -crf 18 -map 0 -acodec copy -scodec copy -c:v libx264 -threads 0 -preset veryfast \"{OUTPUTFILE}\"";
+            FFmpegString = "-i \"{INTPUTFILE}\" -crf 18 -map 0 -acodec copy -scodec copy -c:v libx264 -b:v {MAXIMALBITRATE}k -maxrate {MAXIMALBITRATE}k -bufsize {MAXIMALBITRATE}k -threads 0 -preset veryfast \"{OUTPUTFILE}\"";
         }
 
         public string GetTranscodeFFmpegString(string inputFile, string outputFile)
@@ -38,7 +38,7 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             {
                 return false;
             }
-            return content.FileSizeAsGb > MaximalGb || (content.VideoInfo.Bitrate / 1000) > MaximalBitrate;
+            return content.FileSizeAsGb > MaximalGb || (content.OverallInfo.BitrateInMbs * 100) > MaximalBitrate;
         }
 
         public bool VerifyFFmpegInstallation()
