@@ -66,3 +66,138 @@ a, .btn-link {
         border: 1px solid #d6d6d6 !important
     }
 
+
+
+
+/**================== Content-Importer =========== **/
+.movie-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+    .movie-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .movie-card img {
+        width: 100%;
+        height: auto;
+    }
+
+    .movie-card .movie-card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+        width: 100%;
+        height: 0;
+        transition: 0.5s ease;
+    }
+
+    .movie-card:hover .movie-card-overlay {
+        height: 100%;
+    }
+
+    .movie-card .movie-card-overlay .movie-card-title {
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+.selected {
+    border: 3px solid #808080 !important;
+}
+
+.loader-container {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.loader {
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #808080;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -60px;
+    margin-left: -60px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/** =================== MAIN layout ============== **/
+
+.log-dropdown {
+    position: absolute;
+    bottom: 45px;
+    left: 0;
+    right: 0;
+    background-color: #f1f1f1;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    height: 300px;
+    overflow-y: scroll;
+}
+
+    .log-dropdown a {
+        color: black;
+        padding: 8px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+        .log-dropdown a:hover {
+            background-color: #ddd;
+        }
+
+
+.link-button {
+    background: none;
+    border: none;
+    color: #0F4C81;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+    padding: 0;
+}
+
+    .link-button:hover {
+        color: darkblue;
+        text-decoration: none;
+    }
+
+    .link-button:focus {
+        outline: none;
+    }
