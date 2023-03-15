@@ -32,43 +32,31 @@
             </RadzenPanelMenu>
         </RadzenSidebar>
         <RadzenBody>
-
-            <RadzenSplitter Orientation="Orientation.Vertical" style="height: 90vh;">
-                <RadzenSplitterPane Size="90%">
-                    <RadzenSplitter>
-                        <RadzenSplitterPane>
-                            <MovManagerr.Blazor.Components.Updates.UpdateManager />
-                            <div style="overflow-y: scroll; overflow-x: hidden; height: 100%">
-                                <div class="p-2">
-                                    @Body
-                                </div>
-                            </div>
-
-                        </RadzenSplitterPane>
-                    </RadzenSplitter>
-                </RadzenSplitterPane>
-                <RadzenSplitterPane>
-                    <RadzenSplitter>
-                        <RadzenSplitterPane>
-                            <div style="overflow-y: scroll; overflow-x: hidden; height: 100%; scroll-behavior: smooth;">
-                                <Logs></Logs>
-                            </div>
-                        </RadzenSplitterPane>
-                    </RadzenSplitter>
-                </RadzenSplitterPane>
-            </RadzenSplitter>
-
+            @Body
         </RadzenBody>
         <RadzenFooter Style="max-height: 45px">
-            Version actuelle : <a href="@actualVersion">@actualVersion</a>. Dernière syncronisation : @(LastSync.ToShortDateString()) à @(LastSync.ToShortTimeString()). <a href="" @onclick="(() => Syncronize())">Vérifier les mises à jour</a>
+            <button class="link-button" @onclick=ToggleLogDropdown>@(logDropdownVisible ? "Cacher les logs" : "Voir les logs")</button> - Version actuelle : <button class="link-button">@actualVersion</button> - Dernière syncronisation : @(LastSync.ToShortDateString()) à @(LastSync.ToShortTimeString()). <button class="link-button" @onclick="(() => Syncronize())">Vérifier les mises à jour</button>
 
+            <div class="log-dropdown" style="display:@(logDropdownVisible ? "block" : "none")">
+                <Logs></Logs>
+            </div>
 
             <MovManagerr.Blazor.Components.Updates.UpdateManager @ref=updateManager />
         </RadzenFooter>
     </RadzenLayout>
 </div>
 
+
 @code {
+
+    private bool logDropdownVisible = false;
+
+
+    private void ToggleLogDropdown()
+    {
+        logDropdownVisible = !logDropdownVisible;
+    }
+
     bool sidebar1Expanded = true;
 
     MovManagerr.Blazor.Components.Updates.UpdateManager updateManager;
@@ -81,13 +69,21 @@
     {
         await base.OnInitializedAsync();
         actualVersion = "Inconnue";
+    }
 
-        if (HybridSupport.IsElectronActive)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && HybridSupport.IsElectronActive)
         {
             CancellationTokenSource cts = new CancellationTokenSource();
             CancellationToken token = cts.Token;
-            cts.CancelAfter(1000);
+            cts.CancelAfter(2000);
             actualVersion = await Electron.App.GetVersionAsync(token);
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
         }
     }
 
