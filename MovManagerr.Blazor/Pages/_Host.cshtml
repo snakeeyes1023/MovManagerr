@@ -30,6 +30,18 @@
         <a class="dismiss">🗙</a>
     </div>
 
+    <script>
+        function BlazorScrollToId(id) {
+            const element = document.getElementById(id);
+            if (element instanceof HTMLElement) {
+                element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                    inline: "nearest"
+                });
+            }
+        }
+    </script>
     <script src="_framework/blazor.server.js"></script>
     <script async src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 

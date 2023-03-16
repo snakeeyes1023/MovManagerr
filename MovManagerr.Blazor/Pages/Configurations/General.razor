@@ -16,9 +16,48 @@ else
     <RadzenTemplateForm Data="@Settings" Submit="@((CustomSettings args) => { Submit(args); })">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-9">
+                <div class="col-3">
+                    <nav id="sidebar" class="position-fixed">
+
+                        <div class="row mb-1">
+                            <div class="col-12">
+                                <RadzenCard>
+                                    <div class="row">
+                                        <div class="col-md-12 d-flex justify-content-center">
+                                            <RadzenButton class="mr-1" ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer" />
+                                            <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" Text="Annuler" Click="@Cancel" />
+                                        </div>
+                                    </div>
+                                </RadzenCard>
+                            </div>
+                        </div>
+
+                        <RadzenCard>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/config/general/#section1">Content Préférence</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/config/general/#section2">Liste de lien M3U's</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/config/general/#section3">Utilisation d'intelligence artificielle</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/config/general/#section4">Configuration Plex</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/config/general/#section5">Transcodage</a>
+                                </li>
+                            </ul>
+                        </RadzenCard>
+                    </nav>
+
+                </div>
+                <div class="col-9" style="max-height: 80vh; overflow-y: scroll">
                     <RadzenCard>
-                        <div class="row">
+
+                        <div class="row" id="section1">
                             <div class="col-md-12">
                                 @foreach (var preferenceContent in Settings.ContentPreferences)
                                 {
@@ -67,7 +106,7 @@ else
                                 }
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" id="section2">
                             <div class="col-md-12">
                                 <RadzenFieldset Text="Liste de lien M3U's">
 
@@ -91,7 +130,7 @@ else
                                 </RadzenFieldset>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" id="section3">
                             <div class="col-md-12">
                                 <RadzenFieldset Text="Utilisation d'intelligence artificielle">
                                     <div class="row">
@@ -120,7 +159,7 @@ else
                                 </RadzenFieldset>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" id="section4">
                             <div class="col-md-12">
                                 <RadzenFieldset Text="Configuration Plex">
                                     <div class="row">
@@ -168,7 +207,7 @@ else
                                 </RadzenFieldset>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" id="section5">
                             <div class="col-md-12">
                                 <RadzenFieldset Text="Transcodage">
 
@@ -233,21 +272,37 @@ else
                         </div>
                     </RadzenCard>
                 </div>
-                <div class="col-3">
-                    <RadzenCard class=" position-fixed">
-                        <div class="row justify-content-center my-0">
-                            <div class="col-md-12 d-flex align-items-end justify-content-center">
-                                <RadzenButton class="mr-1" ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" Text="Annuler" Click="@Cancel" />
-                            </div>
-                        </div>
-                    </RadzenCard>
-                </div>
+                @*                <div class="col-3">
+            <RadzenCard class=" position-fixed">
+            <div class="row justify-content-center my-0">
+            <div class="col-md-12 d-flex align-items-end justify-content-center">
+            <RadzenButton class="mr-1" ButtonType="ButtonType.Submit" Icon="save" Text="Enregistrer" />
+            <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" Text="Annuler" Click="@Cancel" />
+            </div>
+            </div>
+            </RadzenCard>
+            </div>*@
             </div>
         </div>
     </RadzenTemplateForm>
 
+    <AnchorNavigation />
+
+
 }
+
+<style>
+    .nav-link.selected {
+        font-weight: bold;
+        color: #007bff;
+    }
+
+
+    *[id] {
+        scroll-margin-top: 3rem;
+    }
+</style>
+
 
 @code {
 
