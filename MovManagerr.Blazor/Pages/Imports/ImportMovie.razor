@@ -12,7 +12,8 @@
     </div>
     <div class="col-5">
         <RadzenCard class="mb-2">
-            <RadzenButton ButtonStyle="ButtonStyle.Dark" Icon="upload" Variant="Variant.Outlined" Click=@(args => BrowseMovieFile()) Text="Ajouter un media" />
+            <RadzenButton ButtonStyle="ButtonStyle.Dark" Icon="upload" Variant="Variant.Filled" Click=@(args => BrowseFolders()) Text="Ajouter des medias (Dossiers)" />
+            <RadzenButton ButtonStyle="ButtonStyle.Dark" Icon="upload" Variant="Variant.Outlined" Click=@(args => BrowseFiles()) Text="Ajouter des medias (Fichiers)" />
         </RadzenCard>
         @if (CurrentMovie != null)
         {
@@ -192,9 +193,9 @@
     /// </summary>
     private async Task LoadMovieData(ImportMediaInfo mediaInfo)
     {
-        IsLoading = true;
         await InvokeAsync(() =>
         {
+            IsLoading = true;
             StateHasChanged();
         });
 
@@ -232,9 +233,9 @@
 
         CurrentMovie.IsLoaded = true;
 
-        IsLoading = false;
         await InvokeAsync(() =>
         {
+            IsLoading = false;
             StateHasChanged();
         });
     }
@@ -250,18 +251,18 @@
         if (dbMovie.IsDownloaded)
         {
             await DialogService.OpenAsync("Fichié déjà existant", ds =>
-            @<div>
-                <p class="mb-4">Le fichier semble déjà exister dans un de vos répertoires ?</p>
-                <div class="row">
-                    <div class="col">
-                        <RadzenButton Text="Continuer" Click="() => { mode = ImportMode.Move; ds.Close(false); }" class="me-1" Style="width: 80px;" />
-                        <RadzenButton Text="Annuler" Click="(() => {  mode = ImportMode.None; ds.Close(false); })" ButtonStyle="ButtonStyle.Light" class="me-1 float-end" />
-                    </div>
-                </div>
+    @<div>
+        <p class="mb-4">Le fichier semble déjà exister dans un de vos répertoires ?</p>
+        <div class="row">
+            <div class="col">
+                <RadzenButton Text="Continuer" Click="() => { mode = ImportMode.Move; ds.Close(false); }" class="me-1" Style="width: 80px;" />
+                <RadzenButton Text="Annuler" Click="(() => {  mode = ImportMode.None; ds.Close(false); })" ButtonStyle="ButtonStyle.Light" class="me-1 float-end" />
             </div>
-            );
+        </div>
+    </div>
+    );
         }
-        
+
 
         if (mode != ImportMode.None)
         {
@@ -273,11 +274,20 @@
         await CancelCurrent();
     }
 
+    public Task BrowseFiles()
+    {
+        return BrowseMovieFile(new OpenDialogProperty[] { OpenDialogProperty.openFile, OpenDialogProperty.multiSelections });
+    }
+
+    public Task BrowseFolders()
+    {
+        return BrowseMovieFile(new OpenDialogProperty[] { OpenDialogProperty.openDirectory, OpenDialogProperty.multiSelections });
+    }
 
     /// <summary>
     /// Opens a dialog to browse for movie files.
     /// </summary>
-    async Task BrowseMovieFile()
+    async Task BrowseMovieFile(OpenDialogProperty[] type)
     {
         if (HybridSupport.IsElectronActive)
         {
@@ -285,10 +295,7 @@
 
             var options = new OpenDialogOptions
                 {
-                    Properties = new OpenDialogProperty[] {
-                        OpenDialogProperty.openFile,
-                        OpenDialogProperty.multiSelections
-                    }
+                    Properties = type
                 };
 
             string[] files = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
@@ -300,13 +307,31 @@
                 return;
             }
 
+            await InvokeAsync(() =>
+            {
+                IsLoading = true;
+                StateHasChanged();
+            });
+
             foreach (var file in files)
             {
-                if (!PendingMovies.Any(x => x.FullPath == file))
+                FileAttributes attr = File.GetAttributes(file);
+
+                if (attr.HasFlag(FileAttributes.Directory))
                 {
-                    PendingMovies.Add(new ImportMediaInfo(file));
+                    ProceedFolder(file);
+                }
+                else
+                {
+                    AppendFileToPending(file);
                 }
             }
+
+            await InvokeAsync(() =>
+            {
+                IsLoading = false;
+                StateHasChanged();
+            });
 
             // Set CurrentMovie to the first movie in the list
             if (CurrentMovie == null && PendingMovies.Count > 0)
@@ -314,6 +339,26 @@
                 CurrentMovie = PendingMovies[0];
                 await LoadMovieData(CurrentMovie);
             }
+
+        }
+    }
+
+    private void AppendFileToPending(string file)
+    {
+        if (!PendingMovies.Any(x => x.FullPath == file))
+        {
+            PendingMovies.Add(new ImportMediaInfo(file));
+        }
+    }
+
+    private void ProceedFolder(string folder)
+    {
+        var files = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
+            .Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi"));
+
+        foreach (var file in files)
+        {
+            AppendFileToPending(file);
         }
     }
 
