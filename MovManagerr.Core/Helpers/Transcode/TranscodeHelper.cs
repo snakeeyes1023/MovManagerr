@@ -132,7 +132,7 @@ namespace MovManagerr.Core.Helpers.NewFolder
                     .To(destination)
                     .Replace(replace);
 
-                transfert.Run();
+                transfert.MoveFile(false);
                 
                 _actualPath = destination;
             }

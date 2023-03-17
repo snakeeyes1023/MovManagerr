@@ -1,13 +1,9 @@
 ﻿using Hangfire;
+using Hangfire.Server;
 using MovManagerr.Core.Helpers.PlexScan;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
-using MovManagerr.Core.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MovManagerr.Core.Infrastructures.TrackedTasks;
 
 namespace MovManagerr.Core.Helpers.Transferts
 {
@@ -49,19 +45,21 @@ namespace MovManagerr.Core.Helpers.Transferts
             return this;
         }
 
-        public void EnqueueRun()
+        public string MoveFile(bool enqueue = true)
         {
-            BackgroundJob.Enqueue(() => Run(this));
+            if (enqueue)
+            {
+                return BackgroundJob.Enqueue(() => MoveFileWithProgress(this, CancellationToken.None, null));
+            }
+            else
+            {
+                MoveFileWithProgress(this, CancellationToken.None, null);
+                return string.Empty;
+            }
         }
-
-        public void Run()
-        {
-            Run(this);
-        }
-
 
         [Queue("file-transfert")]
-        public void Run(TransfertHelper? helper)
+        public void MoveFileWithProgress(TransfertHelper? helper, CancellationToken cancellationToken, PerformContext? context)
         {
             if (helper != null)
             {
@@ -71,8 +69,53 @@ namespace MovManagerr.Core.Helpers.Transferts
                 _TriggerPlexScan = helper._TriggerPlexScan;
             }
 
-            SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} en cours...");
+            SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} en cours...");          
+            
+            var trackedJob = GlobalTrackedTask.AddTrackedJob(new TransfertJobProgression(context?.BackgroundJob.Id ?? string.Empty, _Origin, _Destination));
 
+            if (ValidateMove())
+            {
+                MoveFileWithProgress(trackedJob, cancellationToken);
+
+                TriggerScanIfRequired();
+
+                SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} terminée", LogType.Info);
+            }
+        }
+
+        private void MoveFileWithProgress(TrackedJobProgression trackedJobProgression, CancellationToken cancellationToken)
+        {
+            const int bufferSize = 1024 * 1024; // 1 Mo
+            byte[] buffer = new byte[bufferSize];
+            int bytesRead;
+
+            long fileLength = new FileInfo(_Origin).Length;
+            long totalBytesRead = 0;
+
+            using (FileStream sourceStream = new FileStream(_Origin, FileMode.Open, FileAccess.Read))
+            {
+                using (FileStream destinationStream = new FileStream(_Destination, _Replace ? FileMode.Create : FileMode.CreateNew, FileAccess.Write))
+                {
+                    while ((bytesRead = sourceStream.Read(buffer, 0, bufferSize)) > 0)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        destinationStream.Write(buffer, 0, bytesRead);
+                        totalBytesRead += bytesRead;
+                        int progress = (int)((float)totalBytesRead / fileLength * 100);
+                        trackedJobProgression.Progress = progress;
+                    }
+                }
+            }
+
+            if (!_Replace)
+            {
+                File.Delete(_Origin);
+            }
+        }
+
+        private bool ValidateMove()
+        {
             if (File.Exists(_Destination) && !_Replace)
             {
                 SimpleLogger.AddLog($"Déplacement du fichier annulée : {_Origin} vers {_Destination} (Le fichier existe déjà)", LogType.Error);
@@ -83,20 +126,20 @@ namespace MovManagerr.Core.Helpers.Transferts
                 SimpleLogger.AddLog($"Déplacement du fichier annulée : {_Origin} vers {_Destination} (Le fichier d'origine n'existe pas)", LogType.Error);
                 throw new InvalidOperationException("Le fichier d'origine n'existe pas");
             }
-
-            File.Move(_Origin, _Destination, _Replace);
-
-            var plexConfiguration = Preferences.Instance.Settings.PlexConfiguration;
             
+            return true;
+        }
+
+        private void TriggerScanIfRequired()
+        {
+            var plexConfiguration = Preferences.Instance.Settings.PlexConfiguration;
+
             if (_TriggerPlexScan
                 && plexConfiguration.IsConfigured
                 && plexConfiguration.TriggerScanOnMoved)
             {
                 BackgroundJob.Enqueue<PlexScanHelper>(x => x.Scan());
             }
-
-
-            SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} terminée", LogType.Info);
         }
     }
 }

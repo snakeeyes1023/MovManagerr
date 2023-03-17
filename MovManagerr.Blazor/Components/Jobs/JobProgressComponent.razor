@@ -1,0 +1,42 @@
+﻿@page "/taskprogress"
+@using MovManagerr.Core.Infrastructures.TrackedTasks;
+@implements IDisposable
+
+
+<h3>Progression des tâches</h3>
+
+<div class="row">
+    @foreach (TrackedJobProgression trackedJob in TrackedJobs)
+    {
+        <div class="col-md-12">
+            @if (trackedJob is TransfertJobProgression transfert)
+            {
+                <TransfertJobProgress Job="transfert" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<TrackedJobProgression> TrackedJobs { get; set; } = new List<TrackedJobProgression>();
+
+    protected override void OnInitialized()
+    {
+        TrackedJobs = GlobalTrackedTask.TrackedJobs.ToList();
+        GlobalTrackedTask.OnJobChanged += OnJobChanged;
+    }
+
+    private void OnJobChanged()
+    {
+        InvokeAsync(() =>
+        {
+            TrackedJobs = GlobalTrackedTask.TrackedJobs.ToList();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        GlobalTrackedTask.OnJobChanged -= OnJobChanged;
+    }
+}

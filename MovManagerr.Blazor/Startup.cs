@@ -31,6 +31,7 @@ using Microsoft.Extensions.Logging;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Importers;
 using MovManagerr.Core.Helpers.PlexScan;
+using MovManagerr.Core.Infrastructures.TrackedTasks;
 
 namespace MovManagerr.Blazor
 {
@@ -60,7 +61,8 @@ namespace MovManagerr.Blazor
                 .UseRecommendedSerializerSettings()
                 .UseLiteDbStorage(Preferences.Instance._HangFireDbPath));
 
-            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 2 });
+            //GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute { Attempts = 2 });
+            GlobalJobFilters.Filters.Add(new HangfireTaskProgressUpdaterAttribute());
 
             services.AddHangfireServer(options =>
             {

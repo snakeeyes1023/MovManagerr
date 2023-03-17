@@ -58,7 +58,7 @@ namespace MovManagerr.Core.Tasks
                 TransfertHelper.New()
                     .From(originPath)
                     .To(destinationPath)
-                    .EnqueueRun();
+                    .MoveFile();
             }
         }       
     }

@@ -1,0 +1,84 @@
+﻿@using MovManagerr.Core.Infrastructures.TrackedTasks;
+
+@inherits JobProgressBase<TransfertJobProgression>
+
+
+<style>
+    .card-custom {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+        .card-custom h4 {
+            color: #495057;
+        }
+
+    .icon-custom {
+        color: #495057;
+    }
+
+    .cancel-icon {
+        color: red;
+    }
+
+    .cancel-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+    }
+</style>
+
+<RadzenCard Style="margin-bottom: 20px; width: 100%;" Class="card-custom">
+    <button class="cancel-btn" @onclick=Delete>
+        <i class="bi bi-x-circle cancel-icon"></i>
+    </button>
+
+    <h4 class="mb-3">Transfert #@Job.JobId</h4>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <strong>Progression :</strong>
+            @if (Job.Status == TrackedJobStatus.Processing)
+            {
+                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@Job.Progress" />
+            }
+            else if (Job.Status == TrackedJobStatus.Succeeded)
+            {
+                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Success" Value="100" />
+            }
+            else if (Job.Status == TrackedJobStatus.Pending)
+            {
+                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="Radzen.ProgressBarMode.Indeterminate" />
+            }
+            else if (Job.Status == TrackedJobStatus.Failed)
+            {
+                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Danger" Value="@Job.Progress" />
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 d-flex align-items-center mb-2">
+            <i class="bi bi-folder2-open me-2 icon-custom mr-1"></i>
+            <strong>Source :</strong> @Job.Origin
+        </div>
+        <div class="col-6 d-flex align-items-center mb-2">
+            <i class="bi bi-folder2-open me-2 icon-custom mr-1"></i>
+            <strong>Cible :</strong> @Job.Destination
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 d-flex align-items-center mb-2">
+            <i class="bi bi-info-circle me-2 icon-custom mr-1"></i>
+            <strong>Statut :</strong> @Job.Status
+        </div>
+        <div class="col-6 d-flex align-items-center">
+            <i class="bi bi-stopwatch me-2 icon-custom mr-1"></i>
+            <strong>Temps écoulé :</strong> @Job.ElapsedTime.ToString(@"hh\:mm\:ss")
+        </div>
+    </div>
+</RadzenCard>
