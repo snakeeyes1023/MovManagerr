@@ -49,7 +49,9 @@ namespace MovManagerr.Core.Helpers.Transferts
         {
             if (enqueue)
             {
-                return BackgroundJob.Enqueue(() => MoveFileWithProgress(this, CancellationToken.None, null));
+                string jobId = BackgroundJob.Enqueue(() => MoveFileWithProgress(this, CancellationToken.None, null));
+                CreateProgressJob(jobId);
+                return jobId;
             }
             else
             {
@@ -69,18 +71,33 @@ namespace MovManagerr.Core.Helpers.Transferts
                 _TriggerPlexScan = helper._TriggerPlexScan;
             }
 
-            SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} en cours...");          
-            
-            var trackedJob = GlobalTrackedTask.AddTrackedJob(new TransfertJobProgression(context?.BackgroundJob.Id ?? string.Empty, _Origin, _Destination));
+            SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} en cours...");
+
+
+            TransfertJobProgression progression;
+
+            if (context != null && GlobalTrackedTask.GetJobById(context.BackgroundJob.Id) is TransfertJobProgression transfert)
+            {
+                progression = transfert;
+            }
+            else
+            {
+                progression = CreateProgressJob(context?.BackgroundJob.Id ?? string.Empty);
+            }
 
             if (ValidateMove())
             {
-                MoveFileWithProgress(trackedJob, cancellationToken);
+                MoveFileWithProgress(progression, cancellationToken);
 
                 TriggerScanIfRequired();
 
                 SimpleLogger.AddLog($"Déplacement du fichier {_Origin} vers {_Destination} terminée", LogType.Info);
             }
+        }
+
+        private TransfertJobProgression CreateProgressJob(string jobId)
+        {
+            return GlobalTrackedTask.AddTrackedJob(new TransfertJobProgression(jobId, _Origin, _Destination));
         }
 
         private void MoveFileWithProgress(TrackedJobProgression trackedJobProgression, CancellationToken cancellationToken)

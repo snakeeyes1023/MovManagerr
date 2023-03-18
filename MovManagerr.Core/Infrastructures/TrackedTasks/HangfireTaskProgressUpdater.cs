@@ -40,7 +40,15 @@ namespace MovManagerr.Core.Infrastructures.TrackedTasks
         {
             if (context.BackgroundJob != null && GlobalTrackedTask.GetJobById(context.BackgroundJob.Id) is TrackedJobProgression progression)
             {
-                progression.Status = TrackedJobStatus.Succeeded;
+
+                if (context.Exception != null)
+                {
+                    progression.Status = TrackedJobStatus.Failed;
+                }
+                else
+                {
+                    progression.Status = TrackedJobStatus.Succeeded;
+                }
             }
         }
 

@@ -1,16 +1,20 @@
 ﻿using Hangfire;
+using Hangfire.Server;
+using Microsoft.VisualBasic;
 using MovManagerr.Core.Helpers.Transferts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
+using MovManagerr.Core.Infrastructures.TrackedTasks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xabe.FFmpeg;
 
-namespace MovManagerr.Core.Helpers.NewFolder
+namespace MovManagerr.Core.Helpers.Transcode
 {
     public class TranscodeHelper
     {
@@ -60,15 +64,28 @@ namespace MovManagerr.Core.Helpers.NewFolder
         public void EnqueueRun()
         {
             SimpleLogger.AddLog("Ajout d'un fichier en attente de transcodage...", LogType.Info);
-            BackgroundJob.Enqueue(() => Run(this, CancellationToken.None));
+
+            string jobId = BackgroundJob.Enqueue(() => Run(this, CancellationToken.None, null));
+            GlobalTrackedTask.AddTrackedJob(new TranscodeJobProgression(jobId, _actualPath));      
         }
 
         [Queue("transcode")]
-        public async Task Run(TranscodeHelper helper, CancellationToken cancellationToken)
+        public async Task Run(TranscodeHelper helper,  CancellationToken cancellationToken, PerformContext? context)
         {
             _replaceDestination = helper._replaceDestination;
             _destinationPath = helper._destinationPath;
             _actualPath = helper._actualPath;
+
+            TranscodeJobProgression progression;
+
+            if (context != null && GlobalTrackedTask.GetJobById(context.BackgroundJob.Id) is TranscodeJobProgression transcode)
+            {
+                progression = transcode;
+            }
+            else
+            {
+                progression = GlobalTrackedTask.AddTrackedJob(new TranscodeJobProgression(context?.BackgroundJob.Id ?? string.Empty, _actualPath));
+            }
 
             if (_useCustomTranscodeFolder)
             {
@@ -78,18 +95,26 @@ namespace MovManagerr.Core.Helpers.NewFolder
             string transcodeDestination = GetTranscodeFilePath(_actualPath);
 
             SimpleLogger.AddLog($"Transcodage du film en cours vers {transcodeDestination} ...");
-            IConversionResult conversionResult = await Transcode(_actualPath, transcodeDestination, cancellationToken);
+            
+            IConversionResult conversionResult = await Transcode(_actualPath, transcodeDestination, cancellationToken, progression);
             SimpleLogger.AddLog($"Transcodage terminé après {conversionResult.Duration.ToString("h'h 'm'm 's's'")}");
 
             MoveTo(_destinationPath, _replaceDestination);
         }
 
-
-        private async Task<IConversionResult> Transcode(string origin, string transcodeDestination, CancellationToken cancellationToken)
+        
+        private async Task<IConversionResult> Transcode(string origin, string transcodeDestination, CancellationToken cancellationToken, TranscodeJobProgression progression)
         {
             string ffmpegString = Preferences.Instance.Settings.TranscodeConfiguration.GetTranscodeFFmpegString(origin, transcodeDestination);
 
-            IConversionResult conversionResult = await FFmpeg.Conversions.New().Start(ffmpegString, cancellationToken);
+            IConversion conversion = FFmpeg.Conversions.New();
+
+            conversion.OnProgress += (sender, args) =>
+            {
+                progression.Progress = (int)(Math.Round(args.Duration.TotalSeconds / args.TotalLength.TotalSeconds, 2) * 100);     
+            };
+
+            IConversionResult conversionResult = await conversion.Start(ffmpegString, cancellationToken);
 
             if (conversionResult != null)
             {

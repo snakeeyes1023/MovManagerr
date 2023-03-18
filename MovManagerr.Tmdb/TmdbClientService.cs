@@ -18,7 +18,7 @@ namespace MovManagerr.Tmdb
         {
             _client = new TMDbClient(config.Value.ApiKey, config.Value.UseSsl, config.Value.Url);
             _client.SetSessionInformationAsync(config.Value.Session, SessionType.UserSession).Wait();
-            _client.DefaultLanguage = config.Value.Language;
+            _client.DefaultLanguage = "en";
 
             Favorites = new FavoriteService(this);
         }
