@@ -1,0 +1,19 @@
+﻿@using MovManagerr.Core.Infrastructures.TrackedTasks;
+
+@if (Job is TransfertJobProgression transfert)
+{
+    <TransfertJobProgress RefreshList="@RefreshList" Job="transfert" />
+}
+else if (Job is TranscodeJobProgression transcode)
+{
+    <TranscodeJobProgress RefreshList="@RefreshList" Job="transcode" />
+}
+
+
+@code {
+    [Parameter]
+    public TrackedJobProgression Job { get; set; }
+
+    [Parameter]
+    public Action RefreshList { get; set; }
+}

@@ -33,20 +33,26 @@ namespace MovManagerr.Core.Helpers.Extractors
             try
             {
                 string? result = Task.Run<string?>(async () => await api.Completions.GetCompletion(request)).Result;
-                //string result = api.Completions.CreateCompletionAsync(new CompletionRequest(request, model: Model.CurieText, temperature: 0.1)).Result.Completions[0].Text;
 
-                string movieName = result.Split(",")[0].Split(":")[1].Trim();
-                string year = result.Split(",")[1].Split(":")[1].Trim();
-
-                // set the movie name and year
-                movieInfo.MovieName = movieName;
-
-                if (int.TryParse(year, out int yearAsInt))
+                if (!string.IsNullOrWhiteSpace(result))
                 {
-                    movieInfo.Year = yearAsInt;
-                }
+                    movieInfo.MovieName = result.Split(",")[0].Split(":")[1].Trim();
+                    movieInfo.Year = 0;
 
-                return movieInfo;
+                    try
+                    {
+                        movieInfo.Year = int.Parse(result.Split(",")[1].Split(":")[1].Trim());               
+                    }
+                    catch (Exception) { 
+                        // l'année est peut être manquante dans le nom de fichié
+                    }
+
+                    return movieInfo;
+                }
+                else
+                {
+                    throw new InvalidCastException();
+                }
             }
             catch (Exception)
             {

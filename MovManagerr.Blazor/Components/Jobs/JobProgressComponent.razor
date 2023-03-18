@@ -1,0 +1,80 @@
+﻿@page "/taskprogress"
+@using MovManagerr.Core.Infrastructures.TrackedTasks;
+@using MovManagerr.Blazor.Components.Jobs.TypeJobs;
+@implements IDisposable
+
+
+<RadzenCard class="mb-2">
+    @{
+        var processingJobs = TrackedJobs.Where(j => j.Status == TrackedJobStatus.Processing).ToList();
+    }
+    <h3>En cours (@processingJobs.Count())</h3>
+
+    <div class="row">
+        @foreach (TrackedJobProgression trackedJob in processingJobs)
+        {
+            <div class="col-md-12">
+                <JobFactoryComponent RefreshList=OnJobChanged Job="@trackedJob" />
+            </div>
+        }
+    </div>
+</RadzenCard>
+
+
+<RadzenCard class="mb-2">
+    @{
+        var pendingJobs = TrackedJobs.Where(j => j.Status == TrackedJobStatus.Pending).ToList();
+    }
+    <h3>En attente (@pendingJobs.Count())</h3>
+
+    <div class="row">
+        @foreach (TrackedJobProgression trackedJob in pendingJobs)
+        {
+            <div class="col-md-12">
+                <JobFactoryComponent RefreshList=OnJobChanged Job="@trackedJob" />
+            </div>
+        }
+    </div>
+</RadzenCard>
+
+
+<RadzenCard class="mb-2">
+    @{
+        var histories = TrackedJobs.Where(j => j.Status != TrackedJobStatus.Processing && j.Status != TrackedJobStatus.Pending).ToList();
+    }
+    <h3>Historiques (@histories.Count())</h3>
+
+    <div class="row">
+        @foreach (TrackedJobProgression trackedJob in histories)
+        {
+            <div class="col-md-12">
+                <JobFactoryComponent RefreshList=OnJobChanged Job="@trackedJob" />
+            </div>
+        }
+    </div>
+</RadzenCard>
+
+
+@code {
+    private List<TrackedJobProgression> TrackedJobs { get; set; } = new List<TrackedJobProgression>();
+
+    protected override void OnInitialized()
+    {
+        TrackedJobs = GlobalTrackedTask.TrackedJobs.ToList();
+        GlobalTrackedTask.OnJobChanged += OnJobChanged;
+    }
+
+    private void OnJobChanged()
+    {
+        InvokeAsync(() =>
+        {
+            TrackedJobs = GlobalTrackedTask.TrackedJobs.ToList();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        GlobalTrackedTask.OnJobChanged -= OnJobChanged;
+    }
+}
