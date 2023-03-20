@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers
 {
-    public class SerieReader : M3uContentReader<Episode>
+    public class SerieReader : M3uContentReader<TvShow>
     {
         public SerieReader(IContentDbContext contentDbContext) : base(contentDbContext)
         {
@@ -16,9 +16,9 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
             return m => m.MuUrl.Contains("serie");
         }
 
-        protected override Episode? BindDataInContent(MediaM3u mediaInfo, string source)
+        protected override TvShow? BindDataInContent(MediaM3u mediaInfo, string source)
         {
-            var episode = new Episode();
+            var episode = new TvShow();
 
             return episode;
         }

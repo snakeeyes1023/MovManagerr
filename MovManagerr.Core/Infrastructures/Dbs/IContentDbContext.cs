@@ -6,7 +6,6 @@ namespace MovManagerr.Core.Infrastructures.Dbs
 {
     public interface IContentDbContext
     {
-        LiteDbSet<Episode> Episodes { get; }
         LiteDbSet<Movie> Movies { get; }
 
         LiteDbSet<C> GetCollection<C>() where C : Entity;

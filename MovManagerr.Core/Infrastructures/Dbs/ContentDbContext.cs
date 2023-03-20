@@ -8,7 +8,6 @@ namespace MovManagerr.Core.Infrastructures.Dbs
     public class ContentDbContext : LiteDbContext<ContentDbContext>, IContentDbContext
     {
         public virtual LiteDbSet<Movie> Movies { get; private set; }
-        public virtual LiteDbSet<Episode> Episodes { get; private set; }
         public virtual LiteDbSet<CustomSettings> Settings { get; private set; }
 
         public ContentDbContext() : base(Preferences.Instance._DbPath)

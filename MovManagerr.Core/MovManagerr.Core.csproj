@@ -29,4 +29,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Helpers\Parsers\Models\" />
+  </ItemGroup>
+
 </Project>

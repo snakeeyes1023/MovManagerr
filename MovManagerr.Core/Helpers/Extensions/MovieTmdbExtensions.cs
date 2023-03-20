@@ -20,5 +20,15 @@ namespace MovManagerr.Core.Helpers.Extensions
 
             return searchMovie.Title;
         }
+
+        public static string GetValidName(this SearchTv searchTv)
+        {
+            if (searchTv.OriginalName.IsValidFolder())
+            {
+                return searchTv.OriginalName;
+            }
+
+            return searchTv.Name;
+        }
     }
 }

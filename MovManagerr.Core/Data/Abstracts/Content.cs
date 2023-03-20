@@ -36,13 +36,13 @@ namespace MovManagerr.Core.Data.Abstracts
             return Poster ?? string.Empty;
         }
 
-        public List<DownloadedContent> DownloadedContents { get; protected set; }
+        public virtual List<DownloadedContent> DownloadedContents { get; protected set; }
 
-        public List<DownloadableContent> DownloadableContents { get; protected set; }
+        public virtual List<DownloadableContent> DownloadableContents { get; protected set; }
 
         public Dictionary<string, object> CustomData { get; protected set; }
 
-        public bool IsDownloaded
+        public virtual bool IsDownloaded
         {
             get
             {
@@ -50,7 +50,7 @@ namespace MovManagerr.Core.Data.Abstracts
             }
         }
 
-        public decimal MaxBitrate
+        public virtual decimal MaxBitrate
         {
             get
             {
@@ -58,7 +58,7 @@ namespace MovManagerr.Core.Data.Abstracts
             }
         }
 
-        public decimal FileSize
+        public virtual decimal FileSize
         {
             get
             {
@@ -66,7 +66,7 @@ namespace MovManagerr.Core.Data.Abstracts
             }
         }
 
-        public int NbFiles
+        public virtual int NbFiles
         {
             get
             {
