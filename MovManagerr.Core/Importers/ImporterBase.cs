@@ -1,14 +1,15 @@
 ﻿using Hangfire;
+using MovManagerr.Core.Infrastructures.Dbs;
 
 namespace MovManagerr.Core.Importers
 {
     public abstract class ImporterBase
     {
-        protected readonly IContentDbContext _contentDbContext;
+        protected readonly DbContext _dbContext;
 
-        public ImporterBase(IContentDbContext dbContext)
+        public ImporterBase(DbContext dbContext)
         {
-            _contentDbContext = dbContext;
+            _dbContext = dbContext;
         }
 
         public void Schedule_Import()

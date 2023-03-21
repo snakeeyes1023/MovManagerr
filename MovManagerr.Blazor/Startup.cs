@@ -5,8 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MovManagerr.Core.Downloaders.Contents;
 using MovManagerr.Core.Services.Movies;
-using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
-using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using Radzen;
 using ElectronNET.API;
 using System;
@@ -27,6 +25,9 @@ using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Importers;
 using MovManagerr.Core.Helpers.PlexScan;
 using MovManagerr.Core.Infrastructures.TrackedTasks;
+using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.Dbs.Repositories;
+using MovManagerr.Core.Infrastructures.DataAccess.Repositories;
 
 namespace MovManagerr.Blazor
 {
@@ -107,7 +108,6 @@ namespace MovManagerr.Blazor
             #region MyServices
 
             services.AddScoped<IMovieService, MovieService>();
-            services.AddScoped<IDownloadedMovieService, DownloadedMovieService>();
             #endregion
 
             #region PLEX Api
@@ -133,8 +133,6 @@ namespace MovManagerr.Blazor
 
             #region BackgroundService
 
-            services.AddSingleton<SearchAllMoviesOnTmdb>();
-            services.AddSingleton<SyncM3UFiles>();
             services.AddSingleton<ContentDownloaderClient>();
 
             #endregion
@@ -146,13 +144,18 @@ namespace MovManagerr.Blazor
             services.AddScoped<ImportContentService>();
             services.AddScoped<PlexImporter>();
             services.AddScoped<PlexScanHelper>();
+            services.AddScoped<IMovieService, MovieService>();
 
-            services.AddSingleton<IContentDbContext, ContentDbContext>();
+
+            services.AddSingleton<DbContext>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbContext dbContext)
         {
+            Preferences.Instance.SetDbInstance(dbContext);
+
             AddMediaInfoToEnvVariable();
 
             if (env.IsDevelopment())

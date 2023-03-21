@@ -1,6 +1,7 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Services.Movies;
 using MovManagerr.Tmdb;
@@ -20,18 +21,15 @@ namespace MovManagerr.Core.Importers
 
         private readonly IMovieService _movieService;
 
-        private readonly IDownloadedMovieService _downloadedMovieService;
 
         public PlexImporter(
             IPlexFactory plexFactory,
-            IContentDbContext contentDbContext,
-            IMovieService movieService,
-            IDownloadedMovieService downloadedMovieService) : base(contentDbContext)
+            DbContext dbContext,
+            IMovieService movieService) : base(dbContext)
         {
             _plexFactory = plexFactory;
             _plexConfiguration = Preferences.Instance.Settings.PlexConfiguration;
             _movieService = movieService;
-            _downloadedMovieService = downloadedMovieService;
         }
 
         public override async Task Import(CancellationToken cancellationToken)
@@ -50,7 +48,7 @@ namespace MovManagerr.Core.Importers
 
             if (IsValidServer(myServers))
             {
-                List<DownloadedContent> contentDownloadeds = _downloadedMovieService.GetAll()?.SelectMany(x => x.DownloadedContents)?.ToList() ?? new List<DownloadedContent>();
+                List<DownloadedContent> contentDownloadeds = _dbContext.DownloadedContents.Query().Where(x => x.MovieId != 0).ToList();
 
                 Server server = myServers!.FirstOrDefault()!;
                 
@@ -124,7 +122,7 @@ namespace MovManagerr.Core.Importers
                     if (await tmdbClient.GetMovieByNameAndYearAsync(title, year) is SearchMovie searchMovie)
                     {
                         Data.Movie movie = _movieService.GetMovieFromSearchMovie(searchMovie);
-                        _movieService.CreateDownloadedContent(movie, fullpath, fullpath);
+                        _dbContext.DownloadedContents.CreateAndScan(movie, fullpath);
                         SimpleLogger.AddLog($"Le film {title} a bien été importé!");
                     }
                     else

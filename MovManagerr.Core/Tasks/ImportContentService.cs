@@ -3,6 +3,7 @@ using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Transcode;
 using MovManagerr.Core.Helpers.Transferts;
+using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Services.Movies;
 
 namespace MovManagerr.Core.Tasks
@@ -19,15 +20,11 @@ namespace MovManagerr.Core.Tasks
     
     public class ImportContentService
     {
-        private readonly IContentDbContext _contentDbContext;
-        private readonly IMovieService _movieService;
-        private readonly MovManagerr.Core.Infrastructures.Configurations.Preferences _preference;
+        private readonly DbContext _dbContext;
 
-        public ImportContentService(IContentDbContext contentDbContext, IMovieService movieService)
+        public ImportContentService(DbContext dbContext)
         {
-            _contentDbContext = contentDbContext;
-            _movieService = movieService;
-            _preference = MovManagerr.Core.Infrastructures.Configurations.Preferences.Instance;
+            _dbContext = dbContext;
         }
 
 
@@ -36,13 +33,13 @@ namespace MovManagerr.Core.Tasks
             string destinationPath = movie.GetFullPath(Path.GetFileName(originPath));
     
 
-            if (movie.DownloadedContents.FirstOrDefault(x => x.FullPath == destinationPath) is DownloadedContent alreadyExist)
+            if (movie.Medias.FirstOrDefault(x => x.FullPath == destinationPath) is DownloadedContent alreadyExist)
             {
                 // un fichier du même nom existe déjà
                 destinationPath = movie.GetFullPath(Path.GetFileNameWithoutExtension(originPath) + "_1" + Path.GetExtension(originPath));
             }
 
-            DownloadedContent downloadedContent = _movieService.CreateDownloadedContent(movie, originPath, destinationPath);
+            _dbContext.DownloadedContents.CreateAndScan(movie, originPath);
 
             // if need importmode need to transcode
             if (importMode == ImportMode.TranscodeAndMove)

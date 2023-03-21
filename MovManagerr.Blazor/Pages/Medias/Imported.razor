@@ -4,11 +4,12 @@
 @using System.Timers
 @using MovManagerr.Core.Data.Abstracts
 @using System.IO;
-
-@inject IDownloadedMovieService downloadedMovieService
 @inject DialogService DialogService
 @inject IServiceProvider ServiceProvider
 @inject NavigationManager NavigationManager
+@inject DbContext DbContext
+@inject IMovieService movieService
+
 
 <div class="row">
     <div class="col-12">
@@ -97,7 +98,7 @@
                             <div>
                                 <b>
                                     (
-                                    @(string.Join(", ", detail.DownloadedContents.Select(x => x.FileSize)))
+                                    @(string.Join(", ", detail.Medias.Select(x => x.FileSize)))
                                     )
                                 </b>
                             </div>
@@ -138,8 +139,6 @@
 
     IEnumerable<Movie> movies;
 
-
-
     bool CurrentlyScanAll = false;
 
     string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
@@ -150,7 +149,7 @@
     {
         await base.OnInitializedAsync();
 
-        movies = downloadedMovieService.GetAll();
+        movies = DbContext.Movies.GetDownloadedMovies();
         count = movies.Count();
 
         if (!Preferences.Instance.IsValid())
@@ -167,17 +166,17 @@
 
     protected void Transcode(Movie movie)
     {
-        if (movie.DownloadedContents.Count == 1)
+        if (movie.Medias.Count == 1)
         {
             TranscodeService transcodeService = new TranscodeService();
-            transcodeService.TranscodeContent(movie.DownloadedContents.FirstOrDefault());
+            transcodeService.TranscodeContent(movie.Medias.FirstOrDefault());
         }
     }
 
 
     private void LoadMediaInfo(Movie movie)
     {
-        foreach (var download in movie.DownloadedContents)
+        foreach (var download in movie.Medias)
         {
             try
             {
@@ -189,19 +188,16 @@
             }
         }
 
-        var instance = downloadedMovieService.GetCurrentCollection();
-        instance.TrackEntity(movie);
-        movie.SetDirty();
-        instance.SaveChanges();
+        DbContext.Movies.Update(movie);
     }
 
     protected async Task OpenMovieFolder(Movie movie)
     {
         string path;
 
-        if (movie.DownloadedContents.Any())
+        if (movie.Medias.Any())
         {
-            path = movie.DownloadedContents.FirstOrDefault().FullPath;
+            path = movie.Medias.FirstOrDefault().FullPath;
         }
         else
         {
@@ -236,8 +232,8 @@
             IsDeletingUnfounded = true;
             InvokeAsync(StateHasChanged);
 
-            downloadedMovieService.DeleteUnfoundedDownload();
-            movies = downloadedMovieService.GetAll();
+            movieService.DeleteUnfoundedDownload();
+            movies = DbContext.Movies.GetDownloadedMovies();
 
             IsDeletingUnfounded = false;
             InvokeAsync(StateHasChanged);

@@ -1,4 +1,5 @@
-﻿using MovManagerr.Core.Data.Abstracts;
+﻿using LiteDB;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,6 +18,8 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             PlexConfiguration = new PlexConfiguration();
             TranscodeConfiguration = new TranscodeConfiguration();
         }
+
+        public int Id { get; set; }
 
         public List<IContentPreference> ContentPreferences { get; set; }
 

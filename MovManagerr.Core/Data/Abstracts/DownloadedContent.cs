@@ -3,6 +3,13 @@ using MovManagerr.Core.Downloaders.Contents.Helpers;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
+
+    public enum DownloadedContentType
+    {
+        Movie,
+        Episode
+    }
+    
     public class DownloadedContent
     {
         public DownloadedContent() { }
@@ -12,18 +19,20 @@ namespace MovManagerr.Core.Data.Abstracts
             Method = method;
             CreationDate = DateTime.Now;
         }
-        public string FullPath { get; set; }
 
+        public int MovieId { get; set; }
+        public int EpidodeId { get; set; }
+        
+        public string FullPath { get; set; }
         public VideoInfo VideoInfo { get; set; }
         public AudioInfo AudioInfo { get; set; }
         public OverallInfo OverallInfo { get; set; }
-
-
         public string FileSize { get; set; }
         public decimal FileSizeAsGb { get; set; }
 
         public DownloadableContent? Method { get; protected set; }
         public DateTime CreationDate { get; protected set; }
+
 
         public void LoadMediaInfo(string fullPath = "")
         {
@@ -73,13 +82,13 @@ namespace MovManagerr.Core.Data.Abstracts
 
     public static class ContentDownloadedExtensions
     {
-        public static decimal GetMaxBitrate(this Content content)
+        public static decimal GetMaxBitrate(this IMedia content)
         {
             decimal maxBitrate = 0;
 
-            if (content.DownloadedContents != null)
+            if (content.Medias != null)
             {
-                foreach (var downloaded in content.DownloadedContents)
+                foreach (var downloaded in content.Medias)
                 {
                     var bitrate = downloaded.OverallInfo?.BitrateInMbs;
 
@@ -98,13 +107,13 @@ namespace MovManagerr.Core.Data.Abstracts
         /// </summary>
         /// <param name="content">The content.</param>
         /// <returns></returns>
-        public static string GetBestQuality(this Content content)
+        public static string GetBestQuality(this IMedia content)
         {
             int maxHeight = 0;
 
-            if (content.DownloadedContents != null)
+            if (content.Medias != null)
             {
-                foreach (var downloaded in content.DownloadedContents)
+                foreach (var downloaded in content.Medias)
                 {
                     if (maxHeight < (downloaded.VideoInfo?.Heigth ?? 0))
                     {
@@ -116,11 +125,11 @@ namespace MovManagerr.Core.Data.Abstracts
             return $"{maxHeight}p";
         }
 
-        public static bool HasAnyScannedFile(this Content content)
+        public static bool HasAnyScannedFile(this IMedia content)
         {
-            if (content.DownloadedContents != null)
+            if (content.Medias != null)
             {
-                foreach (var downloaded in content.DownloadedContents)
+                foreach (var downloaded in content.Medias)
                 {
                     if (downloaded.VideoInfo != null)
                     {

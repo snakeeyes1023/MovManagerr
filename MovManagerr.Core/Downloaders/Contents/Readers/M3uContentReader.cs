@@ -1,12 +1,12 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.Dbs.Repositories;
 using System.Linq.Expressions;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers
 {
-    public abstract class M3uContentReader<T> where T : Content
+    public abstract class M3uContentReader<T>
     {
         #region Props
         protected Preferences Preferences;
@@ -38,17 +38,17 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
 
                 if (content is not null)
                 {
-                    T? existingContent = _repository.FindOne(m => m.Name == content.Name);
+                    //T? existingContent = _repository.FindOne(m => m.Name == content.Name);
 
-                    if (existingContent == null)
-                    {
-                        _repository.Create(content);
-                    }
-                    else
-                    {
-                        existingContent.Merge(content);
-                        _repository.Update(existingContent);
-                    }
+                    //if (existingContent == null)
+                    //{
+                    //    _repository.Create(content);
+                    //}
+                    //else
+                    //{
+                    //    existingContent.Merge(content);
+                    //    _repository.Update(existingContent);
+                    //}
                 }
             }
         }

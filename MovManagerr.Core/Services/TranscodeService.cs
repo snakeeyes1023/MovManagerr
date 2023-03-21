@@ -1,4 +1,5 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
+using MovManagerr.Core.Helpers.Transcode;
 using MovManagerr.Core.Infrastructures.Configurations;
 
 namespace MovManagerr.Core.Services

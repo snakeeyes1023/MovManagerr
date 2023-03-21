@@ -12,22 +12,23 @@ using TMDbLib.Objects.Search;
 namespace MovManagerr.Core.Data
 {
     [Table("movies")]
-    public class Movie
+    public class Movie : IMedia
     {
         public Movie(string name, string poster)
         {
             Name = name;
             Poster = poster;
             DownloadableContents = new List<DownloadableContent>();
-            DownloadedContents = new List<DownloadedContent>();
+            Medias = new List<DownloadedContent>();
         }
 
         public Movie()
         {
             DownloadableContents = new List<DownloadableContent>();
-            DownloadedContents = new List<DownloadedContent>();
+            Medias = new List<DownloadedContent>();
         }
 
+        public int Id { get; set; }
         public string Name { get; set; }
 
         public string Poster { get; set; }
@@ -42,33 +43,15 @@ namespace MovManagerr.Core.Data
             return Poster ?? string.Empty;
         }
 
-        public List<DownloadedContent> DownloadedContents { get; protected set; }
+        public List<DownloadedContent> Medias { get; protected set; }
 
         public List<DownloadableContent> DownloadableContents { get; protected set; }
-
-        public Dictionary<string, object> CustomData { get; protected set; }
 
         public bool IsDownloaded
         {
             get
             {
-                return DownloadedContents.Count > 0;
-            }
-        }
-
-        public decimal MaxBitrate
-        {
-            get
-            {
-                return this.GetMaxBitrate();
-            }
-        }
-
-        public decimal FileSize
-        {
-            get
-            {
-                return this.DownloadedContents.Sum(x => x.FileSizeAsGb);
+                return Medias.Count > 0;
             }
         }
 
@@ -76,7 +59,7 @@ namespace MovManagerr.Core.Data
         {
             get
             {
-                return this.DownloadedContents.Count;
+                return this.Medias.Count;
             }
         }
 
@@ -116,7 +99,7 @@ namespace MovManagerr.Core.Data
 
         public bool IsInValidFolder()
         {
-            foreach (var downloaded in DownloadedContents)
+            foreach (var downloaded in Medias)
             {
                 if (GetPath(false) != Path.GetDirectoryName(downloaded.FullPath))
                 {
@@ -247,26 +230,6 @@ namespace MovManagerr.Core.Data
             downloadLink.Download(serviceProvider, this);
         }
 
-        public void AddCustomData(string key, object data)
-        {
-            if (CustomData == null)
-            {
-                CustomData = new Dictionary<string, object>();
-            }
-
-            CustomData.Add(key, data);
-        }
-
-        public T? GetCustomData<T>(string key)
-        {
-            if (CustomData != null && CustomData.GetValueOrDefault(key) is T data)
-            {
-                return data;
-            }
-
-            return default;
-        }
-
         public string[] GetCombinedTags()
         {
             return DownloadableContents
@@ -275,7 +238,7 @@ namespace MovManagerr.Core.Data
                      .Distinct()
                      .ToArray();
         }
-        
+
         public virtual void Merge(Movie entity)
         {
             if (entity is Movie content)
@@ -287,25 +250,6 @@ namespace MovManagerr.Core.Data
                 {
                     TmdbMovie = content.TmdbMovie;
                     TmdbId = content.TmdbId;
-                }
-
-                if (CustomData == null)
-                {
-                    CustomData = content.CustomData;
-                }
-                else
-                {
-                    foreach (var item in content.CustomData)
-                    {
-                        if (!CustomData.ContainsKey(item.Key))
-                        {
-                            CustomData.Add(item.Key, item.Value);
-                        }
-                        else
-                        {
-                            CustomData[item.Key] = item.Value;
-                        }
-                    }
                 }
             }
             else

@@ -1,11 +1,10 @@
 ﻿using LiteDB;
 using System.Linq.Expressions;
 
-namespace MovManagerr.Core.Infrastructures.Dbs
+namespace MovManagerr.Core.Infrastructures.Dbs.Repositories
 {
 
-    public abstract partial class BaseRepository<T> : IBaseRepository<T> 
-        where T : Entity
+    public abstract partial class BaseRepository<T> : IBaseRepository<T>
     {
         protected readonly ILiteDatabase DB;
         public readonly ILiteCollection<T> Collection;
@@ -42,6 +41,11 @@ namespace MovManagerr.Core.Infrastructures.Dbs
             Collection.Upsert(entity);
         }
 
+        public virtual void Upsert(T entity)
+        {
+            Collection.Upsert(entity);
+        }
+
         public virtual bool Delete(int id)
         {
             return Collection.Delete(id);
@@ -62,5 +66,6 @@ namespace MovManagerr.Core.Infrastructures.Dbs
         bool Delete(int id);
         ILiteQueryable<T> Query();
         T FindOne(Expression<Func<T, bool>> predicate);
+        void Upsert(T entity);
     }
 }

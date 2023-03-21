@@ -12,47 +12,47 @@ namespace MovManagerr.Core.Downloaders.M3U
 
         public M3uChunkReadable Chunks { get; }
 
-        public M3uDownloaderClient(string url, IEnumerable<IReader> readers)
-        {
-            Chunks = new M3uChunkReadable();
+        //public M3uDownloaderClient(string url, IEnumerable<IReader> readers)
+        //{
+        //    Chunks = new M3uChunkReadable();
 
-            _url = url;
+        //    _url = url;
 
-            foreach (var reader in readers)
-            {
-                Chunks.OnContentFounded += reader.Read;
-            }
+        //    foreach (var reader in readers)
+        //    {
+        //        Chunks.OnContentFounded += reader.Read;
+        //    }
 
-            _config = new DownloadConfiguration()
-            {
-                // usually, hosts support max to 8000 bytes, default values is 8000
-                BufferBlockSize = 10240,
-                // file parts to download, default value is 1
-                ChunkCount = 8,
-                // download speed limited to 2MB/s, default values is zero or unlimited
-                MaximumBytesPerSecond = 1024 * 1024 * 2,
-                // the maximum number of times to fail
-                MaxTryAgainOnFailover = 5,
-                // download parts of file as parallel or not. Default value is false
-                ParallelDownload = true,
-                // number of parallel downloads. The default value is the same as the chunk count
-                ParallelCount = 4,
-                // timeout (millisecond) per stream block reader, default values is 1000
-                Timeout = 1000,
-                // set true if you want to download just a specific range of bytes of a large file
-                RangeDownload = false,
-                // floor offset of download range of a large file
-                RangeLow = 0,
-                // ceiling offset of download range of a large file
-                RangeHigh = 0,
-                // clear package chunks data when download completed with failure, default value is false
-                ClearPackageOnCompletionWithFailure = true,
-                // minimum size of chunking to download a file in multiple parts, default value is 512
-                MinimumSizeOfChunking = 1024,
-                // Before starting the download, reserve the storage space of the file as file size, default value is false
-                ReserveStorageSpaceBeforeStartingDownload = true
-            };
-        }
+        //    _config = new DownloadConfiguration()
+        //    {
+        //        // usually, hosts support max to 8000 bytes, default values is 8000
+        //        BufferBlockSize = 10240,
+        //        // file parts to download, default value is 1
+        //        ChunkCount = 8,
+        //        // download speed limited to 2MB/s, default values is zero or unlimited
+        //        MaximumBytesPerSecond = 1024 * 1024 * 2,
+        //        // the maximum number of times to fail
+        //        MaxTryAgainOnFailover = 5,
+        //        // download parts of file as parallel or not. Default value is false
+        //        ParallelDownload = true,
+        //        // number of parallel downloads. The default value is the same as the chunk count
+        //        ParallelCount = 4,
+        //        // timeout (millisecond) per stream block reader, default values is 1000
+        //        Timeout = 1000,
+        //        // set true if you want to download just a specific range of bytes of a large file
+        //        RangeDownload = false,
+        //        // floor offset of download range of a large file
+        //        RangeLow = 0,
+        //        // ceiling offset of download range of a large file
+        //        RangeHigh = 0,
+        //        // clear package chunks data when download completed with failure, default value is false
+        //        ClearPackageOnCompletionWithFailure = true,
+        //        // minimum size of chunking to download a file in multiple parts, default value is 512
+        //        MinimumSizeOfChunking = 1024,
+        //        // Before starting the download, reserve the storage space of the file as file size, default value is false
+        //        ReserveStorageSpaceBeforeStartingDownload = true
+        //    };
+        //}
 
         /// <summary>
         /// Downloads as chunk.

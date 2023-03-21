@@ -10,5 +10,6 @@ namespace MovManagerr.Core.Services.Movies
         void Schedule_ReorganiseFolder();
         IEnumerable<SearchMovie?> GetMatchForFileName(string filename);
         Movie GetMovieFromSearchMovie(SearchMovie info);
+        void DeleteUnfoundedDownload();
     }
 }
