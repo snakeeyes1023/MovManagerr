@@ -1,14 +1,8 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Data.Helpers;
 using MovManagerr.Core.Downloaders.M3U;
-using MovManagerr.Core.Infrastructures.Dbs;
-using MovManagerr.Core.Infrastructures.Loggers;
-using System;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Xml.Linq;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers
 {

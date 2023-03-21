@@ -1,5 +1,4 @@
-﻿using Hangfire;
-using MovManagerr.Core.Downloaders.Contents;
+﻿using MovManagerr.Core.Downloaders.Contents;
 
 namespace MovManagerr.Core.Data.Abstracts
 {

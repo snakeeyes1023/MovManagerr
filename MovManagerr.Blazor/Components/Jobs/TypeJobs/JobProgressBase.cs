@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MovManagerr.Core.Infrastructures.TrackedTasks;
 using Radzen;
-using Radzen.Blazor.Rendering;
 using System;
 using System.Threading.Tasks;
 using System.Timers;
-using WebSocket4Net.Command;
 
 namespace MovManagerr.Blazor.Components.Jobs.TypeJobs
 {

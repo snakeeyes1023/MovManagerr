@@ -1,14 +1,7 @@
-﻿using MovManagerr.Core.Downloaders.Contents;
-using MovManagerr.Core.Downloaders.Contents.Readers;
+﻿using MovManagerr.Core.Downloaders.Contents.Readers;
 using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
 {

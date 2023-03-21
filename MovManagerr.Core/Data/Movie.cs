@@ -1,25 +1,85 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Tmdb;
-using Snake.LiteDb.Extensions.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Data
 {
     [Table("movies")]
-    public class Movie : Content
+    public class Movie
     {
-        public Movie(string name, string poster) : base(name, poster)
+        public Movie(string name, string poster)
         {
+            Name = name;
+            Poster = poster;
+            DownloadableContents = new List<DownloadableContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
 
         public Movie()
         {
+            DownloadableContents = new List<DownloadableContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
+
+        public string Name { get; set; }
+
+        public string Poster { get; set; }
+
+        public string GetCorrectedPoster()
+        {
+            if (Poster != null && !Poster.StartsWith("http"))
+            {
+                return "https://image.tmdb.org/t/p/w200/" + Poster;
+
+            }
+            return Poster ?? string.Empty;
+        }
+
+        public List<DownloadedContent> DownloadedContents { get; protected set; }
+
+        public List<DownloadableContent> DownloadableContents { get; protected set; }
+
+        public Dictionary<string, object> CustomData { get; protected set; }
+
+        public bool IsDownloaded
+        {
+            get
+            {
+                return DownloadedContents.Count > 0;
+            }
+        }
+
+        public decimal MaxBitrate
+        {
+            get
+            {
+                return this.GetMaxBitrate();
+            }
+        }
+
+        public decimal FileSize
+        {
+            get
+            {
+                return this.DownloadedContents.Sum(x => x.FileSizeAsGb);
+            }
+        }
+
+        public int NbFiles
+        {
+            get
+            {
+                return this.DownloadedContents.Count;
+            }
+        }
+
 
         #region Tmdb
         public int TmdbId { get; set; }
@@ -31,7 +91,7 @@ namespace MovManagerr.Core.Data
         /// Gets the directory path.
         /// </summary>
         /// <returns></returns>
-        public override string GetPath(bool createDirectory = true)
+        public string GetPath(bool createDirectory = true)
         {
             var title = TmdbMovie?.GetValidName() ?? Name;
 
@@ -44,7 +104,7 @@ namespace MovManagerr.Core.Data
             path = Regex.Replace(path, @"[ ]{2,}", " ").Replace(":", string.Empty);
             path = $"{path} ({year})";
 
-            var directoryPath = Path.Combine(base.GetPath(createDirectory), path);
+            var directoryPath = Path.Combine(GetDirectoryManager()._BasePath, path);
 
             if (createDirectory)
             {
@@ -91,7 +151,7 @@ namespace MovManagerr.Core.Data
         /// Gets the directory manager.
         /// </summary>
         /// <returns></returns>
-        public override DirectoryManager GetDirectoryManager()
+        public DirectoryManager GetDirectoryManager()
         {
             var preference = Preferences.Instance.Settings.GetContentPreference<Movie>();
 
@@ -107,16 +167,6 @@ namespace MovManagerr.Core.Data
             {
                 return directoryManager.CreateSubInstance(folderForGenre);
             }
-        }
-
-        /// <summary>
-        /// Equalses the specified content.
-        /// </summary>
-        /// <param name="content">The content.</param>
-        /// <returns></returns>
-        public override bool Equals(Content content)
-        {
-            return content is Movie movie && movie == this;
         }
 
         public bool IsSearchedOnTmdb()
@@ -139,24 +189,6 @@ namespace MovManagerr.Core.Data
             return LastSearchAttempt.HasValue && TmdbMovie == null;
         }
 
-        public override void Merge(Entity entity)
-        {
-            if (entity is Movie movie)
-            {
-                base.Merge(entity);
-
-                if (movie.TmdbMovie != null && movie.TmdbId != 0)
-                {
-                    TmdbMovie = movie.TmdbMovie;
-                    TmdbId = movie.TmdbId;
-                }
-            }
-            else
-            {
-                throw new ArgumentException("The entity is not a Movie");
-            }
-        }
-
         public static Movie CreateFromSearchMovie(SearchMovie searchMovie)
         {
             return new Movie(searchMovie.GetValidName(), searchMovie.PosterPath)
@@ -164,6 +196,122 @@ namespace MovManagerr.Core.Data
                 TmdbId = searchMovie.Id,
                 TmdbMovie = searchMovie
             };
+        }
+
+
+        /// <summary>
+        /// Gets the full path.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns></returns>
+        public virtual string GetFullPath(string fileName, bool createDirectory = true)
+        {
+            return Path.Combine(GetPath(createDirectory), fileName);
+        }
+
+        /// <summary>
+        /// Représente l'emplacement ou son stocker les contenues du même type (exemple : les films dans le dossier "Films")
+        /// </summary>
+        /// <returns></returns>
+        public void AddDownloadableContent(DownloadableContent downloable)
+        {
+            if (DownloadableContents.Any(x => downloable.Equals(x)))
+            {
+                return;
+            }
+
+            DownloadableContents.Add(downloable);
+        }
+
+        public void AddDownloadableContent(IEnumerable<DownloadableContent> downloads)
+        {
+            foreach (var downloable in downloads)
+            {
+                AddDownloadableContent(downloable);
+            }
+        }
+
+        public void Download(IServiceProvider serviceProvider, DownloadableContent? downloadLink = null)
+        {
+            if (downloadLink == null)
+            {
+                downloadLink = DownloadableContents.FirstOrDefault();
+
+                if (downloadLink == null)
+                {
+                    SimpleLogger.AddLog("Aucun fichier trouver", LogType.Error);
+                    return;
+                }
+            }
+
+            downloadLink.Download(serviceProvider, this);
+        }
+
+        public void AddCustomData(string key, object data)
+        {
+            if (CustomData == null)
+            {
+                CustomData = new Dictionary<string, object>();
+            }
+
+            CustomData.Add(key, data);
+        }
+
+        public T? GetCustomData<T>(string key)
+        {
+            if (CustomData != null && CustomData.GetValueOrDefault(key) is T data)
+            {
+                return data;
+            }
+
+            return default;
+        }
+
+        public string[] GetCombinedTags()
+        {
+            return DownloadableContents
+                     .OfType<M3UContentLink>()
+                     .SelectMany(x => x.Tags)
+                     .Distinct()
+                     .ToArray();
+        }
+        
+        public virtual void Merge(Movie entity)
+        {
+            if (entity is Movie content)
+            {
+                AddDownloadableContent(content.DownloadableContents);
+                Poster = content.Poster;
+
+                if (content.TmdbMovie != null && content.TmdbId != 0)
+                {
+                    TmdbMovie = content.TmdbMovie;
+                    TmdbId = content.TmdbId;
+                }
+
+                if (CustomData == null)
+                {
+                    CustomData = content.CustomData;
+                }
+                else
+                {
+                    foreach (var item in content.CustomData)
+                    {
+                        if (!CustomData.ContainsKey(item.Key))
+                        {
+                            CustomData.Add(item.Key, item.Value);
+                        }
+                        else
+                        {
+                            CustomData[item.Key] = item.Value;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot merge entity with different type");
+            }
         }
     }
 }

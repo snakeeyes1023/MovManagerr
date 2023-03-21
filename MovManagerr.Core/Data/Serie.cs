@@ -1,6 +1,4 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Data.Helpers;
-using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Configurations;
 using System.ComponentModel.DataAnnotations.Schema;
 

@@ -1,8 +1,5 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Data;
-using MovManagerr.Core.Data.Helpers;
-using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 
 namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks

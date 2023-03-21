@@ -1,7 +1,4 @@
-﻿using LiteDB;
-using MovManagerr.Core.Data;
-using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Tasks.Backgrounds;
+﻿using MovManagerr.Core.Data;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services.Movies

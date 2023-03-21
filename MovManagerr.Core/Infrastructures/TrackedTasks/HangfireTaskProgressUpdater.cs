@@ -1,14 +1,7 @@
 ﻿using Hangfire.Client;
 using Hangfire.Common;
-using Hangfire.Logging;
 using Hangfire.Server;
 using Hangfire.States;
-using Hangfire.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Infrastructures.TrackedTasks
 {

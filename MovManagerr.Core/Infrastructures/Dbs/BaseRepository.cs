@@ -1,15 +1,9 @@
 ﻿using LiteDB;
-using Snake.LiteDb.Extensions.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Infrastructures.Dbs
 {
-    
+
     public abstract partial class BaseRepository<T> : IBaseRepository<T> 
         where T : Entity
     {

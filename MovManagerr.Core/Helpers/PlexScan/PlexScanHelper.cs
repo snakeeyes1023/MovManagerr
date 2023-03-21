@@ -1,14 +1,7 @@
 ﻿using Hangfire;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
-using MovManagerr.Core.Services.Movies;
 using Plex.Api.Factories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Helpers.PlexScan
 {

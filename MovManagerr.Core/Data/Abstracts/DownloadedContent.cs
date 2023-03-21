@@ -1,7 +1,5 @@
 ﻿using MediaInfoLib;
 using MovManagerr.Core.Downloaders.Contents.Helpers;
-using MovManagerr.Core.Infrastructures.Loggers;
-using System.IO;
 
 namespace MovManagerr.Core.Data.Abstracts
 {

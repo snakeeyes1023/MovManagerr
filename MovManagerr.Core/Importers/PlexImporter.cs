@@ -1,26 +1,13 @@
-﻿using Hangfire;
-using MovManagerr.Core.Data;
-using MovManagerr.Core.Data.Abstracts;
+﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Services.Movies;
 using MovManagerr.Tmdb;
 using Plex.Api.Factories;
-using Plex.Library.ApiModels.Accounts;
 using Plex.Library.ApiModels.Libraries;
 using Plex.Library.ApiModels.Servers;
-using Plex.ServerApi.PlexModels.Account;
 using Plex.ServerApi.PlexModels.Media;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.Xml;
-using System.Text;
-using System.Threading.Tasks;
-using TMDbLib.Client;
-using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Importers

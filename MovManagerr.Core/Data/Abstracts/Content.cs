@@ -1,8 +1,5 @@
 ﻿using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
-using Snake.LiteDb.Extensions.Models;
-using System.Net;
-using TMDbLib.Objects.Movies;
 
 namespace MovManagerr.Core.Data.Abstracts
 {

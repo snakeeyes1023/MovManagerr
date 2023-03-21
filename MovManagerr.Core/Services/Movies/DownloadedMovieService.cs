@@ -1,14 +1,7 @@
 ﻿using Hangfire;
-using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
-using Snake.LiteDb.Extensions.Mappers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Services.Movies
 {

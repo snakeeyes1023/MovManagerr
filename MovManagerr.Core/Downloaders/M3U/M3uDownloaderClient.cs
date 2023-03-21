@@ -1,5 +1,4 @@
 ﻿using Downloader;
-using MovManagerr.Core.Downloaders.Contents.Readers;
 using MovManagerr.Core.Infrastructures.Loggers;
 
 namespace MovManagerr.Core.Downloaders.M3U

@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
-using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Tmdb;
-using System.Net;
 
 namespace MovManagerr.Core.Infrastructures.Configurations
 {

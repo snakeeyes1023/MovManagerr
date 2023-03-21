@@ -1,11 +1,8 @@
 ﻿using Hangfire;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System.Net;
-using System.Net.NetworkInformation;
 
 namespace MovManagerr.Core.Downloaders.Contents
 {

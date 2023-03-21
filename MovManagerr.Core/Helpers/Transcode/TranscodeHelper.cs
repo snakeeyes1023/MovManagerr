@@ -1,17 +1,9 @@
 ﻿using Hangfire;
 using Hangfire.Server;
-using Microsoft.VisualBasic;
 using MovManagerr.Core.Helpers.Transferts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Infrastructures.TrackedTasks;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Xabe.FFmpeg;
 
 namespace MovManagerr.Core.Helpers.Transcode

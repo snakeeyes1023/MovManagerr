@@ -1,6 +1,5 @@
 ﻿using MovManagerr.Core.Data;
 using MovManagerr.Core.Downloaders.M3U;
-using MovManagerr.Core.Infrastructures.Dbs;
 using System.Linq.Expressions;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers

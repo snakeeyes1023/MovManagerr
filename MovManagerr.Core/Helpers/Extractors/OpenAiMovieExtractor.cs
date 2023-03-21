@@ -1,14 +1,5 @@
 ﻿using MovManagerr.Core.Infrastructures.Configurations;
 using OpenAI_API;
-using OpenAI_API.Completions;
-using OpenAI_API.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Helpers.Extractors
 {

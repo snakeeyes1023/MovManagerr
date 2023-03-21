@@ -1,14 +1,8 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Infrastructures.Configurations.ContentPreferences
 {
-    public abstract class ContentPreference<T> : IContentPreference where T : Content
+    public abstract class ContentPreference<T> : IContentPreference
     {
         public abstract string BasePath { get; set; }
 
