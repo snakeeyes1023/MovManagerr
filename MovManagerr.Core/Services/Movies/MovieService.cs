@@ -5,90 +5,25 @@ using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Dbs;
 using MovManagerr.Core.Infrastructures.Loggers;
-using MovManagerr.Core.Services.Bases.ContentService;
-using MovManagerr.Core.Tasks.Backgrounds;
-using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
-using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using MovManagerr.Tmdb;
-using System.IO;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services.Movies
 {
-    public class MovieService : BaseContentService<Movie>, IMovieService
+    public class MovieService : IMovieService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IMovieRepository _movieRepository;
 
-        public MovieService(IServiceProvider serviceProvider, IContentDbContext contentDbContext) : base(contentDbContext)
+        public MovieService(IMovieRepository movieRepository)
         {
-            _serviceProvider = serviceProvider;
-        }
-
-        public IEnumerable<Movie> GetRecent(int limit)
-        {
-            return _currentCollection.UseQuery(x =>
-            {
-                x.Limit(limit);
-                BaseOrderQuery(x);
-            }).ToList();
-        }
-
-        public EventedBackgroundService GetSearchAllMovieOnTmdbService()
-        {
-            var service = (EventedBackgroundService?)_serviceProvider.GetService(typeof(SearchAllMoviesOnTmdb));
-
-            if (service == null)
-            {
-                throw new InvalidCastException("Impossible de trouver la tâche");
-            }
-
-            return service;
-        }
-
-        public EventedBackgroundService GetSyncM3UFilesInDbService()
-        {
-            var service = (EventedBackgroundService?)_serviceProvider.GetService(typeof(SyncM3UFiles));
-
-            if (service == null)
-            {
-                throw new InvalidCastException("Impossible de trouver la tâche");
-            }
-
-            return service;
-        }
-
-        public Movie? GetMovieById(ObjectId _id)
-        {
-            Movie? movie = _currentCollection.UseQuery(x =>
-            {
-                x.Where(x => x._id == _id).FirstOrDefault();
-
-            }).FirstOrDefault();
-
-            if (movie != null && !movie.IsSearchedOnTmdb())
-            {
-                movie.SearchMovieOnTmdb();
-
-                movie.SetDirty(true);
-
-                _currentCollection.SaveChanges();
-            }
-
-            return movie;
-        }
-
-        public void Schedule_ScanFolder(string path)
-        {
-            BackgroundJob.Enqueue(() => ScanFolder(path));
+            _movieRepository = movieRepository;
         }
 
         [Queue("sync-task")]
         public void ScanFolder(string path)
         {
-            var alreadyMapMovies = _currentCollection.ToList();
+            var alreadyMapMovies = _movieRepository.All();
 
             if (Preferences.GetTmdbInstance() is TmdbClientService client)
             {
@@ -111,15 +46,14 @@ namespace MovManagerr.Core.Services.Movies
                             {
                                 if (!movie.DownloadedContents.Any(x => x.FullPath == files[0]))
                                 {
-                                    movie.DownloadedContents.Add(new Data.Abstracts.DownloadedContent(files[0]));
-                                    movie.SetDirty();
+                                    movie.DownloadedContents.Add(new DownloadedContent(files[0]));
                                 }
                             }
                             else
                             {
                                 movie = Movie.CreateFromSearchMovie(TmdbMovie);
-                                movie.DownloadedContents.Add(new Data.Abstracts.DownloadedContent(files[0]));
-                                _currentCollection.Add(movie);
+                                movie.DownloadedContents.Add(new DownloadedContent(files[0]));
+                                _movieRepository.Create(movie);
                             }
                         }
                         else
@@ -130,8 +64,6 @@ namespace MovManagerr.Core.Services.Movies
 
                 });
             }
-
-            _currentCollection.SaveChanges();
         }
 
         public void Schedule_ReorganiseFolder()
@@ -142,7 +74,10 @@ namespace MovManagerr.Core.Services.Movies
         [Queue("sync-task")]
         public void ReorganiseFolder()
         {
-            var downloadedMovies = _currentCollection.ToList().Where(x => x.DownloadedContents.Any()).ToList();
+            var downloadedMovies = _movieRepository
+                .Query()
+                .Where(x => x.DownloadedContents.Any())
+                .ToList();
 
             foreach (var movie in downloadedMovies)
             {
@@ -173,7 +108,6 @@ namespace MovManagerr.Core.Services.Movies
                                     Directory.Delete(parentFolder);
 
                                     download.FullPath = newPath;
-                                    movie.SetDirty();
                                 }
                                 else
                                 {
@@ -188,7 +122,6 @@ namespace MovManagerr.Core.Services.Movies
                     SimpleLogger.AddLog("Erreur lors du traitement du film " + movie.Name + " : " + ex.Message, LogType.Error);
                 }
             }
-            _currentCollection.SaveChanges();
         }
 
         private static bool TryExtractMovieNameAndYear(string dirPath, out string title, out int year)
@@ -234,17 +167,12 @@ namespace MovManagerr.Core.Services.Movies
 
         public Movie GetMovieFromSearchMovie(SearchMovie info)
         {
-            var movie = _currentCollection.UseQuery(x =>
-            {
-                x.Where(movie => movie.TmdbId == info.Id);
-            }).ToList().FirstOrDefault();
+            Movie movie = _movieRepository.FindByTmdbId(info.Id);
 
             // Add the movie if not exists
             if (movie == null)
             {
-                movie = Movie.CreateFromSearchMovie(info);
-                _currentCollection.Add(movie);
-                _currentCollection.SaveChanges();
+                movie = _movieRepository.Create(Movie.CreateFromSearchMovie(info));
             }
 
             return movie;

@@ -6,25 +6,25 @@ using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Dbs;
 using Snake.LiteDb.Extensions.Mappers;
 using System.Linq.Expressions;
+using System.Xml.Linq;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers
 {
-    public abstract class M3uContentReader<T> : IReader where T : Content
+    public abstract class M3uContentReader<T> where T : Content
     {
         #region Props
         protected Preferences Preferences;
 
         private readonly Func<MediaM3u, bool> s_isValid;
 
-        private readonly LiteDbSet<T> _contentDbContext;
+        private readonly BaseRepository<T> _repository;
         #endregion
-
-        public M3uContentReader(IContentDbContext contentDbContext)
+        
+        public M3uContentReader(BaseRepository<T> repository)
         {
             s_isValid = Filter().Compile();
             Preferences = Preferences.Instance;
-            
-            _contentDbContext = contentDbContext.GetCollection<T>();
+            _repository = repository;
         }
 
         #region Abstractions
@@ -42,32 +42,20 @@ namespace MovManagerr.Core.Downloaders.Contents.Readers
 
                 if (content is not null)
                 {
-                    T? existingContent = _contentDbContext.FirstOrDefault(c => c.Name == content?.Name);
+                    T? existingContent = _repository.FindOne(m => m.Name == content.Name);
 
                     if (existingContent == null)
                     {
-                        _contentDbContext.Add(content);
+                        _repository.Create(content);
                     }
                     else
                     {
                         existingContent.Merge(content);
-                        existingContent.SetDirty(true);
+                        _repository.Update(existingContent);
                     }
                 }
             }
         }
-
-
-        public void SaveChanges()
-        {
-            _contentDbContext.SaveChanges();
-        }
-
-        public void Dispose()
-        {
-            _contentDbContext.ClearContext();
-        }
-
         #endregion
     }
 }
