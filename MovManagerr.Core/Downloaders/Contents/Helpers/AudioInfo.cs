@@ -1,6 +1,4 @@
-﻿using MediaInfoLib;
-
-namespace MovManagerr.Core.Downloaders.Contents.Helpers
+﻿namespace MovManagerr.Core.Downloaders.Contents.Helpers
 {
     public class AudioInfo
     {

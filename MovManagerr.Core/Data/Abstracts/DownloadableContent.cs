@@ -20,6 +20,6 @@
 
         public abstract bool Equals(DownloadableContent? other);
 
-        public abstract void Download(IServiceProvider serviceProvider, Content content);
+        public abstract void Download(IServiceProvider serviceProvider, Movie movie);
     }
 }

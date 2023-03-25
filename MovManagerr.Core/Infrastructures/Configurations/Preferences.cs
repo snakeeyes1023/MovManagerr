@@ -1,10 +1,9 @@
-﻿using Microsoft.Extensions.Options;
-using MovManagerr.Core.Data.Abstracts;
+﻿using LiteDB;
+using Microsoft.Extensions.Options;
 using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
-using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.DataAccess;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Tmdb;
-using System.Net;
 
 namespace MovManagerr.Core.Infrastructures.Configurations
 {
@@ -29,11 +28,11 @@ namespace MovManagerr.Core.Infrastructures.Configurations
         #region Path
 
         public readonly string _PreferenceFolder;
-
         public readonly string _AppData;
-
         public readonly string _DbPath;
         public readonly string _HangFireDbPath;
+        private DbContext _dbContext;
+
         public CustomSettings Settings { get; private set; }
 
         #endregion
@@ -43,12 +42,12 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             // L'orde est important
             _AppData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Movmanagerr");
             _PreferenceFolder = Path.Combine(_AppData, "preferences");
-            _DbPath = "Filename=" + Path.Combine(_AppData, "movmanagerr.db") + ";Connection=shared";
+            _DbPath = "Filename=" + Path.Combine(_AppData, "movmanagerr.db");
             _HangFireDbPath = Path.Combine(_AppData, "hangfire.db");
+            
             try
             {
                 InitaliseAppDataFolders();
-                Settings = GetOrCreateSettings();
             }
             catch (Exception)
             {
@@ -56,59 +55,23 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             }
         }
 
-        private CustomSettings GetOrCreateSettings()
+        public void SetDbInstance(DbContext dbContext)
         {
-            ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
-
-            var results = contentDbContext.Settings.ToList();
-
-            if (results != null && results.Any())
-            {
-                return results.FirstOrDefault()!;
-            }
-            else
-            {
-                CustomSettings setting = new CustomSettings();
-
-                contentDbContext.Settings.Add(setting);
-                contentDbContext.Settings.SaveChanges();
-
-                return setting;
-            }
-        }
-
-        public void ResetFactoryConfiguration()
-        {
-            CustomSettings setting = new CustomSettings();
-            setting._id = GetOrCreateSettings()._id;
-            Settings= setting;
-            SaveSettings();
-
-            SimpleLogger.AddLog("Remise des configurations d'usine", LogType.Warning);
+            _dbContext = dbContext;
+            Settings = _dbContext.Settings.GetCurrentSettingOrCreate();
         }
 
         public void SaveSettings()
         {
-            ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
-            contentDbContext.Settings.TrackEntity(Settings);
-            Settings.SetDirty();
-            
-            contentDbContext.Settings.SaveChanges();
-
+            _dbContext.Settings.Upsert(Settings);
             SimpleLogger.AddLog("Les configurations ont été mise à jour", LogType.Info);
         }
 
         public void ReloadSettings()
         {
-            ContentDbContext contentDbContext = new ContentDbContext(_DbPath);
-
-            var results = contentDbContext.Settings.ToList();
-
-            if (results != null && results.Any())
-            {
-                Settings = results.FirstOrDefault()!;
-            }
+            Settings = _dbContext.Settings.GetCurrentSettingOrCreate();
         }
+
         private void InitaliseAppDataFolders()
         {
             Directory.CreateDirectory(_AppData);

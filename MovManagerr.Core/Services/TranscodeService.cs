@@ -1,13 +1,6 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Transcode;
 using MovManagerr.Core.Infrastructures.Configurations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services
 {

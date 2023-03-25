@@ -1,4 +1,5 @@
 ﻿@using MovManagerr.Core.Infrastructures.TrackedTasks;
+@using MovManagerr.Core.Infrastructures.TrackedTasks.Generals;
 
 @if (Job is TransfertJobProgression transfert)
 {
@@ -7,6 +8,11 @@
 else if (Job is TranscodeJobProgression transcode)
 {
     <TranscodeJobProgress RefreshList="@RefreshList" Job="transcode" />
+}
+else if (Job is PlexImportJobProgression import)
+{
+    <PlexImportJobProgress RefreshList="@RefreshList" Job="import" />
+
 }
 
 

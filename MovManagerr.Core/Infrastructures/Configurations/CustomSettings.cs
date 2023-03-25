@@ -1,18 +1,12 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
+﻿using LiteDB;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations.ContentPreferences;
-using Snake.LiteDb.Extensions.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Infrastructures.Configurations
 {
     [Table("Settings")]
-    public class CustomSettings : Entity
+    public class CustomSettings
     {
         public CustomSettings()
         {
@@ -25,9 +19,11 @@ namespace MovManagerr.Core.Infrastructures.Configurations
             TranscodeConfiguration = new TranscodeConfiguration();
         }
 
+        public int Id { get; set; }
+
         public List<IContentPreference> ContentPreferences { get; set; }
 
-        public ContentPreference<T> GetContentPreference<T>() where T : Content
+        public ContentPreference<T> GetContentPreference<T>()
         {
             foreach (var preference in ContentPreferences)
             {

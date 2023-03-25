@@ -76,23 +76,23 @@ namespace MovManagerr.Tmdb.Service
             return candidateMovies;
         }
 
-        /// <summary>
-        /// Like a movie with is name and year
-        /// </summary>
-        /// <param name="name">Name of the movie</param>
-        /// <param name="year">Release year</param>
-        /// <returns></returns>
-        public async Task<bool> LikeMovieByNameAndYearAsync(string name, int year)
-        {
-            SearchMovie? movie = await _baseService.GetMovieByNameAndYearAsync(name, year);
+        ///// <summary>
+        ///// Like a movie with is name and year
+        ///// </summary>
+        ///// <param name="name">Name of the movie</param>
+        ///// <param name="year">Release year</param>
+        ///// <returns></returns>
+        //public async Task<bool> LikeMovieByNameAndYearAsync(string name, int year)
+        //{
+        //    TMDbLib.Objects.Movies.Movie? movie = await _baseService.GetMovieByNameAndYearAsync(name, year);
 
-            if (movie == null)
-            {
-                return false;
-            }
+        //    if (movie == null)
+        //    {
+        //        return false;
+        //    }
 
-            return await _client.AccountChangeFavoriteStatusAsync(movie.MediaType, movie.Id, true);
-        }
+        //    return await _client.AccountChangeFavoriteStatusAsync(movie.MediaType, movie.Id, true);
+        //}
 
         public async Task<bool> DislikeMovieAsync(int id)
         {
