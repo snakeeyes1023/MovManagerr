@@ -1,37 +1,93 @@
-﻿using MovManagerr.Core.Data.Abstracts;
+﻿using LiteDB;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
+using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Tmdb;
-using Snake.LiteDb.Extensions.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Data
 {
-    [Table("movies")]
-    public class Movie : Content
-    {
-        public Movie(string name, string poster) : base(name, poster)
+    public class Movie : IMedia
+    { 
+        public Movie(string name, string poster)
         {
+            Name = name;
+            Poster = poster;
+            DownloadableContents = new List<DownloadableContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
 
         public Movie()
         {
+            DownloadableContents = new List<DownloadableContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
+
+        [BsonId]
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Poster { get; set; }
+
+        public string GetCorrectedPoster()
+        {
+            if (Poster != null && !Poster.StartsWith("http"))
+            {
+                return "https://image.tmdb.org/t/p/w200/" + Poster;
+
+            }
+            return Poster ?? string.Empty;
+        }
+
+
+        public List<DownloadedContent> DownloadedContents { get; protected set; }
+
+        public List<DownloadableContent> DownloadableContents { get; protected set; }
+
+        public bool IsDownloaded
+        {
+            get
+            {
+                return DownloadedContents.Count > 0;
+            }
+        }
+
+        public int NbFiles
+        {
+            get
+            {
+                return this.DownloadedContents.Count;
+            }
+        }
+
+        public decimal MaxBitrate
+        {
+            get
+            {
+                if (this.DownloadedContents.Any())
+                {
+                    return this.DownloadedContents.Max(x => x.OverallInfo.BitrateInMbs);
+                }
+
+                return 0;
+            }
+        }
+
 
         #region Tmdb
         public int TmdbId { get; set; }
-        public TMDbLib.Objects.Search.SearchMovie? TmdbMovie { get; private set; }
-        public DateTime? LastSearchAttempt { get; set; }
+        public TMDbLib.Objects.Movies.Movie? TmdbMovie { get; private set; }
         #endregion
 
         /// <summary>
         /// Gets the directory path.
         /// </summary>
         /// <returns></returns>
-        public override string GetPath(bool createDirectory = true)
+        public string GetPath(bool createDirectory = true)
         {
             var title = TmdbMovie?.GetValidName() ?? Name;
 
@@ -44,7 +100,7 @@ namespace MovManagerr.Core.Data
             path = Regex.Replace(path, @"[ ]{2,}", " ").Replace(":", string.Empty);
             path = $"{path} ({year})";
 
-            var directoryPath = Path.Combine(base.GetPath(createDirectory), path);
+            var directoryPath = Path.Combine(GetDirectoryManager()._BasePath, path);
 
             if (createDirectory)
             {
@@ -69,35 +125,16 @@ namespace MovManagerr.Core.Data
 
 
         /// <summary>
-        /// Searches the movie on TMDB. (base on the name)
-        /// </summary>
-        /// <returns></returns>
-        public void SearchMovieOnTmdb()
-        {
-            LastSearchAttempt = DateTime.Now;
-
-            if (Name != null && Preferences.GetTmdbInstance() is TmdbClientService client)
-            {
-                TmdbMovie = client.GetMovieByName(Name);
-
-                if (TmdbMovie != null)
-                {
-                    TmdbId = TmdbMovie.Id;
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets the directory manager.
         /// </summary>
         /// <returns></returns>
-        public override DirectoryManager GetDirectoryManager()
+        public DirectoryManager GetDirectoryManager()
         {
             var preference = Preferences.Instance.Settings.GetContentPreference<Movie>();
 
             var directoryManager = preference.GetDirectoryManager();
 
-            string folderForGenre = preference.GetFolderForGenre(TmdbMovie!.GenreIds.FirstOrDefault());
+            string folderForGenre = preference.GetFolderForGenre(TmdbMovie!.Genres.FirstOrDefault()?.Id ?? 0);
 
             if (string.IsNullOrWhiteSpace(folderForGenre))
             {
@@ -108,62 +145,73 @@ namespace MovManagerr.Core.Data
                 return directoryManager.CreateSubInstance(folderForGenre);
             }
         }
+        
+        public static Movie CreateFromTmdbMovie(TMDbLib.Objects.Movies.Movie movie)
+        {
+            return new Movie(movie.GetValidName(), movie.PosterPath)
+            {
+                TmdbId = movie.Id,
+                TmdbMovie = movie
+            };
+        }
+
 
         /// <summary>
-        /// Equalses the specified content.
+        /// Gets the full path.
         /// </summary>
-        /// <param name="content">The content.</param>
+        /// <param name="fileName">Name of the file.</param>
         /// <returns></returns>
-        public override bool Equals(Content content)
+        public virtual string GetFullPath(string fileName, bool createDirectory = true)
         {
-            return content is Movie movie && movie == this;
+            return Path.Combine(GetPath(createDirectory), fileName);
         }
 
-        public bool IsSearchedOnTmdb()
+        /// <summary>
+        /// Représente l'emplacement ou son stocker les contenues du même type (exemple : les films dans le dossier "Films")
+        /// </summary>
+        /// <returns></returns>
+        public void AddDownloadableContent(DownloadableContent downloable)
         {
-            return LastSearchAttempt.HasValue || TmdbMovie != null;
-        }
-
-        public static Expression<Func<Movie, bool>> GetIsSearchOnTmdbExpressionEnable(bool isSearched)
-        {
-            if (isSearched)
+            if (DownloadableContents.Any(x => downloable.Equals(x)))
             {
-                return x => x.LastSearchAttempt.HasValue || x.TmdbMovie != null;
+                return;
             }
-            return x => !x.LastSearchAttempt.HasValue || x.TmdbMovie != null;
+
+            DownloadableContents.Add(downloable);
         }
 
-
-        public bool IsSearchedOnTmdbFailed()
+        public void AddDownloadableContent(IEnumerable<DownloadableContent> downloads)
         {
-            return LastSearchAttempt.HasValue && TmdbMovie == null;
-        }
-
-        public override void Merge(Entity entity)
-        {
-            if (entity is Movie movie)
+            foreach (var downloable in downloads)
             {
-                base.Merge(entity);
+                AddDownloadableContent(downloable);
+            }
+        }
 
-                if (movie.TmdbMovie != null && movie.TmdbId != 0)
+        public void Download(IServiceProvider serviceProvider, DownloadableContent? downloadLink = null)
+        {
+            if (downloadLink == null)
+            {
+                downloadLink = DownloadableContents.FirstOrDefault();
+
+                if (downloadLink == null)
                 {
-                    TmdbMovie = movie.TmdbMovie;
-                    TmdbId = movie.TmdbId;
+                    SimpleLogger.AddLog("Aucun fichier trouver", LogType.Error);
+                    return;
                 }
             }
-            else
-            {
-                throw new ArgumentException("The entity is not a Movie");
-            }
+
+            downloadLink.Download(serviceProvider, this);
         }
 
-        public static Movie CreateFromSearchMovie(SearchMovie searchMovie)
+        public DownloadedContent CreateAndScan(string origin)
         {
-            return new Movie(searchMovie.GetValidName(), searchMovie.PosterPath)
-            {
-                TmdbId = searchMovie.Id,
-                TmdbMovie = searchMovie
-            };
+            DownloadedContent download = new DownloadedContent(origin);
+            download.LoadMediaInfo();
+
+            DownloadedContents.Add(download);
+
+            return download;
         }
     }
 }

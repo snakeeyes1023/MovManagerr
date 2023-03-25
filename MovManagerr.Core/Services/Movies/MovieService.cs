@@ -3,135 +3,68 @@ using LiteDB;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.DataAccess;
+using MovManagerr.Core.Infrastructures.DataAccess.Repositories;
 using MovManagerr.Core.Infrastructures.Loggers;
-using MovManagerr.Core.Services.Bases.ContentService;
-using MovManagerr.Core.Tasks.Backgrounds;
-using MovManagerr.Core.Tasks.Backgrounds.ContentTasks;
-using MovManagerr.Core.Tasks.Backgrounds.MovieTasks;
 using MovManagerr.Tmdb;
-using System.IO;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services.Movies
 {
-    public class MovieService : BaseContentService<Movie>, IMovieService
+    public class MovieService : IMovieService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly DbContext _dbContext;
 
-        public MovieService(IServiceProvider serviceProvider, IContentDbContext contentDbContext) : base(contentDbContext)
+        public MovieService(DbContext dbContext)
         {
-            _serviceProvider = serviceProvider;
-        }
-
-        public IEnumerable<Movie> GetRecent(int limit)
-        {
-            return _currentCollection.UseQuery(x =>
-            {
-                x.Limit(limit);
-                BaseOrderQuery(x);
-            }).ToList();
-        }
-
-        public EventedBackgroundService GetSearchAllMovieOnTmdbService()
-        {
-            var service = (EventedBackgroundService?)_serviceProvider.GetService(typeof(SearchAllMoviesOnTmdb));
-
-            if (service == null)
-            {
-                throw new InvalidCastException("Impossible de trouver la tâche");
-            }
-
-            return service;
-        }
-
-        public EventedBackgroundService GetSyncM3UFilesInDbService()
-        {
-            var service = (EventedBackgroundService?)_serviceProvider.GetService(typeof(SyncM3UFiles));
-
-            if (service == null)
-            {
-                throw new InvalidCastException("Impossible de trouver la tâche");
-            }
-
-            return service;
-        }
-
-        public Movie? GetMovieById(ObjectId _id)
-        {
-            Movie? movie = _currentCollection.UseQuery(x =>
-            {
-                x.Where(x => x._id == _id).FirstOrDefault();
-
-            }).FirstOrDefault();
-
-            if (movie != null && !movie.IsSearchedOnTmdb())
-            {
-                movie.SearchMovieOnTmdb();
-
-                movie.SetDirty(true);
-
-                _currentCollection.SaveChanges();
-            }
-
-            return movie;
-        }
-
-        public void Schedule_ScanFolder(string path)
-        {
-            BackgroundJob.Enqueue(() => ScanFolder(path));
+            _dbContext = dbContext;
         }
 
         [Queue("sync-task")]
         public void ScanFolder(string path)
         {
-            var alreadyMapMovies = _currentCollection.ToList();
+            //var alreadyMapMovies = _dbContext.All();
 
-            if (Preferences.GetTmdbInstance() is TmdbClientService client)
-            {
-                // Récupérer la liste de tous les dossiers dans le chemin spécifié
-                string[] directories = Directory.GetDirectories(path);
-                Parallel.ForEach(directories, dirPath =>
-                {
-                    // obtenir le premier fichier dans le dossier actuel
-                    var files = Directory.GetFiles(dirPath, "*.*", SearchOption.TopDirectoryOnly);
+            //if (Preferences.GetTmdbInstance() is TmdbClientService client)
+            //{
+            //    // Récupérer la liste de tous les dossiers dans le chemin spécifié
+            //    string[] directories = Directory.GetDirectories(path);
+            //    Parallel.ForEach(directories, dirPath =>
+            //    {
+            //        // obtenir le premier fichier dans le dossier actuel
+            //        var files = Directory.GetFiles(dirPath, "*.*", SearchOption.TopDirectoryOnly);
 
-                    if (files.Any() && TryExtractMovieNameAndYear(dirPath, out string title, out int year))
-                    {
-                        var TmdbMovie = client.GetMovieByNameAndYear(title, year);
+            //        if (files.Any() && TryExtractMovieNameAndYear(dirPath, out string title, out int year))
+            //        {
+            //            var TmdbMovie = client.GetMovieByNameAndYear(title, year);
 
-                        if (TmdbMovie != null)
-                        {
-                            var movie = alreadyMapMovies.FirstOrDefault(x => x.TmdbId == TmdbMovie.Id);
+            //            if (TmdbMovie != null)
+            //            {
+            //                var movie = alreadyMapMovies.FirstOrDefault(x => x.TmdbId == TmdbMovie.Id);
 
-                            if (movie != null)
-                            {
-                                if (!movie.DownloadedContents.Any(x => x.FullPath == files[0]))
-                                {
-                                    movie.DownloadedContents.Add(new Data.Abstracts.DownloadedContent(files[0]));
-                                    movie.SetDirty();
-                                }
-                            }
-                            else
-                            {
-                                movie = Movie.CreateFromSearchMovie(TmdbMovie);
-                                movie.DownloadedContents.Add(new Data.Abstracts.DownloadedContent(files[0]));
-                                _currentCollection.Add(movie);
-                            }
-                        }
-                        else
-                        {
-                            SimpleLogger.AddLog($"Impossible de trouver le film {title} sur Tmdb", LogType.Error);
-                        }
-                    }
+            //                if (movie != null)
+            //                {
+            //                    if (!movie.Medias.Any(x => x.FullPath == files[0]))
+            //                    {
+            //                        movie.Medias.Add(new DownloadedContent(files[0]));
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    movie = Movie.CreateFromSearchMovie(TmdbMovie);
+            //                    movie.Medias.Add(new DownloadedContent(files[0]));
+            //                    _movieRepository.Create(movie);
+            //                }
+            //            }
+            //            else
+            //            {
+            //                SimpleLogger.AddLog($"Impossible de trouver le film {title} sur Tmdb", LogType.Error);
+            //            }
+            //        }
 
-                });
-            }
-
-            _currentCollection.SaveChanges();
+            //    });
+            //}
         }
 
         public void Schedule_ReorganiseFolder()
@@ -142,53 +75,54 @@ namespace MovManagerr.Core.Services.Movies
         [Queue("sync-task")]
         public void ReorganiseFolder()
         {
-            var downloadedMovies = _currentCollection.ToList().Where(x => x.DownloadedContents.Any()).ToList();
+            //var downloadedMovies = _movieRepository
+            //    .Query()
+            //    .Where(x => x.Medias.Any())
+            //    .ToList();
 
-            foreach (var movie in downloadedMovies)
-            {
-                try
-                {
-                    if (!movie.IsInValidFolder())
-                    {
-                        foreach (var download in movie.DownloadedContents)
-                        {
-                            Thread.Sleep(200);
+            //foreach (var movie in downloadedMovies)
+            //{
+            //    try
+            //    {
+            //        if (!movie.IsInValidFolder())
+            //        {
+            //            foreach (var download in movie.Medias)
+            //            {
+            //                Thread.Sleep(200);
 
-                            var newPath = movie.GetFullPath(Path.GetFileName(download.FullPath), createDirectory: true);
+            //                var newPath = movie.GetFullPath(Path.GetFileName(download.FullPath), createDirectory: true);
 
-                            if (download.FullPath != newPath)
-                            {
-                                var parentFolder = Path.GetDirectoryName(download.FullPath)!;
+            //                if (download.FullPath != newPath)
+            //                {
+            //                    var parentFolder = Path.GetDirectoryName(download.FullPath)!;
 
-                                if (Directory.EnumerateFileSystemEntries(parentFolder).Count() == 1)
-                                {
-                                    //déplacement du fichier
-                                    SimpleLogger.AddLog("Déplacement de " + download.FullPath + " vers " + newPath, LogType.Info);
-                                    File.Move(download.FullPath, newPath);
+            //                    if (Directory.EnumerateFileSystemEntries(parentFolder).Count() == 1)
+            //                    {
+            //                        //déplacement du fichier
+            //                        SimpleLogger.AddLog("Déplacement de " + download.FullPath + " vers " + newPath, LogType.Info);
+            //                        File.Move(download.FullPath, newPath);
 
-                                    Thread.Sleep(200);
+            //                        Thread.Sleep(200);
 
-                                    //suppression du dossier parent
-                                    SimpleLogger.AddLog("Suppression du dossier " + parentFolder, LogType.Info);
-                                    Directory.Delete(parentFolder);
+            //                        //suppression du dossier parent
+            //                        SimpleLogger.AddLog("Suppression du dossier " + parentFolder, LogType.Info);
+            //                        Directory.Delete(parentFolder);
 
-                                    download.FullPath = newPath;
-                                    movie.SetDirty();
-                                }
-                                else
-                                {
-                                    SimpleLogger.AddLog("Impossible de traiter le dossier " + parentFolder + " car il contient d'autres fichiers", LogType.Error);
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SimpleLogger.AddLog("Erreur lors du traitement du film " + movie.Name + " : " + ex.Message, LogType.Error);
-                }
-            }
-            _currentCollection.SaveChanges();
+            //                        download.FullPath = newPath;
+            //                    }
+            //                    else
+            //                    {
+            //                        SimpleLogger.AddLog("Impossible de traiter le dossier " + parentFolder + " car il contient d'autres fichiers", LogType.Error);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        SimpleLogger.AddLog("Erreur lors du traitement du film " + movie.Name + " : " + ex.Message, LogType.Error);
+            //    }
+            //}
         }
 
         private static bool TryExtractMovieNameAndYear(string dirPath, out string title, out int year)
@@ -232,19 +166,77 @@ namespace MovManagerr.Core.Services.Movies
         }
 
 
+        public void Schedule_DeleteUnfoundedDownload()
+        {
+            BackgroundJob.Enqueue(() => DeleteUnfoundedDownload());
+        }
+
+        public void DeleteUnfoundedDownload()
+        {
+            var movies = _dbContext.Movies.GetDownloadedMovies();
+
+            foreach (var movie in movies)
+            {
+                if (movie != null)
+                {
+                    List<DownloadedContent> toDelete = new List<DownloadedContent>();
+                    foreach (var download in movie.DownloadedContents)
+                    {
+                        if (download != null && !File.Exists(download.FullPath))
+                        {
+                            SimpleLogger.AddLog($"Le fichier {download.FullPath} est introuvable! Suppression imminente.");
+                            toDelete.Add(download);
+                        }
+                    }
+
+                    if (toDelete.Any())
+                    {
+                        foreach (var download in toDelete)
+                        {
+                            movie.DownloadedContents.Remove(download);
+                        }
+
+                        _dbContext.Movies.Update(movie);
+                    }
+                }
+            }
+        }
+
+
         public Movie GetMovieFromSearchMovie(SearchMovie info)
         {
-            var movie = _currentCollection.UseQuery(x =>
-            {
-                x.Where(movie => movie.TmdbId == info.Id);
-            }).ToList().FirstOrDefault();
+            Movie movie = _dbContext.Movies.FindByTmdbId(info.Id);
 
             // Add the movie if not exists
             if (movie == null)
             {
-                movie = Movie.CreateFromSearchMovie(info);
-                _currentCollection.Add(movie);
-                _currentCollection.SaveChanges();
+                TmdbClientService client = Preferences.GetTmdbInstance();
+
+                var tmdbMovie = client.GetMovieById(info.Id);
+
+                if (tmdbMovie != null)
+                {
+                    var createdMovie = Movie.CreateFromTmdbMovie(tmdbMovie);
+                    movie = _dbContext.Movies.Create(createdMovie);
+                }
+                else
+                {
+                    SimpleLogger.AddLog($"Impossible de trouver le film {info.Title} sur Tmdb", LogType.Error);
+                    throw new Exception("Impossible de trouver le film sur Tmdb");
+                }
+            }
+
+            return movie;
+        }
+
+        public Movie GetMovieFromTDMBMovie(TMDbLib.Objects.Movies.Movie info)
+        {
+            Movie movie = _dbContext.Movies.FindByTmdbId(info.Id);
+
+            // Add the movie if not exists
+            if (movie == null)
+            {
+                movie = _dbContext.Movies.Create(Movie.CreateFromTmdbMovie(info));
             }
 
             return movie;

@@ -1,22 +1,16 @@
-﻿using LiteDB;
-using MovManagerr.Core.Data;
-using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Services.Bases.ContentService;
-using MovManagerr.Core.Tasks.Backgrounds;
+﻿using MovManagerr.Core.Data;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Services.Movies
 {
-    public interface IMovieService : IBaseContentService<Movie>
+    public interface IMovieService
     {
-        IEnumerable<Movie> GetRecent(int limit);
-        EventedBackgroundService GetSearchAllMovieOnTmdbService();
-        EventedBackgroundService GetSyncM3UFilesInDbService();
-        Movie? GetMovieById(ObjectId _id);
         void ScanFolder(string path);
         void ReorganiseFolder();
         void Schedule_ReorganiseFolder();
         IEnumerable<SearchMovie?> GetMatchForFileName(string filename);
         Movie GetMovieFromSearchMovie(SearchMovie info);
+        void DeleteUnfoundedDownload();
+        Movie GetMovieFromTDMBMovie(TMDbLib.Objects.Movies.Movie info);
     }
 }

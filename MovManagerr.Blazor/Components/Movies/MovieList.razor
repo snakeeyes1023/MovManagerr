@@ -1,4 +1,4 @@
-﻿@using System.Timers
+﻿@*@using System.Timers
 @using MovManagerr.Core.Data.Abstracts
 
 
@@ -98,7 +98,7 @@
     async Task ShowMovieDialog(Movie movie)
     {
         await DialogService.OpenAsync<Contents.Show>(string.Empty,
-            new Dictionary<string, object>() { { "ID", movie._id } },
+            new Dictionary<string, object>() { { "ID", movie.Id } },
             new DialogOptions() { Width = "95%", Height = "95%", CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
     }
 
@@ -143,3 +143,4 @@
 
     #endregion
 }
+*@

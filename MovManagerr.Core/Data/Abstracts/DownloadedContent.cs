@@ -1,10 +1,9 @@
-﻿using MediaInfoLib;
+﻿using LiteDB;
 using MovManagerr.Core.Downloaders.Contents.Helpers;
-using MovManagerr.Core.Infrastructures.Loggers;
-using System.IO;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
+    
     public class DownloadedContent
     {
         public DownloadedContent() { }
@@ -14,18 +13,20 @@ namespace MovManagerr.Core.Data.Abstracts
             Method = method;
             CreationDate = DateTime.Now;
         }
-        public string FullPath { get; set; }
 
+        [BsonId]
+        public int Id { get; set; }
+        
+        public string FullPath { get; set; }
         public VideoInfo VideoInfo { get; set; }
         public AudioInfo AudioInfo { get; set; }
         public OverallInfo OverallInfo { get; set; }
-
-
         public string FileSize { get; set; }
         public decimal FileSizeAsGb { get; set; }
 
         public DownloadableContent? Method { get; protected set; }
         public DateTime CreationDate { get; protected set; }
+
 
         public void LoadMediaInfo(string fullPath = "")
         {
@@ -75,7 +76,7 @@ namespace MovManagerr.Core.Data.Abstracts
 
     public static class ContentDownloadedExtensions
     {
-        public static decimal GetMaxBitrate(this Content content)
+        public static decimal GetMaxBitrate(this IMedia content)
         {
             decimal maxBitrate = 0;
 
@@ -100,7 +101,7 @@ namespace MovManagerr.Core.Data.Abstracts
         /// </summary>
         /// <param name="content">The content.</param>
         /// <returns></returns>
-        public static string GetBestQuality(this Content content)
+        public static string GetBestQuality(this IMedia content)
         {
             int maxHeight = 0;
 
@@ -118,7 +119,7 @@ namespace MovManagerr.Core.Data.Abstracts
             return $"{maxHeight}p";
         }
 
-        public static bool HasAnyScannedFile(this Content content)
+        public static bool HasAnyScannedFile(this IMedia content)
         {
             if (content.DownloadedContents != null)
             {

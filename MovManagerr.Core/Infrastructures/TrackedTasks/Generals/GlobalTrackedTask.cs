@@ -1,15 +1,9 @@
 ﻿using Hangfire;
 using MovManagerr.Core.Infrastructures.Loggers;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MovManagerr.Core.Infrastructures.TrackedTasks
+namespace MovManagerr.Core.Infrastructures.TrackedTasks.Generals
 {
-    public static class GlobalTrackedTask
+    public static partial class GlobalTrackedTask
     {
         public static IEnumerable<TrackedJobProgression> TrackedJobs
         {

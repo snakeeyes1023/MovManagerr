@@ -21,10 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core", "MovMana
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovManagerr.Core.Tests", "MovManagerr.Core.Tests\MovManagerr.Core.Tests.csproj", "{81B3D69A-49F5-4C74-BD54-51E0C897A339}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions", "Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj", "{F210C189-2C45-4926-A29A-5BC80026E6F3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snake.LiteDb.Extensions.Tests", "Snake.LiteDb.Extensions.Tests\Snake.LiteDb.Extensions.Tests.csproj", "{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{5384BAE6-426C-42C1-BDC1-35343E7D5E57}"
 	ProjectSection(SolutionItems) = preProject
 		Externals\MediaInfo.dll = Externals\MediaInfo.dll
@@ -52,14 +48,6 @@ Global
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81B3D69A-49F5-4C74-BD54-51E0C897A339}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F210C189-2C45-4926-A29A-5BC80026E6F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F210C189-2C45-4926-A29A-5BC80026E6F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F210C189-2C45-4926-A29A-5BC80026E6F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F210C189-2C45-4926-A29A-5BC80026E6F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{96BDF4A4-FA9F-4BDD-B08D-F4E5B1F091A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

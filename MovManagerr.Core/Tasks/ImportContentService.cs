@@ -3,7 +3,7 @@ using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Transcode;
 using MovManagerr.Core.Helpers.Transferts;
-using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.DataAccess;
 using MovManagerr.Core.Services.Movies;
 
 namespace MovManagerr.Core.Tasks
@@ -20,15 +20,11 @@ namespace MovManagerr.Core.Tasks
     
     public class ImportContentService
     {
-        private readonly IContentDbContext _contentDbContext;
-        private readonly IMovieService _movieService;
-        private readonly MovManagerr.Core.Infrastructures.Configurations.Preferences _preference;
+        private readonly DbContext _dbContext;
 
-        public ImportContentService(IContentDbContext contentDbContext, IMovieService movieService)
+        public ImportContentService(DbContext dbContext)
         {
-            _contentDbContext = contentDbContext;
-            _movieService = movieService;
-            _preference = MovManagerr.Core.Infrastructures.Configurations.Preferences.Instance;
+            _dbContext = dbContext;
         }
 
 
@@ -43,7 +39,9 @@ namespace MovManagerr.Core.Tasks
                 destinationPath = movie.GetFullPath(Path.GetFileNameWithoutExtension(originPath) + "_1" + Path.GetExtension(originPath));
             }
 
-            DownloadedContent downloadedContent = _movieService.CreateDownloadedContent(movie, originPath, destinationPath);
+            movie.CreateAndScan(originPath);
+
+            _dbContext.Movies.Update(movie);
 
             // if need importmode need to transcode
             if (importMode == ImportMode.TranscodeAndMove)
@@ -51,6 +49,7 @@ namespace MovManagerr.Core.Tasks
                 TranscodeHelper.New()
                     .From(originPath)
                     .To(destinationPath)
+                    .ContentType(ContentType.Movie)
                     .EnqueueRun();
             }
             else
@@ -58,7 +57,8 @@ namespace MovManagerr.Core.Tasks
                 TransfertHelper.New()
                     .From(originPath)
                     .To(destinationPath)
-                    .MoveFile();
+                    .ContentType(ContentType.Movie)
+                    .EnqueueMove();
             }
         }       
     }

@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MovManagerr.Tmdb\MovManagerr.Tmdb.csproj" />
-    <ProjectReference Include="..\Snake.LiteDb.Extensions\Snake.LiteDb.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

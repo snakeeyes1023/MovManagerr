@@ -1,4 +1,4 @@
-﻿@page "/content/show/{ID}"
+﻿@*@page "/content/show/{ID}"
 
 @inject IMovieService movieService;
 @using MovManagerr.Core.Data.Abstracts;
@@ -25,7 +25,7 @@
         <RadzenText TextStyle="TextStyle.Subtitle1">Téléchargement disponibles (@(downloadables.Count()))</RadzenText>
 
         @*        <img src="@Content.BackdropPath" alt="Background for @Content.Title" class="img-fluid">
-        *@
+        
     </div>
 
     <div class="col-md-12">
@@ -65,8 +65,8 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        Content = movieService.GetMovieById(ID);
+        
+        Content = movieService.(ID);
 
         downloadables = Content.DownloadableContents;
     }
@@ -76,3 +76,4 @@
         Content.Download(ServiceProvider, provider);
     }
 }
+*@

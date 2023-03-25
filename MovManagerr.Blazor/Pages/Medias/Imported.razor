@@ -4,11 +4,15 @@
 @using System.Timers
 @using MovManagerr.Core.Data.Abstracts
 @using System.IO;
-
-@inject IDownloadedMovieService downloadedMovieService
+@using MovManagerr.Core.Infrastructures.DataAccess;
+@using System.ComponentModel;
 @inject DialogService DialogService
 @inject IServiceProvider ServiceProvider
 @inject NavigationManager NavigationManager
+@inject DbContext DbContext
+@inject IMovieService movieService
+@inject ContextMenuService ContextMenuService
+
 
 <div class="row">
     <div class="col-12">
@@ -21,7 +25,7 @@
 
 
 <RadzenDataGrid ColumnWidth="100px" AllowColumnReorder=true AllowColumnResize=true Data="@movies" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" TItem="Movie" FilterMode="FilterMode.Advanced" PageSize=10 PagerPosition="@PagerPosition.Bottom" PagingSummaryFormat="@pagingSummaryFormat"
-                ShowPagingSummary=true AllowPaging="true" AllowSorting="true">
+                ShowPagingSummary=true AllowPaging="true" AllowSorting="true" @bind-Value=@selectedMovies SelectionMode="DataGridSelectionMode.Single" CellContextMenu="@OnCellContextMenu">
     <Columns>
         <RadzenDataGridColumn TItem="Movie" Width="350px" Property="TmdbMovie.OriginalTitle" Title="Nom du film">
             <Template Context="detail">
@@ -106,7 +110,6 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Movie" Width="180px" Property="_id.CreationTime" Title="Date de création" />
         <RadzenDataGridColumn TItem="Movie" Width="180px" Property="NbFiles" Title="Nombre fichiers">
             <Template Context="detail">
                 <div class="row ">
@@ -123,14 +126,6 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="Movie" Width="400px" Sortable=false Title="Action">
-            <Template Context="detail">
-                <RadzenButton ButtonStyle="ButtonStyle.Primary" Variant=Variant.Outlined Shade=Shade.Lighter Click="((args) => OpenMovieFolder(detail))" Text="Ouvrir le dossier du film"></RadzenButton>
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Scan(detail))" Text="Scanner"></RadzenButton>
-                <RadzenButton ButtonStyle="ButtonStyle.Warning" Variant=Variant.Filled Shade=Shade.Lighter Click="((args) => Transcode(detail))" Text="Transcoder"></RadzenButton>
-            </Template>
-        </RadzenDataGridColumn>
-
     </Columns>
 </RadzenDataGrid>
 
@@ -138,20 +133,21 @@
 
     IEnumerable<Movie> movies;
 
-
-
     bool CurrentlyScanAll = false;
 
     string pagingSummaryFormat = "Page {0} sur {1} (total {2} films)";
 
     int count;
 
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        movies = downloadedMovieService.GetAll();
+        movies = DbContext.Movies.GetDownloadedMovies();
         count = movies.Count();
+        selectedMovies = movies.Take(1).ToList();
+
 
         if (!Preferences.Instance.IsValid())
         {
@@ -159,22 +155,30 @@
         }
     }
 
-    protected void Scan(Movie movie)
+    /// <summary>
+    /// Deletes all unfounded downloads.
+    /// </summary>
+    protected void DeleteUnfoundedDownload()
     {
-        LoadMediaInfo(movie);
-        StateHasChanged();
-    }
-
-    protected void Transcode(Movie movie)
-    {
-        if (movie.DownloadedContents.Count == 1)
+        Task.Run(() =>
         {
-            TranscodeService transcodeService = new TranscodeService();
-            transcodeService.TranscodeContent(movie.DownloadedContents.FirstOrDefault());
-        }
+            IsDeletingUnfounded = true;
+            InvokeAsync(StateHasChanged);
+
+            movieService.DeleteUnfoundedDownload();
+            movies = DbContext.Movies.GetDownloadedMovies();
+
+            IsDeletingUnfounded = false;
+            InvokeAsync(StateHasChanged);
+        });
     }
 
+    public bool IsDeletingUnfounded { get; set; }
 
+    /// <summary>
+    /// Loads media information for a movie.
+    /// </summary>
+    /// <param name="movie">The movie to load media information for.</param>
     private void LoadMediaInfo(Movie movie)
     {
         foreach (var download in movie.DownloadedContents)
@@ -189,29 +193,12 @@
             }
         }
 
-        var instance = downloadedMovieService.GetCurrentCollection();
-        instance.TrackEntity(movie);
-        movie.SetDirty();
-        instance.SaveChanges();
+        DbContext.Movies.Update(movie);
     }
 
-    protected async Task OpenMovieFolder(Movie movie)
-    {
-        string path;
-
-        if (movie.DownloadedContents.Any())
-        {
-            path = movie.DownloadedContents.FirstOrDefault().FullPath;
-        }
-        else
-        {
-            path = movie.GetPath();
-        }
-
-        await Electron.Shell.ShowItemInFolderAsync(path);
-    }
-
-
+    /// <summary>
+    /// Scans all movies for media information.
+    /// </summary>
     protected void ScanAll()
     {
         Task.Run(() =>
@@ -229,20 +216,138 @@
         });
     }
 
-    protected void DeleteUnfoundedDownload()
+
+    #region SimpleMovieAction
+
+    /// <summary>
+    /// Opens the folder containing the movie.
+    /// </summary>
+    /// <param name="movie">The movie to open the folder for.</param>
+    protected async Task OpenMovieFolder(Movie movie)
     {
-        Task.Run(() =>
+        string path;
+
+        if (movie.DownloadedContents.Any())
         {
-            IsDeletingUnfounded = true;
-            InvokeAsync(StateHasChanged);
+            path = movie.DownloadedContents.FirstOrDefault().FullPath;
+        }
+        else
+        {
+            path = movie.GetPath();
+        }
 
-            downloadedMovieService.DeleteUnfoundedDownload();
-            movies = downloadedMovieService.GetAll();
+        await Electron.Shell.ShowItemInFolderAsync(path);
+    }
 
-            IsDeletingUnfounded = false;
-            InvokeAsync(StateHasChanged);
+    /// <summary>
+    /// Scans the media information for a movie.
+    /// </summary>
+    /// <param name="movie">The movie to scan.</param>
+    protected void Scan(Movie movie)
+    {
+        LoadMediaInfo(movie);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Transcodes a movie.
+    /// </summary>
+    /// <param name="movie">The movie to transcode.</param>
+    protected void Transcode(Movie movie)
+    {
+        if (movie.DownloadedContents.Count == 1)
+        {
+            TranscodeService transcodeService = new TranscodeService();
+            transcodeService.TranscodeContent(movie.DownloadedContents.FirstOrDefault());
+        }
+    }
+
+    protected async Task RemapMovie(Movie movie)
+    {
+        var mainWindow = Electron.WindowManager.BrowserWindows.First();
+
+        var options = new OpenDialogOptions
+        {
+            Properties = new OpenDialogProperty[] { OpenDialogProperty.openFile }
+        };
+
+        string[] files = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+
+        if (files.Any() && !string.IsNullOrWhiteSpace(files.First()))
+        {
+            movie.DownloadedContents.FirstOrDefault().FullPath = files.FirstOrDefault();
+            DbContext.Movies.Update(movie);
+        }
+    }
+
+    /// <summary>
+    /// Handles the context menu for a cell in the data grid.
+    /// </summary>
+    /// <param name="args">The data grid cell mouse event arguments.</param>
+    protected void OnCellContextMenu(DataGridCellMouseEventArgs<Movie> args)
+    {
+        selectedMovies = new List<Movie>() { args.Data };
+
+        var contextMenuItems = new List<ContextMenuItem>();
+        foreach (ImportedMovieContextMenuAction action in Enum.GetValues(typeof(ImportedMovieContextMenuAction)))
+        {
+            contextMenuItems.Add(new ContextMenuItem() { Text = action.GetDescription(), Value = (int)action });
+        }
+
+        ContextMenuService.Open(args, contextMenuItems, (e) =>
+        {
+            ImportedMovieContextMenuAction selectedAction = (ImportedMovieContextMenuAction)e.Value;
+            Movie selectedMovie = args.Data;
+
+
+            switch (selectedAction)
+            {
+                case ImportedMovieContextMenuAction.RemoveFromBd:
+                    DbContext.Movies.Delete(selectedMovie.Id);
+                    movies = DbContext.Movies.GetDownloadedMovies();
+                    count = movies.Count();
+                    StateHasChanged();
+                    break;
+                case ImportedMovieContextMenuAction.Transcode:
+                    Transcode(selectedMovie);              
+                    break;
+                case ImportedMovieContextMenuAction.ScanMovie:
+                    Scan(selectedMovie);
+                    break;
+                case ImportedMovieContextMenuAction.RemapMovie:
+                    RemapMovie(selectedMovie);
+                    break;
+                case ImportedMovieContextMenuAction.OpenInExplorer:
+                    OpenMovieFolder(selectedMovie);
+                    break;
+                default:
+                    break;
+            }
+
+            ContextMenuService.Close();
         });
     }
 
-    public bool IsDeletingUnfounded { get; set; }
+    #endregion
+
+    public IList<Movie> selectedMovies { get; set; }
+
+
+    public enum ImportedMovieContextMenuAction
+    {
+        [Description("Ouvrir dans l'explorer")]
+        OpenInExplorer = 1,
+
+        [Description("Scanner avec MediaInfo")]
+        ScanMovie = 2,
+
+        [Description("Transcoder")]
+        Transcode = 3,
+
+        [Description("Modifier le chemin du Media")]
+        RemapMovie = 4,
+
+        [Description("Retirer de la base de donnée")]
+        RemoveFromBd = 5,
+    }
 }
