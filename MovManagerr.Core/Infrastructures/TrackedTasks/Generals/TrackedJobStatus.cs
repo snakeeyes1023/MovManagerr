@@ -1,4 +1,4 @@
-﻿namespace MovManagerr.Core.Infrastructures.TrackedTasks
+﻿namespace MovManagerr.Core.Infrastructures.TrackedTasks.Generals
 {
     public enum TrackedJobStatus
     {

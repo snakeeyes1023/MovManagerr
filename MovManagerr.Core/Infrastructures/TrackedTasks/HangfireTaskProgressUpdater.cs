@@ -2,6 +2,7 @@
 using Hangfire.Common;
 using Hangfire.Server;
 using Hangfire.States;
+using MovManagerr.Core.Infrastructures.TrackedTasks.Generals;
 
 namespace MovManagerr.Core.Infrastructures.TrackedTasks
 {

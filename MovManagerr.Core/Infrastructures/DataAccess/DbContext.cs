@@ -1,10 +1,10 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Data;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.DataAccess.Repositories;
-using MovManagerr.Core.Infrastructures.Dbs.Repositories;
 
-namespace MovManagerr.Core.Infrastructures.Dbs
+namespace MovManagerr.Core.Infrastructures.DataAccess
 {
     public class DbContext : IDisposable
     {
@@ -15,13 +15,11 @@ namespace MovManagerr.Core.Infrastructures.Dbs
         private ILiteDatabase _db;
         private ILiteDatabase DB => _db ??= new LiteDatabase(_connStr);
 
-        
+
         private IMovieRepository _moviesRepository;
         public IMovieRepository Movies => _moviesRepository ??= new MovieRepository(DB);
         
-        private IDownloadedContentRepository _downloadedContentRepository;
-        public IDownloadedContentRepository DownloadedContents => _downloadedContentRepository ??= new DownloadedContentRepository(DB);
-        
+
         private ISettingRepository _settingRepository;
         public ISettingRepository Settings => _settingRepository ??= new SettingRepository(DB);
 
@@ -31,8 +29,6 @@ namespace MovManagerr.Core.Infrastructures.Dbs
                 throw new ArgumentNullException("missing connection string");
 
             _connStr = Preferences.Instance._DbPath;
-
-            Configure();
         }
 
         public void Dispose()
@@ -56,13 +52,6 @@ namespace MovManagerr.Core.Infrastructures.Dbs
         ~DbContext()
         {
             Dispose(false);
-        }
-
-        private void Configure()
-        {
-            BsonMapper.Global.Entity<Movie>()
-                .Id(x => x.Id)
-                .DbRef(x => x.Medias, "medias");
         }
     }
 }

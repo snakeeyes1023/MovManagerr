@@ -1,6 +1,5 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

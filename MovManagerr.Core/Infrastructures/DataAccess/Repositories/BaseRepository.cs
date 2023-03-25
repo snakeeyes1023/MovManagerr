@@ -1,7 +1,7 @@
 ﻿using LiteDB;
 using System.Linq.Expressions;
 
-namespace MovManagerr.Core.Infrastructures.Dbs.Repositories
+namespace MovManagerr.Core.Infrastructures.DataAccess.Repositories
 {
 
     public abstract partial class BaseRepository<T> : IBaseRepository<T>
@@ -36,6 +36,11 @@ namespace MovManagerr.Core.Infrastructures.Dbs.Repositories
             return Collection.FindOne(predicate);
         }
 
+        public virtual IEnumerable<T> Find(Expression<Func<T, bool>> predicate)
+        {
+            return Collection.Find(predicate);
+        }
+
         public virtual void Update(T entity)
         {
             Collection.Upsert(entity);
@@ -67,5 +72,6 @@ namespace MovManagerr.Core.Infrastructures.Dbs.Repositories
         ILiteQueryable<T> Query();
         T FindOne(Expression<Func<T, bool>> predicate);
         void Upsert(T entity);
+        IEnumerable<T> Find(Expression<Func<T, bool>> predicate);
     }
 }

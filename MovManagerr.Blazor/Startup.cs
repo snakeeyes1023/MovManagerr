@@ -25,9 +25,8 @@ using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Importers;
 using MovManagerr.Core.Helpers.PlexScan;
 using MovManagerr.Core.Infrastructures.TrackedTasks;
-using MovManagerr.Core.Infrastructures.Dbs;
-using MovManagerr.Core.Infrastructures.Dbs.Repositories;
 using MovManagerr.Core.Infrastructures.DataAccess.Repositories;
+using MovManagerr.Core.Infrastructures.DataAccess;
 
 namespace MovManagerr.Blazor
 {

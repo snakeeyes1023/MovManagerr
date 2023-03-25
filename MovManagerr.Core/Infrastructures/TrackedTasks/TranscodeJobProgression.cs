@@ -1,4 +1,6 @@
-﻿namespace MovManagerr.Core.Infrastructures.TrackedTasks
+﻿using MovManagerr.Core.Infrastructures.TrackedTasks.Generals;
+
+namespace MovManagerr.Core.Infrastructures.TrackedTasks
 {
     public class TranscodeJobProgression : TrackedJobProgression
     {

@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using MovManagerr.Tmdb.Config;
 using MovManagerr.Tmdb.Service;
+using System.Xml.Linq;
 using TMDbLib.Client;
 using TMDbLib.Objects.Authentication;
 using TMDbLib.Objects.General;
+using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Tmdb
@@ -29,10 +31,12 @@ namespace MovManagerr.Tmdb
         /// <param name="name"></param>
         /// <param name="year"></param>
         /// <returns></returns>
-        public async Task<SearchMovie?> GetMovieByNameAndYearAsync(string name, int year)
+        public async Task<Movie?> GetMovieByNameAndYearAsync(string name, int year)
         {
             var search = await _client.SearchMovieAsync(name, 0, includeAdult : false, year);
-            return search.Results.FirstOrDefault();
+            var result = search.Results.FirstOrDefault();
+
+            return result != null ? await _client.GetMovieAsync(result.Id) : null;
         }
 
         /// <summary>
@@ -41,32 +45,17 @@ namespace MovManagerr.Tmdb
         /// <param name="name"></param>
         /// <param name="year"></param>
         /// <returns></returns>
-        public async Task<SearchMovie?> GetMovieByNameAsync(string name)
+        public async Task<Movie?> GetMovieByIdAsync(int id)
         {
-            var search = await _client.SearchMovieAsync(name, 0, true);
-
-            // get perfect match
-            var perfectMatch = search.Results.FirstOrDefault(x => x.Title.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-
-            if (perfectMatch != null)
-            {
-                return perfectMatch;
-            }
-
-            return search.Results.FirstOrDefault();
+            return await _client.GetMovieAsync(id);
         }
 
-        public SearchMovie? GetMovieByName(string name)
+        public Movie? GetMovieById(int id)
         {
-            Task<SearchMovie?> task = Task.Run<SearchMovie?>(async () => await GetMovieByNameAsync(name));
+            Task<Movie?> task = Task.Run<Movie?>(async () => await _client.GetMovieAsync(id));
             return task.Result;
         }
 
-        public SearchMovie? GetMovieByNameAndYear(string name, int year)
-        {
-            Task<SearchMovie?> task = Task.Run<SearchMovie?>(async () => await GetMovieByNameAndYearAsync(name, year));
-            return task.Result;
-        }
 
         public IEnumerable<SearchMovie?>? GetRelatedMovies(string name)
         {

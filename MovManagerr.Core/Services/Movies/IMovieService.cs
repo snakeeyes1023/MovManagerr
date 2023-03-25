@@ -11,5 +11,6 @@ namespace MovManagerr.Core.Services.Movies
         IEnumerable<SearchMovie?> GetMatchForFileName(string filename);
         Movie GetMovieFromSearchMovie(SearchMovie info);
         void DeleteUnfoundedDownload();
+        Movie GetMovieFromTDMBMovie(TMDbLib.Objects.Movies.Movie info);
     }
 }

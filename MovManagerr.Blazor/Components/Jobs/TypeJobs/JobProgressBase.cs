@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using MovManagerr.Core.Infrastructures.TrackedTasks;
+using MovManagerr.Core.Infrastructures.TrackedTasks.Generals;
 using Radzen;
 using System;
 using System.Threading.Tasks;

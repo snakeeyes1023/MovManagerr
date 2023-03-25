@@ -1,7 +1,7 @@
 ﻿using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Downloaders.M3U;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs.Repositories;
+using MovManagerr.Core.Infrastructures.DataAccess.Repositories;
 using System.Linq.Expressions;
 
 namespace MovManagerr.Core.Downloaders.Contents.Readers

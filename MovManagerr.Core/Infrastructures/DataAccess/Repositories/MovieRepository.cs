@@ -1,7 +1,7 @@
 ﻿using LiteDB;
 using MovManagerr.Core.Data;
 
-namespace MovManagerr.Core.Infrastructures.Dbs.Repositories
+namespace MovManagerr.Core.Infrastructures.DataAccess.Repositories
 {
     public class MovieRepository : BaseRepository<Movie>, IMovieRepository
     {
@@ -16,12 +16,19 @@ namespace MovManagerr.Core.Infrastructures.Dbs.Repositories
 
         public IEnumerable<Movie> GetDownloadedMovies()
         {
-            return Query().Include(x => x.Medias).Where(x => x.Medias.Any()).ToList();
+            var movies = Collection.Find(x => x.IsDownloaded).ToList();
+            return movies;
+        }
+
+        public Movie FindByFullPath(string fullPath)
+        {
+            return Collection.FindOne(x => x.DownloadedContents.Select(y => y.FullPath).Contains(fullPath));
         }
     }
 
     public interface IMovieRepository : IBaseRepository<Movie>
     {
+        Movie FindByFullPath(string fullPath);
         Movie FindByTmdbId(int tmdbId);
         IEnumerable<Movie> GetDownloadedMovies();
     }

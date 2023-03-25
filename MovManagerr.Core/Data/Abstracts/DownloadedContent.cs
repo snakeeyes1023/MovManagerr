@@ -1,14 +1,8 @@
-﻿using MediaInfoLib;
+﻿using LiteDB;
 using MovManagerr.Core.Downloaders.Contents.Helpers;
 
 namespace MovManagerr.Core.Data.Abstracts
 {
-
-    public enum DownloadedContentType
-    {
-        Movie,
-        Episode
-    }
     
     public class DownloadedContent
     {
@@ -20,8 +14,8 @@ namespace MovManagerr.Core.Data.Abstracts
             CreationDate = DateTime.Now;
         }
 
-        public int MovieId { get; set; }
-        public int EpidodeId { get; set; }
+        [BsonId]
+        public int Id { get; set; }
         
         public string FullPath { get; set; }
         public VideoInfo VideoInfo { get; set; }
@@ -86,9 +80,9 @@ namespace MovManagerr.Core.Data.Abstracts
         {
             decimal maxBitrate = 0;
 
-            if (content.Medias != null)
+            if (content.DownloadedContents != null)
             {
-                foreach (var downloaded in content.Medias)
+                foreach (var downloaded in content.DownloadedContents)
                 {
                     var bitrate = downloaded.OverallInfo?.BitrateInMbs;
 
@@ -111,9 +105,9 @@ namespace MovManagerr.Core.Data.Abstracts
         {
             int maxHeight = 0;
 
-            if (content.Medias != null)
+            if (content.DownloadedContents != null)
             {
-                foreach (var downloaded in content.Medias)
+                foreach (var downloaded in content.DownloadedContents)
                 {
                     if (maxHeight < (downloaded.VideoInfo?.Heigth ?? 0))
                     {
@@ -127,9 +121,9 @@ namespace MovManagerr.Core.Data.Abstracts
 
         public static bool HasAnyScannedFile(this IMedia content)
         {
-            if (content.Medias != null)
+            if (content.DownloadedContents != null)
             {
-                foreach (var downloaded in content.Medias)
+                foreach (var downloaded in content.DownloadedContents)
                 {
                     if (downloaded.VideoInfo != null)
                     {

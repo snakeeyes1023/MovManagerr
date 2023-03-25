@@ -1,7 +1,7 @@
 ﻿@using MovManagerr.Core.Infrastructures.TrackedTasks;
 @using MovManagerr.Core.Infrastructures.TrackedTasks.Generals;
 
-@inherits JobProgressBase<TranscodeJobProgression>
+@inherits JobProgressBase<PlexImportJobProgression>
 
 
 <style>
@@ -65,7 +65,7 @@
     <div class="row">
         <div class="col-6 d-flex align-items-center mb-2">
             <i class="bi bi-folder2-open me-2 icon-custom mr-1"></i>
-            <strong>Fichier en cours de transcodage :</strong> @Job.FileInTranscoding
+            <strong>Librairy en cours d'importation :</strong> @Job.Message
         </div>
     </div>
     <div class="row">

@@ -4,6 +4,7 @@ using MovManagerr.Core.Helpers.Transferts;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Core.Infrastructures.TrackedTasks;
+using MovManagerr.Core.Infrastructures.TrackedTasks.Generals;
 using Xabe.FFmpeg;
 
 namespace MovManagerr.Core.Helpers.Transcode
@@ -13,7 +14,7 @@ namespace MovManagerr.Core.Helpers.Transcode
         public string _destinationPath;
         public string _actualPath;
         public bool _replaceDestination;
-
+        public ContentType _contentType;
         public bool _useCustomTranscodeFolder => !string.IsNullOrWhiteSpace(_transcodeFolder);
         public readonly string _transcodeFolder;
         public readonly string _doneTranscodeFolder;
@@ -22,6 +23,7 @@ namespace MovManagerr.Core.Helpers.Transcode
         {
             _transcodeFolder = Preferences.Instance.Settings.TranscodeConfiguration.DirectoryPath;
             Directory.CreateDirectory(_transcodeFolder);
+            _contentType = Transferts.ContentType.Other;
 
             if (_useCustomTranscodeFolder)
             {
@@ -53,6 +55,12 @@ namespace MovManagerr.Core.Helpers.Transcode
             return this;
         }
 
+        public TranscodeHelper ContentType(ContentType contentType)
+        {
+            _contentType = contentType;
+            return this;
+        }
+
         public void EnqueueRun()
         {
             SimpleLogger.AddLog("Ajout d'un fichier en attente de transcodage...", LogType.Info);
@@ -67,6 +75,7 @@ namespace MovManagerr.Core.Helpers.Transcode
             _replaceDestination = helper._replaceDestination;
             _destinationPath = helper._destinationPath;
             _actualPath = helper._actualPath;
+            _contentType = helper._contentType;
 
             TranscodeJobProgression progression;
 
@@ -147,9 +156,10 @@ namespace MovManagerr.Core.Helpers.Transcode
                 var transfert = TransfertHelper.New()
                     .From(_actualPath)
                     .To(destination)
+                    .ContentType(_contentType)
                     .Replace(replace);
 
-                transfert.MoveFile(false);
+                transfert.EnqueueMove();
                 
                 _actualPath = destination;
             }

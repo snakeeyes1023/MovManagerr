@@ -3,8 +3,8 @@ using LiteDB;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Infrastructures.Configurations;
-using MovManagerr.Core.Infrastructures.Dbs;
-using MovManagerr.Core.Infrastructures.Dbs.Repositories;
+using MovManagerr.Core.Infrastructures.DataAccess;
+using MovManagerr.Core.Infrastructures.DataAccess.Repositories;
 using MovManagerr.Core.Infrastructures.Loggers;
 using MovManagerr.Tmdb;
 using System.Text.RegularExpressions;
@@ -180,7 +180,7 @@ namespace MovManagerr.Core.Services.Movies
                 if (movie != null)
                 {
                     List<DownloadedContent> toDelete = new List<DownloadedContent>();
-                    foreach (var download in movie.Medias)
+                    foreach (var download in movie.DownloadedContents)
                     {
                         if (download != null && !File.Exists(download.FullPath))
                         {
@@ -193,13 +193,13 @@ namespace MovManagerr.Core.Services.Movies
                     {
                         foreach (var download in toDelete)
                         {
-                            movie.Medias.Remove(download);
+                            movie.DownloadedContents.Remove(download);
                         }
+
+                        _dbContext.Movies.Update(movie);
                     }
                 }
             }
-
-            // Save changes
         }
 
 
@@ -210,7 +210,33 @@ namespace MovManagerr.Core.Services.Movies
             // Add the movie if not exists
             if (movie == null)
             {
-                movie = _dbContext.Movies.Create(Movie.CreateFromSearchMovie(info));
+                TmdbClientService client = Preferences.GetTmdbInstance();
+
+                var tmdbMovie = client.GetMovieById(info.Id);
+
+                if (tmdbMovie != null)
+                {
+                    var createdMovie = Movie.CreateFromTmdbMovie(tmdbMovie);
+                    movie = _dbContext.Movies.Create(createdMovie);
+                }
+                else
+                {
+                    SimpleLogger.AddLog($"Impossible de trouver le film {info.Title} sur Tmdb", LogType.Error);
+                    throw new Exception("Impossible de trouver le film sur Tmdb");
+                }
+            }
+
+            return movie;
+        }
+
+        public Movie GetMovieFromTDMBMovie(TMDbLib.Objects.Movies.Movie info)
+        {
+            Movie movie = _dbContext.Movies.FindByTmdbId(info.Id);
+
+            // Add the movie if not exists
+            if (movie == null)
+            {
+                movie = _dbContext.Movies.Create(Movie.CreateFromTmdbMovie(info));
             }
 
             return movie;

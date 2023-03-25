@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Helpers.Extensions
@@ -12,6 +13,16 @@ namespace MovManagerr.Core.Helpers.Extensions
         }
 
         public static string GetValidName(this SearchMovie searchMovie)
+        {
+            if (searchMovie.OriginalTitle.IsValidFolder())
+            {
+                return searchMovie.OriginalTitle;
+            }
+
+            return searchMovie.Title;
+        }
+
+        public static string GetValidName(this Movie searchMovie)
         {
             if (searchMovie.OriginalTitle.IsValidFolder())
             {

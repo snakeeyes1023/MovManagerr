@@ -2,7 +2,7 @@
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Infrastructures.Loggers;
 
-namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
+namespace MovManagerr.Core.Tasks.Backgrounds.ContentTasks
 {
     //public class SearchAllMoviesOnTmdb : EventedBackgroundService
     //{
@@ -72,7 +72,7 @@ namespace MovManagerr.Core.Tasks.Backgrounds.MovieTasks
 
     //        TotalContentProceeded = 0;
     //        TotalContentNotFounded = 0;
-            
+
     //        _contentDbContext.Movies.ClearContext();
     //    }
     //}

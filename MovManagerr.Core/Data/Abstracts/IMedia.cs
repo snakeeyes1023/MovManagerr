@@ -3,7 +3,7 @@
     public interface IMedia
     {
         bool IsDownloaded { get; }
-        List<DownloadedContent> Medias { get; }
+        List<DownloadedContent> DownloadedContents { get; }
         int NbFiles { get; }
     }
 }

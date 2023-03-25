@@ -3,7 +3,7 @@ using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Transcode;
 using MovManagerr.Core.Helpers.Transferts;
-using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.DataAccess;
 using MovManagerr.Core.Services.Movies;
 
 namespace MovManagerr.Core.Tasks
@@ -33,13 +33,15 @@ namespace MovManagerr.Core.Tasks
             string destinationPath = movie.GetFullPath(Path.GetFileName(originPath));
     
 
-            if (movie.Medias.FirstOrDefault(x => x.FullPath == destinationPath) is DownloadedContent alreadyExist)
+            if (movie.DownloadedContents.FirstOrDefault(x => x.FullPath == destinationPath) is DownloadedContent alreadyExist)
             {
                 // un fichier du même nom existe déjà
                 destinationPath = movie.GetFullPath(Path.GetFileNameWithoutExtension(originPath) + "_1" + Path.GetExtension(originPath));
             }
 
-            _dbContext.DownloadedContents.CreateAndScan(movie, originPath);
+            movie.CreateAndScan(originPath);
+
+            _dbContext.Movies.Update(movie);
 
             // if need importmode need to transcode
             if (importMode == ImportMode.TranscodeAndMove)
@@ -47,6 +49,7 @@ namespace MovManagerr.Core.Tasks
                 TranscodeHelper.New()
                     .From(originPath)
                     .To(destinationPath)
+                    .ContentType(ContentType.Movie)
                     .EnqueueRun();
             }
             else
@@ -54,7 +57,8 @@ namespace MovManagerr.Core.Tasks
                 TransfertHelper.New()
                     .From(originPath)
                     .To(destinationPath)
-                    .MoveFile();
+                    .ContentType(ContentType.Movie)
+                    .EnqueueMove();
             }
         }       
     }

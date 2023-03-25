@@ -1,4 +1,5 @@
-﻿using MovManagerr.Core.Data.Abstracts;
+﻿using LiteDB;
+using MovManagerr.Core.Data.Abstracts;
 using MovManagerr.Core.Helpers.Extensions;
 using MovManagerr.Core.Infrastructures.Configurations;
 using MovManagerr.Core.Infrastructures.Loggers;
@@ -11,26 +12,25 @@ using TMDbLib.Objects.Search;
 
 namespace MovManagerr.Core.Data
 {
-    [Table("movies")]
     public class Movie : IMedia
-    {
+    { 
         public Movie(string name, string poster)
         {
             Name = name;
             Poster = poster;
             DownloadableContents = new List<DownloadableContent>();
-            Medias = new List<DownloadedContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
 
         public Movie()
         {
             DownloadableContents = new List<DownloadableContent>();
-            Medias = new List<DownloadedContent>();
+            DownloadedContents = new List<DownloadedContent>();
         }
 
+        [BsonId]
         public int Id { get; set; }
         public string Name { get; set; }
-
         public string Poster { get; set; }
 
         public string GetCorrectedPoster()
@@ -43,7 +43,8 @@ namespace MovManagerr.Core.Data
             return Poster ?? string.Empty;
         }
 
-        public List<DownloadedContent> Medias { get; protected set; }
+
+        public List<DownloadedContent> DownloadedContents { get; protected set; }
 
         public List<DownloadableContent> DownloadableContents { get; protected set; }
 
@@ -51,7 +52,7 @@ namespace MovManagerr.Core.Data
         {
             get
             {
-                return Medias.Count > 0;
+                return DownloadedContents.Count > 0;
             }
         }
 
@@ -59,15 +60,27 @@ namespace MovManagerr.Core.Data
         {
             get
             {
-                return this.Medias.Count;
+                return this.DownloadedContents.Count;
+            }
+        }
+
+        public decimal MaxBitrate
+        {
+            get
+            {
+                if (this.DownloadedContents.Any())
+                {
+                    return this.DownloadedContents.Max(x => x.OverallInfo.BitrateInMbs);
+                }
+
+                return 0;
             }
         }
 
 
         #region Tmdb
         public int TmdbId { get; set; }
-        public TMDbLib.Objects.Search.SearchMovie? TmdbMovie { get; private set; }
-        public DateTime? LastSearchAttempt { get; set; }
+        public TMDbLib.Objects.Movies.Movie? TmdbMovie { get; private set; }
         #endregion
 
         /// <summary>
@@ -99,7 +112,7 @@ namespace MovManagerr.Core.Data
 
         public bool IsInValidFolder()
         {
-            foreach (var downloaded in Medias)
+            foreach (var downloaded in DownloadedContents)
             {
                 if (GetPath(false) != Path.GetDirectoryName(downloaded.FullPath))
                 {
@@ -112,25 +125,6 @@ namespace MovManagerr.Core.Data
 
 
         /// <summary>
-        /// Searches the movie on TMDB. (base on the name)
-        /// </summary>
-        /// <returns></returns>
-        public void SearchMovieOnTmdb()
-        {
-            LastSearchAttempt = DateTime.Now;
-
-            if (Name != null && Preferences.GetTmdbInstance() is TmdbClientService client)
-            {
-                TmdbMovie = client.GetMovieByName(Name);
-
-                if (TmdbMovie != null)
-                {
-                    TmdbId = TmdbMovie.Id;
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets the directory manager.
         /// </summary>
         /// <returns></returns>
@@ -140,7 +134,7 @@ namespace MovManagerr.Core.Data
 
             var directoryManager = preference.GetDirectoryManager();
 
-            string folderForGenre = preference.GetFolderForGenre(TmdbMovie!.GenreIds.FirstOrDefault());
+            string folderForGenre = preference.GetFolderForGenre(TmdbMovie!.Genres.FirstOrDefault()?.Id ?? 0);
 
             if (string.IsNullOrWhiteSpace(folderForGenre))
             {
@@ -151,33 +145,13 @@ namespace MovManagerr.Core.Data
                 return directoryManager.CreateSubInstance(folderForGenre);
             }
         }
-
-        public bool IsSearchedOnTmdb()
+        
+        public static Movie CreateFromTmdbMovie(TMDbLib.Objects.Movies.Movie movie)
         {
-            return LastSearchAttempt.HasValue || TmdbMovie != null;
-        }
-
-        public static Expression<Func<Movie, bool>> GetIsSearchOnTmdbExpressionEnable(bool isSearched)
-        {
-            if (isSearched)
+            return new Movie(movie.GetValidName(), movie.PosterPath)
             {
-                return x => x.LastSearchAttempt.HasValue || x.TmdbMovie != null;
-            }
-            return x => !x.LastSearchAttempt.HasValue || x.TmdbMovie != null;
-        }
-
-
-        public bool IsSearchedOnTmdbFailed()
-        {
-            return LastSearchAttempt.HasValue && TmdbMovie == null;
-        }
-
-        public static Movie CreateFromSearchMovie(SearchMovie searchMovie)
-        {
-            return new Movie(searchMovie.GetValidName(), searchMovie.PosterPath)
-            {
-                TmdbId = searchMovie.Id,
-                TmdbMovie = searchMovie
+                TmdbId = movie.Id,
+                TmdbMovie = movie
             };
         }
 
@@ -230,32 +204,14 @@ namespace MovManagerr.Core.Data
             downloadLink.Download(serviceProvider, this);
         }
 
-        public string[] GetCombinedTags()
+        public DownloadedContent CreateAndScan(string origin)
         {
-            return DownloadableContents
-                     .OfType<M3UContentLink>()
-                     .SelectMany(x => x.Tags)
-                     .Distinct()
-                     .ToArray();
-        }
+            DownloadedContent download = new DownloadedContent(origin);
+            download.LoadMediaInfo();
 
-        public virtual void Merge(Movie entity)
-        {
-            if (entity is Movie content)
-            {
-                AddDownloadableContent(content.DownloadableContents);
-                Poster = content.Poster;
+            DownloadedContents.Add(download);
 
-                if (content.TmdbMovie != null && content.TmdbId != 0)
-                {
-                    TmdbMovie = content.TmdbMovie;
-                    TmdbId = content.TmdbId;
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Cannot merge entity with different type");
-            }
+            return download;
         }
     }
 }

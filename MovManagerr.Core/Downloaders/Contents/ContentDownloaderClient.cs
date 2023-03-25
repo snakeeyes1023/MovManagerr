@@ -1,7 +1,7 @@
 ﻿using Hangfire;
 using MovManagerr.Core.Data;
 using MovManagerr.Core.Data.Abstracts;
-using MovManagerr.Core.Infrastructures.Dbs;
+using MovManagerr.Core.Infrastructures.DataAccess;
 using MovManagerr.Core.Infrastructures.Loggers;
 using System.Net;
 
