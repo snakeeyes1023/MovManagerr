@@ -1,4 +1,4 @@
-## Installation Guide for App from GitHub Release
+## MovManagerr | Media Content Manager
 
 This guide provides step-by-step instructions to install your app from its GitHub release.
 
