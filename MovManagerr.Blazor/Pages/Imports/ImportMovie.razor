@@ -1,4 +1,5 @@
 ﻿@page "/import/movie"
+@using MovManagerr.Core.Helpers.Extractors.Movies;
 @using MovManagerr.Core.Data.Abstracts;
 
 @inject ImportContentService ImportContentService
@@ -193,11 +194,7 @@
     /// </summary>
     private async Task LoadMovieData(ImportMediaInfo mediaInfo)
     {
-        await InvokeAsync(() =>
-        {
-            IsLoading = true;
-            StateHasChanged();
-        });
+        LoadPanel.ShowLoader();
 
         var movieInfo = MovieExtractor.ExtractFromFileName(mediaInfo.FullPath);
 
@@ -233,11 +230,7 @@
 
         CurrentMovie.IsLoaded = true;
 
-        await InvokeAsync(() =>
-        {
-            IsLoading = false;
-            StateHasChanged();
-        });
+        LoadPanel.HideLoader();
     }
 
     /// <summary>
@@ -259,7 +252,7 @@
                 <RadzenButton Text="Annuler" Click="(() => {  mode = ImportMode.None; ds.Close(false); })" ButtonStyle="ButtonStyle.Light" class="me-1 float-end" />
             </div>
         </div>
-    </div>
+        </div>
     );
         }
 
@@ -307,12 +300,8 @@
                 return;
             }
 
-            await InvokeAsync(() =>
-            {
-                IsLoading = true;
-                StateHasChanged();
-            });
-
+            LoadPanel.ShowLoader();
+            
             foreach (var file in files)
             {
                 FileAttributes attr = File.GetAttributes(file);
@@ -327,11 +316,8 @@
                 }
             }
 
-            await InvokeAsync(() =>
-            {
-                IsLoading = false;
-                StateHasChanged();
-            });
+            LoadPanel.HideLoader();
+
 
             // Set CurrentMovie to the first movie in the list
             if (CurrentMovie == null && PendingMovies.Count > 0)

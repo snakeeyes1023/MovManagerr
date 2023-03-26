@@ -1,4 +1,4 @@
-﻿namespace MovManagerr.Core.Helpers.Extractors
+﻿namespace MovManagerr.Core.Helpers.Extractors.Movies
 {
     public class MovieExtractor : IMovieExtractor
     {

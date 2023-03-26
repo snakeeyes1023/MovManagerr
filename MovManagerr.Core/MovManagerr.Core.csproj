@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Downloader" Version="3.0.3" />
+    <PackageReference Include="Downloader" Version="3.0.4" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.33" />
     <PackageReference Include="Hangfire.Core" Version="1.7.33" />
     <PackageReference Include="Hangfire.LiteDB" Version="0.4.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.2.0" />
-    <PackageReference Include="OpenAI" Version="1.5.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+    <PackageReference Include="OpenAI" Version="1.6.0" />
     <PackageReference Include="Plex.Api" Version="4.1.2" />
-    <PackageReference Include="Xabe.FFmpeg" Version="5.2.5" />
-    <PackageReference Include="Xabe.FFmpeg.Downloader" Version="5.2.5" />
+    <PackageReference Include="Xabe.FFmpeg" Version="5.2.6" />
+    <PackageReference Include="Xabe.FFmpeg.Downloader" Version="5.2.6" />
   </ItemGroup>
 
   <ItemGroup>

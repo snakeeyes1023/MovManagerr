@@ -1,0 +1,57 @@
+﻿@implements IDisposable
+
+<div class="loader-container" style="display: @(IsLoading ? "block" : "none");">
+    <div class="loader"></div>
+</div>
+
+@code {
+
+    private static bool IsLoading;
+    private static event Action OnShowLoader;
+    private static event Action OnHideLoader;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        OnShowLoader += ShowLoaderAction;
+        OnHideLoader += HideLoaderAction;
+    }
+
+    public static void ShowLoader()
+    {
+        OnShowLoader?.Invoke();
+    }
+
+    public static void HideLoader()
+    {
+        OnHideLoader?.Invoke();
+    }
+
+
+    private void ShowLoaderAction()
+    {
+        InvokeAsync(() =>
+        {
+            IsLoading = true;
+            StateHasChanged();
+        });
+    }
+
+    private void HideLoaderAction()
+    {
+        if (IsLoading)
+        {
+            InvokeAsync(() =>
+            {
+                IsLoading = false;
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        OnShowLoader -= ShowLoaderAction;
+        OnHideLoader -= HideLoaderAction;
+    }
+}

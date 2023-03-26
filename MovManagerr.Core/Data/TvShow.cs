@@ -12,62 +12,33 @@ using System.Text.RegularExpressions;
 namespace MovManagerr.Core.Data
 {
     [Table("tvshows")]
-    public class TvShow : Content
+    public class TvShow
     {
+        public string Name { get; set; }
+
         #region Tmdb
 
-        public TMDbLib.Objects.Search.SearchTv? SearchTv { get; private set; }
+        public TMDbLib.Objects.TvShows.TvShow TvShowTmdb { get; private set; }
         public DateTime? LastSearchAttempt { get; set; }
         public int TmdbId { get; set; }
         #endregion
 
-        [BsonIgnore]
-        public override List<DownloadedContent> DownloadedContents
-        {
-            get
-            {
-                return Episodes.SelectMany(x => x.DownloadedContents).ToList();
-            }
-            protected set
-            {
-                base.DownloadedContents = value;
-            }
-        }
-
-        [BsonIgnore]
-        public override List<DownloadableContent> DownloadableContents 
-        {
-            get
-            {
-                return Episodes.SelectMany(x => x.DownloadableContents).ToList();
-            }
-            protected set
-            {
-                base.DownloadableContents = value;
-            }
-        }
-
         public List<Episode> Episodes { get; protected set; }
 
-        public override bool Equals(Content content)
-        {
-            return content is TvShow serie && serie == this;
-        }
-
-        public override DirectoryManager GetDirectoryManager()
+        public DirectoryManager GetDirectoryManager()
         {
             return Preferences.Instance.Settings.GetContentPreference<TvShow>().GetDirectoryManager();
         }
 
-        public override string GetPath(bool createDirectory = true)
+        public string GetPath(bool createDirectory = true)
         {
             string title = Name;
             string year = "0000";
             
-            if (SearchTv != null)
+            if (TvShowTmdb != null)
             {
-                title = SearchTv?.GetValidName() ?? Name;
-                year = SearchTv != null && SearchTv.FirstAirDate.HasValue ? SearchTv.FirstAirDate.Value.Year.ToString() : "0000";
+                title = TvShowTmdb?.GetValidName() ?? Name;
+                year = TvShowTmdb != null && TvShowTmdb.FirstAirDate.HasValue ? TvShowTmdb.FirstAirDate.Value.Year.ToString() : "0000";
             }
 
             char[] invalidChars = Path.GetInvalidPathChars();
@@ -77,12 +48,12 @@ namespace MovManagerr.Core.Data
             cleanedTitle = Regex.Replace(cleanedTitle, @"[ ]{2,}", " ").Replace(":", string.Empty);
             cleanedTitle = $"{cleanedTitle} ({year})";
 
-            if (SearchTv != null)
+            if (TvShowTmdb != null)
             {
-                cleanedTitle += $" {{tmdb-{SearchTv.Id}}}";
+                cleanedTitle += $" {{tmdb-{TvShowTmdb.Id}}}";
             }
 
-            var directoryPath = Path.Combine(base.GetPath(createDirectory), cleanedTitle);
+            var directoryPath = Path.Combine(GetDirectoryManager()._BasePath, cleanedTitle);
 
             if (createDirectory)
             {
@@ -93,7 +64,7 @@ namespace MovManagerr.Core.Data
         }
     }
 
-    public class Episode
+    public class Episode : IMedia
     {
         public Episode(int episodeNumber, int saisonNumber)
         {
@@ -110,6 +81,10 @@ namespace MovManagerr.Core.Data
         public List<DownloadedContent> DownloadedContents { get; set; }
 
         public List<DownloadableContent> DownloadableContents { get; set; }
+
+        public bool IsDownloaded => DownloadedContents.Any();
+
+        public int NbFiles => DownloadedContents.Count;
 
         public string GetSeasonPath()
         {

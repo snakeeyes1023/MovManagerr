@@ -4,96 +4,36 @@
 @inject ImportContentService ImportContentService
 @inject DialogService DialogService
 
-
-
-<div class="row py-2">
-    <div class="loader-container" style="display: @(IsLoading ? "block" : "none");">
-        <div class="loader"></div>
-    </div>
-    <div class="col-5">
-        <RadzenCard class="mb-2">
-            <RadzenButton ButtonStyle="ButtonStyle.Dark" Icon="upload" Variant="Variant.Filled" Click=@(args => BrowseFolders()) Text="Ajouter des medias (Dossiers)" />
-            <RadzenButton ButtonStyle="ButtonStyle.Dark" Icon="upload" Variant="Variant.Outlined" Click=@(args => BrowseFiles()) Text="Ajouter des medias (Fichiers)" />
-        </RadzenCard>
-        @if (CurrentMovie != null)
-        {
-            <RadzenCard>
-@*                <div class="row">
-                    <div class="col-12">
-                        <h4 class="mb-4">Informations du film</h4>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12 mb-2">
-                        <p><strong>Chemin complet :</strong> @CurrentMovie.FullPath</p>
-                    </div>
-                    <hr />
-                    <div class="col-md-6">
-                        <p><strong>Taille :</strong> @CurrentMovie.FileSize.ToString("0.##") Gb</p>
-                        <p><strong>Bitrate :</strong> @CurrentMovie.Bitrate.ToString("0.##") Mb/s</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Format vidéo :</strong> @CurrentMovie.VideoFormat</p>
-                        <p><strong>Résolution :</strong> @CurrentMovie.Resolution</p>
-                        <p><strong>Format audio :</strong> @CurrentMovie.AudioFormat</p>
-                    </div>
-                </div>*@
-            </RadzenCard>
-        }
-    </div>
-    <div class="col-7">
-        @if (CurrentMovie != null)
-        {
-            <div class="row mb-2">
-                <div class="col-12">
-                    <RadzenCard>
-                        <RadzenTextBox @bind-Value=CurrentMovie.MovieName />
-                        <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="search" Click=@(args => LoadCurrentMovieMatchesFromTmdb()) Text="Faire une recherche" />
-                    </RadzenCard>
+@if (CurrentStep == ImportStep.SelectFiles)
+{
+    <div class="row py-2">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ajouter une serie ou saison complète (Dossiers)</h5>
+                    <p class="card-text">Cliquez sur le bouton ci-dessous pour importer un dossier de médias.</p>
+                    <button class="btn btn-dark btn-lg btn-block" @onclick="@(args => BrowseFolders())"><i class="fa fa-upload"></i> Importer des médias (Dossiers)</button>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-12">
-                    <RadzenCard>
-                        <div class="scroll-container" style="max-height: 80vh; overflow-y: auto;">
-
-                            @if (CurrentMovie.Matches != null && CurrentMovie.Matches.Any())
-                            {
-                                <RadzenDataList WrapItems="true" AllowPaging="false" Data="@CurrentMovie.Matches" TItem="SearchMovie">
-                                    <Template Context="movie">
-                                        @{
-                                            string imagePath = string.IsNullOrWhiteSpace(movie.PosterPath) ? "https://static.displate.com/857x1200/displate/2022-04-15/7422bfe15b3ea7b5933dffd896e9c7f9_46003a1b7353dc7b5a02949bd074432a.jpg" : $"https://image.tmdb.org/t/p/w200/{movie.PosterPath}";
-                                            string cardCss = CurrentMovie.SelectedMatchId == movie.Id ? "selected" : "";
-                                        }
-                                        <RadzenCard Style="width:150px; max-width: 150px" @onclick="(args => { CurrentMovie.SelectSearchMovie(movie.Id); StateHasChanged(); })" class=@($"movie-card {cardCss}")>
-                                            <img class="img-fluid" src="@imagePath">
-                                            <div class="movie-card-overlay">
-                                                <div class="movie-card-title">
-                                                    @(
-                                                        movie.GetValidName()
-                                                        ) (@(
-                                                     movie.ReleaseDate.GetValueOrDefault().Year
-                                                     ))
-                                                </div>
-                                            </div>
-                                        </RadzenCard>
-                                    </Template>
-                                </RadzenDataList>
-                            }
-                            else
-                            {
-                                <p>Aucun résultat trouvé.</p>
-                            }
-                        </div>
-                    </RadzenCard>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ajouter certains épisodes(Fichiers)</h5>
+                    <p class="card-text">Cliquez sur le bouton ci-dessous pour importer des fichiers de médias individuels.</p>
+                    <button class="btn btn-outline-dark btn-lg btn-block" @onclick="@(args => BrowseFiles())"><i class="fa fa-upload"></i> Importer des médias (Fichiers)</button>
                 </div>
             </div>
-        }
+        </div>
     </div>
-</div>
+}
+else if (CurrentStep == ImportStep.validateImport)
+{
+}
 
-@if (CurrentMovie != null && !IsLoading)
+
+@*
+@if (CurrentMovie != null)
 {
     <div class="fixed-bottom p-1">
         <RadzenCard>
@@ -106,170 +46,28 @@
             <div class="row mx-2">
                 <div class="col-6">
 @*                    <RadzenButton ButtonStyle="ButtonStyle.Danger" class="w-100" Icon="cancel" Shade=Shade.Lighter Variant="Variant.Filled" Click=@(args => CancelCurrent()) Text="Annuler l'ajout" />
-*@                </div>
+                </div>
                 <div class="col-6">
                     <RadzenButton Disabled=!CurrentMovie.ReadyToImport ButtonStyle="ButtonStyle.Primary" class="w-100" Icon="done" Shade=Shade.Lighter Variant="Variant.Filled" Click=@(args => Submit()) Text="Ajouter le film à Plex" />
                 </div>
             </div>
         </RadzenCard>
     </div>
-}
+}*@
 
 @code {
-    #region Helpers
-    private IMovieExtractor MovieExtractor;
-    [Inject] IMovieService MovieService { get; set; }
 
-    #endregion
+    public enum ImportStep
+    {
+        SelectFiles = 0,
+        validateImport = 1
+    }
 
-    private List<ImportMediaInfo> PendingMovies = new List<ImportMediaInfo>();
-    private ImportMediaInfo CurrentMovie;
-    private bool IsLoading;
+    private ImportStep CurrentStep { get; set; } = ImportStep.SelectFiles;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        MovieExtractor = (new ExtractorInstance()).GetMovieInstratorInstance();
-    }
-
-    /// <summary>
-    /// Navigates to the previous movie.
-    /// </summary>
-    //private Task PreviousMovie()
-    //{
-    //    if (CurrentMovieIndex > 0)
-    //    {
-    //        CurrentMovie = PendingMovies[CurrentMovieIndex - 1];
-    //        if (!CurrentMovie.IsLoaded)
-    //        {
-    //            return LoadMovieData(CurrentMovie);
-    //        }
-    //    }
-
-    //    return Task.CompletedTask;
-    //}
-
-    /// <summary>
-    /// Navigates to the next movie.
-    /// </summary>
-    //private Task NextMovie()
-    //{
-    //    if (CurrentMovieIndex < PendingMovies.Count - 1)
-    //    {
-    //        CurrentMovie = PendingMovies[CurrentMovieIndex + 1];
-
-    //        if (!CurrentMovie.IsLoaded)
-    //        {
-    //            return LoadMovieData(CurrentMovie);
-    //        }
-    //    }
-
-    //    return Task.CompletedTask;
-    //}
-
-    ///// <summary>
-    ///// Cancels the current movie.
-    ///// </summary>
-    //public async Task CancelCurrent()
-    //{
-    //    PendingMovies = PendingMovies.Where(x => x.FullPath != CurrentMovie.FullPath).ToList();
-    //    CurrentMovie = null;
-    //    await NextMovie();
-    //}
-
-
-    /// <summary>
-    /// Loads the matched movie data from TMDB.
-    /// </summary>
-    public void LoadCurrentMovieMatchesFromTmdb()
-    {
-        CurrentMovie.Matches = MovieService.GetMatchForFileName(CurrentMovie.MovieName).Take(10);
-    }
-
-    /// <summary>
-    /// Loads movie data based on the ImportMediaInfo object.
-    /// </summary>
-    private async Task LoadMovieData(ImportMediaInfo mediaInfo)
-    {
-        await InvokeAsync(() =>
-    {
-        IsLoading = true;
-        StateHasChanged();
-    });
-
-        var movieInfo = MovieExtractor.ExtractFromFileName(mediaInfo.FullPath);
-
-        mediaInfo.MovieName = movieInfo.MovieName;
-
-        // load de les comparables Tmdb
-        mediaInfo.Matches = MovieService.GetMatchForFileName(mediaInfo.MovieName).Take(10); ;
-
-        //préselect le match parfait
-        if (mediaInfo.Matches.FirstOrDefault(x => x.ReleaseDate.GetValueOrDefault().Year == movieInfo.Year) is SearchMovie searchMovie)
-        {
-            mediaInfo.SelectSearchMovie(searchMovie.Id);
-        }
-
-        // tentative de récupérer les média infos
-        try
-        {
-            DownloadedContent downloadedContent = new DownloadedContent(mediaInfo.FullPath);
-            downloadedContent.LoadMediaInfo();
-
-            mediaInfo.AudioFormat = downloadedContent.AudioInfo.Codec;
-            mediaInfo.VideoFormat = downloadedContent.VideoInfo.Codec;
-            mediaInfo.Bitrate = downloadedContent.OverallInfo.BitrateInMbs;
-            mediaInfo.Resolution = downloadedContent.VideoInfo.Heigth.ToString();
-            mediaInfo.FileSize = downloadedContent.FileSizeAsGb;
-            mediaInfo.IsTranscodeRequired = (new TranscodeService()).IsTranscodeRequired(downloadedContent);
-        }
-        catch (Exception ex)
-        {
-            SimpleLogger.AddLog("Impossible de charger les informations du fichier", LogType.Error);
-        }
-
-
-        CurrentMovie.IsLoaded = true;
-
-        await InvokeAsync(() =>
-    {
-        IsLoading = false;
-        StateHasChanged();
-    });
-    }
-
-    /// <summary>
-    /// Loads movie data based on the ImportMediaInfo object.
-    /// </summary>
-    private async Task Submit()
-    {
-        Movie dbMovie = MovieService.GetMovieFromSearchMovie(CurrentMovie.SelectedMatch);
-        ImportMode mode = ImportMode.Move;
-
-        if (dbMovie.IsDownloaded)
-        {
-            await DialogService.OpenAsync("Fichié déjà existant", ds =>
-    @<div>
-        <p class="mb-4">Le fichier semble déjà exister dans un de vos répertoires ?</p>
-        <div class="row">
-            <div class="col">
-                <RadzenButton Text="Continuer" Click="() => { mode = ImportMode.Move; ds.Close(false); }" class="me-1" Style="width: 80px;" />
-                <RadzenButton Text="Annuler" Click="(() => {  mode = ImportMode.None; ds.Close(false); })" ButtonStyle="ButtonStyle.Light" class="me-1 float-end" />
-            </div>
-        </div>
-    </div>
-    );
-        }
-
-
-        if (mode != ImportMode.None)
-        {
-            mode = CurrentMovie.IsTranscodeRequired ? ImportMode.TranscodeAndMove : mode;
-
-            ImportContentService.ImportMovie(dbMovie, CurrentMovie.FullPath, mode);
-        }
-
-        //await CancelCurrent();
     }
 
     public Task BrowseFiles()
@@ -305,47 +103,30 @@
                 return;
             }
 
-            await InvokeAsync(() =>
-            {
-                IsLoading = true;
-                StateHasChanged();
-            });
+            LoadPanel.ShowLoader();
 
-            foreach (var file in files)
-            {
-                FileAttributes attr = File.GetAttributes(file);
+            //foreach (var file in files)
+            //{
+            //    FileAttributes attr = File.GetAttributes(file);
 
-                if (attr.HasFlag(FileAttributes.Directory))
-                {
-                    ProceedFolder(file);
-                }
-                else
-                {
-                    AppendFileToPending(file);
-                }
-            }
+            //    if (attr.HasFlag(FileAttributes.Directory))
+            //    {
+            //        ProceedFolder(file);
+            //    }
+            //    else
+            //    {
+            //        AppendFileToPending(file);
+            //    }
+            //}
 
-            await InvokeAsync(() =>
-            {
-                IsLoading = false;
-                StateHasChanged();
-            });
+            //// Set CurrentMovie to the first movie in the list
+            //if (CurrentMovie == null && PendingMovies.Count > 0)
+            //{
+            //    CurrentMovie = PendingMovies[0];
+            //    await LoadMovieData(CurrentMovie);
+            //}
 
-            // Set CurrentMovie to the first movie in the list
-            if (CurrentMovie == null && PendingMovies.Count > 0)
-            {
-                CurrentMovie = PendingMovies[0];
-                await LoadMovieData(CurrentMovie);
-            }
-
-        }
-    }
-
-    private void AppendFileToPending(string file)
-    {
-        if (!PendingMovies.Any(x => x.FullPath == file))
-        {
-            PendingMovies.Add(new ImportMediaInfo(file));
+            LoadPanel.HideLoader();
         }
     }
 
@@ -356,54 +137,7 @@
 
         foreach (var file in files)
         {
-            AppendFileToPending(file);
+            //AppendFileToPending(file);
         }
     }
-
-
-
-    public class ImportMediaInfo
-    {
-        public ImportMediaInfo(string fullPath)
-        {
-            FullPath = fullPath;
-        }
-
-        public string FullPath { get; set; }
-        public string MovieName { get; set; }
-        public string VideoFormat { get; set; }
-        public string AudioFormat { get; set; }
-        public string Resolution { get; set; }
-        public decimal Bitrate { get; set; }
-        public decimal FileSize { get; set; }
-        public bool IsTranscodeRequired { get; set; }
-
-        public IEnumerable<SearchMovie> Matches { get; set; }
-
-        public SearchMovie SelectedMatch { get; set; }
-
-        public bool IsLoaded { get; set; }
-
-        public bool ReadyToImport
-        {
-            get
-            {
-                return SelectedMatch != null;
-            }
-        }
-
-        public int SelectedMatchId
-        {
-            get
-            {
-                return SelectedMatch?.Id ?? 0;
-            }
-        }
-
-        public void SelectSearchMovie(int movieId)
-        {
-            SelectedMatch = Matches.FirstOrDefault(x => x.Id == movieId);
-        }
-    }
-
 }

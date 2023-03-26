@@ -5,6 +5,7 @@
 
     <RadzenDialog />
     <RadzenContextMenu/>
+    <LoadPanel />
 
 
     <RadzenLayout>
@@ -21,12 +22,16 @@
             <RadzenPanelMenu>
                 <RadzenPanelMenuItem Text="Films">
                     <RadzenPanelMenuItem Visible=isValid Text="Voir mes films" Icon="list" Path="/imported/movie" />
-                    <RadzenPanelMenuItem Visible=isValid Text="Transferer des films" Icon="downloading" Path="/import/movie" />
+                    <RadzenPanelMenuItem Visible=isValid Text="Importer des films" Icon="downloading" Path="/import/movie" />
                     <RadzenPanelMenuItem Visible=isValid Text="Importation en batch" Icon="list" Path="/scan/movie" />
                 </RadzenPanelMenuItem>
-
-                <RadzenPanelMenuItem Visible=isValid Text="Afficher les tâches en cours" Icon="list" Path="/HangfireContainer" />
-                <RadzenPanelMenuItem Visible=isValid Text="En attente" Icon="list" Path="/taskprogress" />
+                <RadzenPanelMenuItem Text="Series">
+                    <RadzenPanelMenuItem Visible=isValid Text="Voir mes séries" Icon="list" Path="/imported/serie" />
+                    <RadzenPanelMenuItem Visible=isValid Text="Importer des épisodes" Icon="downloading" Path="/import/serie" />
+                    <RadzenPanelMenuItem Visible=isValid Text="Importation en batch" Icon="list" Path="/scan/serie" />
+                </RadzenPanelMenuItem>
+@*                <RadzenPanelMenuItem Visible=isValid Text="Afficher les tâches en cours" Icon="list" Path="/HangfireContainer" />
+*@                <RadzenPanelMenuItem Visible=isValid Text="Afficher les tâches en cours" Icon="list" Path="/taskprogress" />
 
                 <RadzenPanelMenuItem Text="Paramètre">
                     <RadzenPanelMenuItem Text="Général" Icon="settings" Path="/config/general" />

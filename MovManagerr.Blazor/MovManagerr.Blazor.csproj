@@ -26,8 +26,8 @@
 
 	<ItemGroup>
 	  <PackageReference Include="ElectronNET.API" Version="13.5.1" />
-	  <PackageReference Include="OpenAI" Version="1.5.0" />
-	  <PackageReference Include="Radzen.Blazor" Version="4.5.0" />
+	  <PackageReference Include="OpenAI" Version="1.6.0" />
+	  <PackageReference Include="Radzen.Blazor" Version="4.8.0" />
 	</ItemGroup>
 
 	<ItemGroup>
