@@ -1,0 +1,171 @@
+﻿@page "/import/serie"
+@using MovManagerr.Core.Data.Abstracts;
+@using MovManagerr.Core.Helpers.Extractors.Series
+@using MovManagerr.Core.Helpers.Extractors.Shared
+@using System.Threading;
+
+@inject ImportContentService ImportContentService
+@inject DialogService DialogService
+
+@if (CurrentStep == ImportStep.SelectFiles)
+{
+    <div class="row py-2">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ajouter une serie ou saison complète (Dossiers)</h5>
+                    <p class="card-text">Cliquez sur le bouton ci-dessous pour importer un dossier de médias.</p>
+                    <button class="btn btn-dark btn-lg btn-block" @onclick="@(args => BrowseFolders())"><i class="fa fa-upload"></i> Importer des médias (Dossiers)</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ajouter certains épisodes(Fichiers)</h5>
+                    <p class="card-text">Cliquez sur le bouton ci-dessous pour importer des fichiers de médias individuels.</p>
+                    <button class="btn btn-outline-dark btn-lg btn-block" @onclick="@(args => BrowseFiles())"><i class="fa fa-upload"></i> Importer des médias (Fichiers)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (CurrentStep == ImportStep.validateImport)
+{
+    <RadzenPanelMenu>
+        @{
+            var seasons = ExtractionResults.OfType<EpisodeAnalyseResult>().GroupBy(x => x.Season).OrderBy(x => x.Key);
+        }
+        @foreach (var season in seasons)
+        {
+            <RadzenPanelMenuItem Text="@($"Saison {season.Key}")" Icon="tv" Expanded=true>
+                <RadzenGrid TItem="EpisodeAnalyseResult" Data="@season.ToList()" ColumnWidth="200px" Style="border-collapse:collapse">
+                    <Columns>
+                        <RadzenGridColumn TItem="EpisodeAnalyseResult" Property="EpisodeName" Title="Episode" />
+                        <RadzenGridColumn TItem="EpisodeAnalyseResult" Property="EpisodePath" Title="Chemin" />
+                        <RadzenGridColumn TItem="EpisodeAnalyseResult" Property="Episode" Title="Épisode" />
+                    </Columns>
+                </RadzenGrid>
+            </RadzenPanelMenuItem>
+        }
+    </RadzenPanelMenu>
+}
+
+
+@*
+@if (CurrentMovie != null)
+{
+    <div class="fixed-bottom p-1">
+        <RadzenCard>
+            <div class="row mx-2 my-2">
+                <div class="col-12">
+                    <RadzenSwitch @bind-Value=@CurrentMovie.IsTranscodeRequired></RadzenSwitch>
+                    <span class="my-1">Activer le transcodage</span>
+                </div>
+            </div>
+            <div class="row mx-2">
+                <div class="col-6">
+@*                    <RadzenButton ButtonStyle="ButtonStyle.Danger" class="w-100" Icon="cancel" Shade=Shade.Lighter Variant="Variant.Filled" Click=@(args => CancelCurrent()) Text="Annuler l'ajout" />
+                </div>
+                <div class="col-6">
+                    <RadzenButton Disabled=!CurrentMovie.ReadyToImport ButtonStyle="ButtonStyle.Primary" class="w-100" Icon="done" Shade=Shade.Lighter Variant="Variant.Filled" Click=@(args => Submit()) Text="Ajouter le film à Plex" />
+                </div>
+            </div>
+        </RadzenCard>
+    </div>
+}*@
+
+@code {
+
+    public enum ImportStep
+    {
+        SelectFiles = 0,
+        validateImport = 1
+    }
+
+    private ImportStep CurrentStep { get; set; } = ImportStep.SelectFiles;
+
+    private ISerieExtractor SerieExtractor { get; set; }
+
+    private IList<IExtractionResult> ExtractionResults { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        SerieExtractor = (new SerieExtractorInstance()).GetSerieInstratorInstance();
+        ExtractionResults = new List<IExtractionResult>();
+    }
+
+    public Task BrowseFiles()
+    {
+        return BrowseSerie(new OpenDialogProperty[] { OpenDialogProperty.openFile, OpenDialogProperty.multiSelections });
+    }
+
+    public Task BrowseFolders()
+    {
+        return BrowseSerie(new OpenDialogProperty[] { OpenDialogProperty.openDirectory, OpenDialogProperty.multiSelections });
+    }
+
+    /// <summary>
+    /// Opens a dialog to browse for movie files.
+    /// </summary>
+    async Task BrowseSerie(OpenDialogProperty[] type)
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+
+            var options = new OpenDialogOptions
+                {
+                    Properties = type
+                };
+
+            string[] files = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+
+            if (!files.Any())
+            {
+                var notOptions = new NotificationOptions("Avertissement", $"Aucun fichier a été selectionnée");
+                Electron.Notification.Show(notOptions);
+                return;
+            }
+            else
+            {
+                CurrentStep = ImportStep.validateImport;
+                StateHasChanged();
+
+                LoadPanel.ShowLoader();
+
+                foreach (string fileOrFolder in files)
+                {
+                    FileAttributes attr = File.GetAttributes(fileOrFolder);
+
+                    if (attr.HasFlag(FileAttributes.Directory))
+                    {
+                        string[] extensions = { ".mkv", ".avi", ".mp4" };
+                        var medias = Directory.GetFiles(fileOrFolder, "*.*", SearchOption.AllDirectories)
+                            .Where(media => extensions.Contains(Path.GetExtension(media), StringComparer.OrdinalIgnoreCase))
+                            .ToList();
+
+                        foreach (var file in medias)
+                        {
+                            ExtractFile(filePath: file);
+                        }
+                    }
+                    else
+                    {
+                        ExtractFile(filePath: fileOrFolder);
+                    }
+                }
+
+                LoadPanel.HideLoader();
+            }
+        }
+    }
+
+    private void ExtractFile(string filePath)
+    {
+        ExtractionResults.Add(SerieExtractor.ExtractFromFileName(filePath));
+        StateHasChanged();
+    }
+}

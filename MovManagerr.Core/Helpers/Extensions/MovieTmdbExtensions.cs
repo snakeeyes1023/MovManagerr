@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using TMDbLib.Objects.Movies;
 using TMDbLib.Objects.Search;
+using TMDbLib.Objects.TvShows;
 
 namespace MovManagerr.Core.Helpers.Extensions
 {
@@ -20,6 +21,16 @@ namespace MovManagerr.Core.Helpers.Extensions
             }
 
             return searchMovie.Title;
+        }
+
+        public static string GetValidName(this TvShow searchTv)
+        {
+            if (searchTv.OriginalName.IsValidFolder())
+            {
+                return searchTv.OriginalName;
+            }
+
+            return searchTv.Name;
         }
 
         public static string GetValidName(this Movie searchMovie)

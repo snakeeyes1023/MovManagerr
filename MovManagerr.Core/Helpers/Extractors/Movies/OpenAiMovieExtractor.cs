@@ -1,11 +1,17 @@
-﻿using MovManagerr.Core.Infrastructures.Configurations;
+﻿using MovManagerr.Core.Helpers.Extractors.Shared;
+using MovManagerr.Core.Infrastructures.Configurations;
 using OpenAI_API;
 
-namespace MovManagerr.Core.Helpers.Extractors
+namespace MovManagerr.Core.Helpers.Extractors.Movies
 {
     public class OpenAiMovieExtractor : IMovieExtractor
     {
-        public FileMovieNameInfo ExtractFromFileName(string fileName)
+        public OpenAiMovieExtractor()
+        {
+
+        }
+
+        public IExtractionResult ExtractFromFileName(string fileName)
         {
             var movieInfo = new FileMovieNameInfo()
             {
@@ -32,9 +38,10 @@ namespace MovManagerr.Core.Helpers.Extractors
 
                     try
                     {
-                        movieInfo.Year = int.Parse(result.Split(",")[1].Split(":")[1].Trim());               
+                        movieInfo.Year = int.Parse(result.Split(",")[1].Split(":")[1].Trim());
                     }
-                    catch (Exception) { 
+                    catch (Exception)
+                    {
                         // l'année est peut être manquante dans le nom de fichié
                     }
 

@@ -1,4 +1,6 @@
-﻿namespace MovManagerr.Core.Infrastructures.Loggers
+﻿using System.Text.RegularExpressions;
+
+namespace MovManagerr.Core.Infrastructures.Loggers
 {
     public class TypedLog
     {
@@ -40,6 +42,44 @@
             TypedLog createdLog = new TypedLog(log, type);
             Logs.Add(createdLog);
             OnLogged?.Invoke(createdLog);
+        }
+
+        public static void Debug(string message)
+        {
+            
+        }
+
+        public static void Debug(Exception ex, string message, string info)
+        {
+        }
+
+        public static void Debug(string message, string info) 
+        {
+        }
+
+        public static void Error(string message)
+        {
+            AddLog(message, LogType.Error);
+        }
+
+        public static void Error(Exception ex, string message, string info)
+        {
+            AddLog(ex.Message, LogType.Error);
+        }
+
+        public static void Trace(string message)
+        {
+            
+        }
+
+        public static void Trace(string message, string info)
+        {
+
+        }
+
+        public static void Trace(Regex regex)
+        {
+            
         }
     }
 }
