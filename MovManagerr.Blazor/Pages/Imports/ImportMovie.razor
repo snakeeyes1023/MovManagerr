@@ -132,7 +132,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        MovieExtractor = (new ExtractorInstance()).GetMovieInstratorInstance();
+        MovieExtractor = (new MovieExtractorInstance()).GetMovieInstratorInstance();
     }
 
     /// <summary>
@@ -196,7 +196,7 @@
     {
         LoadPanel.ShowLoader();
 
-        var movieInfo = MovieExtractor.ExtractFromFileName(mediaInfo.FullPath);
+        var movieInfo = (FileMovieNameInfo)MovieExtractor.ExtractFromFileName(mediaInfo.FullPath);
 
         mediaInfo.MovieName = movieInfo.MovieName;
 

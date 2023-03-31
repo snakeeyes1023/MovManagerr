@@ -1,4 +1,5 @@
-﻿using MovManagerr.Core.Infrastructures.Configurations;
+﻿using MovManagerr.Core.Helpers.Extractors.Shared;
+using MovManagerr.Core.Infrastructures.Configurations;
 using OpenAI_API;
 
 namespace MovManagerr.Core.Helpers.Extractors.Movies
@@ -10,7 +11,7 @@ namespace MovManagerr.Core.Helpers.Extractors.Movies
 
         }
 
-        public FileMovieNameInfo ExtractFromFileName(string fileName)
+        public IExtractionResult ExtractFromFileName(string fileName)
         {
             var movieInfo = new FileMovieNameInfo()
             {

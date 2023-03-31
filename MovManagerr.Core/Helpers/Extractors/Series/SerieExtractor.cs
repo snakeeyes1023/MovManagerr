@@ -1,4 +1,5 @@
 ﻿using MovManagerr.Core.Data.Helpers;
+using MovManagerr.Core.Helpers.Extractors.Shared;
 using MovManagerr.Core.Infrastructures.Configurations;
 using OpenAI_API;
 using System;
@@ -10,9 +11,14 @@ using System.Threading.Tasks;
 
 namespace MovManagerr.Core.Helpers.Extractors.Series
 {
-    public class SerieExtractor
+    public class SerieExtractor : ISerieExtractor
     {
-        public SerieAnalyseResult ExtractSerie(string path)
+        public IExtractionResult ExtractFromFileName(string fileName)
+        {
+            return ExtractEpisodeInfo(fileName) ?? new EpisodeAnalyseResult();
+        }
+
+        public IExtractionResult ScanFolder(string path)
         {
             var result = new SerieAnalyseResult();
             result.SeriePath = path;
@@ -25,59 +31,70 @@ namespace MovManagerr.Core.Helpers.Extractors.Series
 
             foreach (string file in files)
             {
-                var episodeResult = new EpisodeAnalyseResult();
-                episodeResult.EpisodePath = file;
-                episodeResult.EpisodeName = Path.GetFileNameWithoutExtension(file);
-
-                // Try to extract the season and episode numbers from the file name
-                if (TryExtractSeasonAndEpisodeFromFileName(episodeResult.EpisodeName, out int season, out int episode))
+                if (ExtractEpisodeInfo(file) is EpisodeAnalyseResult episodeInfo)
                 {
-                    episodeResult.Season = season;
-                    episodeResult.Episode = episode;
-                    result.Episodes.Add(episodeResult);
-                }
-                // If the file name doesn't contain the season and episode numbers, try to extract them from the folder name
-                else if (TryExtractSeasonAndEpisodeFromFolderName(file, out season, out episode))
-                {
-                    episodeResult.Season = season;
-                    episodeResult.Episode = episode;
-                    result.Episodes.Add(episodeResult);
-                }
-                else
-                {
-                    OpenAIAPI api = new OpenAIAPI(Preferences.Instance.Settings.OpenAIApiKey); // shorthand
-
-                    // create a completion request with a prompt to extract the season and episode numbers
-                    string prompt = $"Given a TV show episode file name '{episodeResult.EpisodePath}', please extract the season and episode numbers. Use the format example 'S01E01'.";
-
-                    try
-                    {
-                        string? promptResult = Task.Run<string?>(async () => await api.Completions.GetCompletion(prompt)).Result;
-
-                        if (!string.IsNullOrEmpty(promptResult) && Regex.IsMatch(promptResult, @"S\d{2}E\d{2}"))
-                        {
-                            Match match = Regex.Match(promptResult, @"S(?<season>\d{2})E(?<episode>\d{2})");
-                            if (match.Success)
-                            {
-                                season = int.Parse(match.Groups["season"].Value);
-                                episode = int.Parse(match.Groups["episode"].Value);
-                                episodeResult.Season = season;
-                                episodeResult.Episode = episode;
-                                result.Episodes.Add(episodeResult);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the error or handle it as needed
-                    }
-
-                    //process the result
-
+                    result.Episodes.Add(episodeInfo);
                 }
             }
             return result;
 
+        }
+
+        private EpisodeAnalyseResult? ExtractEpisodeInfo(string file)
+        {
+            var episodeResult = new EpisodeAnalyseResult();
+            episodeResult.EpisodePath = file;
+            episodeResult.EpisodeName = Path.GetFileNameWithoutExtension(file);
+
+            // Try to extract the season and episode numbers from the file name
+            if (TryExtractSeasonAndEpisodeFromFileName(episodeResult.EpisodeName, out int season, out int episode))
+            {
+                episodeResult.Season = season;
+                episodeResult.Episode = episode;
+                return episodeResult;
+            }
+            // If the file name doesn't contain the season and episode numbers, try to extract them from the folder name
+            else if (TryExtractSeasonAndEpisodeFromFolderName(file, out season, out episode))
+            {
+                episodeResult.Season = season;
+                episodeResult.Episode = episode;
+                return episodeResult;
+            }
+            else if (Preferences.Instance.Settings.UseOpenAI)
+            {
+                OpenAIAPI api = new OpenAIAPI(Preferences.Instance.Settings.OpenAIApiKey); // shorthand
+
+                // create a completion request with a prompt to extract the season and episode numbers
+                string prompt = $"Given a TV show episode file name '{episodeResult.EpisodePath}', please extract the season and episode numbers. Use the format example 'S01E01'.";
+
+                try
+                {
+                    string? promptResult = Task.Run<string?>(async () => await api.Completions.GetCompletion(prompt)).Result;
+
+                    if (!string.IsNullOrEmpty(promptResult) && Regex.IsMatch(promptResult, @"S\d{2}E\d{2}"))
+                    {
+                        Match match = Regex.Match(promptResult, @"S(?<season>\d{2})E(?<episode>\d{2})");
+                        if (match.Success)
+                        {
+                            season = int.Parse(match.Groups["season"].Value);
+                            episode = int.Parse(match.Groups["episode"].Value);
+                            episodeResult.Season = season;
+                            episodeResult.Episode = episode;
+                            return episodeResult;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error or handle it as needed
+                }
+
+                //process the result
+
+
+            }
+
+            return null;
         }
 
         private bool TryExtractSeasonAndEpisodeFromFileName(string fileName, out int season, out int episode)
@@ -180,28 +197,6 @@ namespace MovManagerr.Core.Helpers.Extractors.Series
 
             return episode;
         }
-    }
-
-
-    public class SerieAnalyseResult
-    {
-
-        public SerieAnalyseResult()
-        {
-            Episodes = new List<EpisodeAnalyseResult>();
-        }
-
-        public string SerieName { get; set; }
-        public string SeriePath { get; set; }
-        public List<EpisodeAnalyseResult> Episodes { get; set; }
-    }
-
-    public class EpisodeAnalyseResult
-    {
-        public string EpisodeName { get; set; }
-        public string EpisodePath { get; set; }
-        public int Season { get; set; }
-        public int Episode { get; set; }
     }
 }
 

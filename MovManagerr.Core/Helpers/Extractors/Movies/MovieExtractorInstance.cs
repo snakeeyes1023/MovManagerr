@@ -1,11 +1,12 @@
-﻿using MovManagerr.Core.Infrastructures.Configurations;
+﻿using MovManagerr.Core.Helpers.Extractors.Shared;
+using MovManagerr.Core.Infrastructures.Configurations;
 using System.IO;
 
 namespace MovManagerr.Core.Helpers.Extractors.Movies
 {
-    public class ExtractorInstance
+    public class MovieExtractorInstance
     {
-        public ExtractorInstance() { }
+        public MovieExtractorInstance() { }
 
         public IMovieExtractor GetMovieInstratorInstance()
         {
@@ -19,7 +20,7 @@ namespace MovManagerr.Core.Helpers.Extractors.Movies
             }
             else
             {
-                extractors.AddExtractor(new MovieExtractor(), 1);
+                extractors.AddExtractor(new GeneralMovieExtractor(), 1);
             }
 
             return extractors;

@@ -32,17 +32,11 @@
                     break;
             }
 
-
-
-
             <RadzenAlert Variant="Variant.Flat" AlertStyle="alertType" Icon="info_outline" Shade="Shade.Lighter" Size="AlertSize.Small" AllowClose=false>
                 <b>@(item.CreatedDate.ToShortDateString()) @(item.CreatedDate.ToLongTimeString()) : </b>  @((MarkupString)item.Log.Message)
             </RadzenAlert>
         }
-
-
     </div>
-
 </div>
 
 

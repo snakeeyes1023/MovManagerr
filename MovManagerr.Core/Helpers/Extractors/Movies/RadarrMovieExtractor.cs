@@ -1,10 +1,11 @@
-﻿using MovManagerr.Core.Helpers.Parsers;
+﻿using MovManagerr.Core.Helpers.Extractors.Shared;
+using MovManagerr.Core.Helpers.Parsers;
 
 namespace MovManagerr.Core.Helpers.Extractors.Movies
 {
     public class RadarrMovieExtractor : IMovieExtractor
     {
-        public FileMovieNameInfo ExtractFromFileName(string fileName)
+        public IExtractionResult ExtractFromFileName(string fileName)
         {
             var result = Parser.ParseMoviePath(fileName);
 

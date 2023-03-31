@@ -1,5 +1,8 @@
 ﻿@page "/import/serie"
 @using MovManagerr.Core.Data.Abstracts;
+@using MovManagerr.Core.Helpers.Extractors.Series
+@using MovManagerr.Core.Helpers.Extractors.Shared
+@using System.Threading;
 
 @inject ImportContentService ImportContentService
 @inject DialogService DialogService
@@ -29,6 +32,23 @@
 }
 else if (CurrentStep == ImportStep.validateImport)
 {
+    <RadzenPanelMenu>
+        @{
+            var seasons = ExtractionResults.OfType<EpisodeAnalyseResult>().GroupBy(x => x.Season).OrderBy(x => x.Key);
+        }
+        @foreach (var season in seasons)
+        {
+            <RadzenPanelMenuItem Text="@($"Saison {season.Key}")" Icon="tv" Expanded=true>
+                <RadzenGrid TItem="EpisodeAnalyseResult" Data="@season.ToList()" ColumnWidth="200px" Style="border-collapse:collapse">
+                    <Columns>
+                        <RadzenGridColumn TItem="EpisodeAnalyseResult" Property="EpisodeName" Title="Episode" />
+                        <RadzenGridColumn TItem="EpisodeAnalyseResult" Property="EpisodePath" Title="Chemin" />
+                        <RadzenGridColumn TItem="EpisodeAnalyseResult" Property="Episode" Title="Épisode" />
+                    </Columns>
+                </RadzenGrid>
+            </RadzenPanelMenuItem>
+        }
+    </RadzenPanelMenu>
 }
 
 
@@ -65,25 +85,32 @@ else if (CurrentStep == ImportStep.validateImport)
 
     private ImportStep CurrentStep { get; set; } = ImportStep.SelectFiles;
 
+    private ISerieExtractor SerieExtractor { get; set; }
+
+    private IList<IExtractionResult> ExtractionResults { get; set; }
+
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        SerieExtractor = (new SerieExtractorInstance()).GetSerieInstratorInstance();
+        ExtractionResults = new List<IExtractionResult>();
     }
 
     public Task BrowseFiles()
     {
-        return BrowseMovieFile(new OpenDialogProperty[] { OpenDialogProperty.openFile, OpenDialogProperty.multiSelections });
+        return BrowseSerie(new OpenDialogProperty[] { OpenDialogProperty.openFile, OpenDialogProperty.multiSelections });
     }
 
     public Task BrowseFolders()
     {
-        return BrowseMovieFile(new OpenDialogProperty[] { OpenDialogProperty.openDirectory, OpenDialogProperty.multiSelections });
+        return BrowseSerie(new OpenDialogProperty[] { OpenDialogProperty.openDirectory, OpenDialogProperty.multiSelections });
     }
 
     /// <summary>
     /// Opens a dialog to browse for movie files.
     /// </summary>
-    async Task BrowseMovieFile(OpenDialogProperty[] type)
+    async Task BrowseSerie(OpenDialogProperty[] type)
     {
         if (HybridSupport.IsElectronActive)
         {
@@ -102,42 +129,43 @@ else if (CurrentStep == ImportStep.validateImport)
                 Electron.Notification.Show(notOptions);
                 return;
             }
+            else
+            {
+                CurrentStep = ImportStep.validateImport;
+                StateHasChanged();
 
-            LoadPanel.ShowLoader();
+                LoadPanel.ShowLoader();
 
-            //foreach (var file in files)
-            //{
-            //    FileAttributes attr = File.GetAttributes(file);
+                foreach (string fileOrFolder in files)
+                {
+                    FileAttributes attr = File.GetAttributes(fileOrFolder);
 
-            //    if (attr.HasFlag(FileAttributes.Directory))
-            //    {
-            //        ProceedFolder(file);
-            //    }
-            //    else
-            //    {
-            //        AppendFileToPending(file);
-            //    }
-            //}
+                    if (attr.HasFlag(FileAttributes.Directory))
+                    {
+                        string[] extensions = { ".mkv", ".avi", ".mp4" };
+                        var medias = Directory.GetFiles(fileOrFolder, "*.*", SearchOption.AllDirectories)
+                            .Where(media => extensions.Contains(Path.GetExtension(media), StringComparer.OrdinalIgnoreCase))
+                            .ToList();
 
-            //// Set CurrentMovie to the first movie in the list
-            //if (CurrentMovie == null && PendingMovies.Count > 0)
-            //{
-            //    CurrentMovie = PendingMovies[0];
-            //    await LoadMovieData(CurrentMovie);
-            //}
+                        foreach (var file in medias)
+                        {
+                            ExtractFile(filePath: file);
+                        }
+                    }
+                    else
+                    {
+                        ExtractFile(filePath: fileOrFolder);
+                    }
+                }
 
-            LoadPanel.HideLoader();
+                LoadPanel.HideLoader();
+            }
         }
     }
 
-    private void ProceedFolder(string folder)
+    private void ExtractFile(string filePath)
     {
-        var files = Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
-            .Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi"));
-
-        foreach (var file in files)
-        {
-            //AppendFileToPending(file);
-        }
+        ExtractionResults.Add(SerieExtractor.ExtractFromFileName(filePath));
+        StateHasChanged();
     }
 }

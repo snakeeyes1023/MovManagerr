@@ -32,9 +32,9 @@ namespace M3USync.Tests
         [InlineData("D:\\MovieTask\\Downloads\\Done\\series\\Prison Break The Complete Series MULTi [1080p] BluRay x264-PopHD", 9, 4)]
         public void ExtractFullSeasonData(string path, int expectedEpisode, int expectedSeason)
         {
-            SerieExtractor extractor = new SerieExtractor();
+            var extractor = (new SerieExtractorInstance()).GetSerieInstratorInstance();
 
-            var result = extractor.ExtractSerie(path);
+            var result = extractor.ScanFolder(path);
 
 
             Assert.True(result != null);
